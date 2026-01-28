@@ -10,10 +10,12 @@ To set up the necessary ROS 2 packages, run the following command:
 
 ### Companion PC
 ```bash
-sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-gazebo-ros2-control
+sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-gazebo-ros2-control 
 sudo apt install python3-colcon-common-extensions
+sudo apt install ros-humble-xacro ros-humble-joint-state-publisher-gui
+sudo apt install ros-humble-gazebo-ros-pkgs ros-humble-twist-mux
 ```
-
+colcon build --symlink-install
 ```yaml
 network:
   version: 2
@@ -97,3 +99,38 @@ sudo apt install ros-humble-xacro ros-humble-joint-state-publisher-gui
 ```
 
 
+
+## CycloneDDS Configuration (VPN Setup)
+
+We use a **Strict VPN** configuration using Tailscale to ensure reliable connectivity between PC and Pi, avoiding local network routing conflicts.
+
+### Quick Setup (Persistence)
+Add these lines to your `~/.bashrc` on both the PC and Raspberry Pi:
+
+```bash
+export ROS_DOMAIN_ID=0
+export CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+```
+
+### Troubleshooting
+If connections fail:
+1. Ensure Tailscale is up: `tailscale status`
+2. Check env vars: `echo $CYCLONEDDS_URI`
+3. Restart ROS 2 daemon: `ros2 daemon stop`
+
+
+
+## Bash änderungen
+
+```bash
+alias ws='source install/setup.bash'
+alias build_ws= 'colcon build --symlink-install'
+
+
+source /opt/ros/humble/setup.bash
+source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
+export ROS_DOMAIN_ID=0
+export CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+```
