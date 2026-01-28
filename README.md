@@ -14,6 +14,7 @@ sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-
 sudo apt install python3-colcon-common-extensions
 sudo apt install ros-humble-xacro ros-humble-joint-state-publisher-gui
 sudo apt install ros-humble-gazebo-ros-pkgs ros-humble-twist-mux
+sudo apt install ros-humble-xacro ros-humble-joint-state-publisher-gui
 ```
 colcon build --symlink-install
 ```yaml
@@ -33,6 +34,7 @@ network:
 ### Raspberry Pi
 ```bash
 sudo apt-get install netplan.io python3-colcon-common-extensions
+sudo apt install libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
 ```
 Tailscale Installation:
 
@@ -95,7 +97,9 @@ Kurz prüfen (IP, Gateway, Tailscale):
 
 
 ```bash
-sudo apt install ros-humble-xacro ros-humble-joint-state-publisher-gui
+sudo usermod -aG video $USER
+vcgencmd get_camera
+v4l2-ctl --list-devices
 ```
 
 
