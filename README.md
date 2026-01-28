@@ -1,7 +1,99 @@
-## Robot Package Template
+# Robot
 
-This is a GitHub template. You can make your own copy by clicking the green "Use this template" button.
 
-It is recommended that you keep the repo/package name the same, but if you do change it, ensure you do a "Find all" using your IDE (or the built-in GitHub IDE by hitting the `.` key) and rename all instances of `my_bot` to whatever your project's name is.
+## 
+This repository contains code and configurations for a robot project using ROS 2 Humble and Gazebo simulation.
 
-Note that each directory currently has at least one file in it to ensure that git tracks the files (and, consequently, that a fresh clone has direcctories present for CMake to find). These example files can be removed if required (and the directories can be removed if `CMakeLists.txt` is adjusted accordingly).
+## Installation
+To set up the necessary ROS 2 packages, run the following command:
+
+
+### Companion PC
+```bash
+sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-gazebo-ros2-control
+sudo apt install python3-colcon-common-extensions
+```
+
+```yaml
+network:
+  version: 2
+  renderer: NetworkManager
+  
+  ethernets:
+    eth0:
+      dhcp4: no
+#      addresses: [192.168.178.50/24]
+      gateway4: 192.168.178.1
+      nameservers:
+        addresses: [192.168.178.1]
+```
+
+### Raspberry Pi
+```bash
+sudo apt-get install netplan.io python3-colcon-common-extensions
+```
+Tailscale Installation:
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+```
+
+Dienst aktivieren und starten:
+```bash
+sudo systemctl enable --now tailscaled
+```
+Tailscale anmelden:
+```bash
+sudo tailscale up
+```
+tailscale ssh nutzen um sich vom Companion PC auf den Raspberry Pi zu verbinden:
+```bash
+sudo tailscale set --ssh
+```
+
+Nützliche Prüfbefehle:
+```bash
+tailscale status
+tailscale ip
+ip addr show tailscale0
+sudo systemctl status tailscaled --no-pager
+```
+
+Backup vorhandener Netplan-Dateien:
+```bash
+sudo mkdir -p /etc/netplan/backup
+sudo cp /etc/netplan/*.yaml /etc/netplan/backup/backup-$(date +%F_%H%M%S).yaml
+```
+danach die neue Netplan-Konfiguration erstellen mit `nano /etc/netplan/50-wifi.yaml` und folgendem Inhalt: 
+
+```yaml
+# Network configuration for Raspberry Pi
+network:
+  version: 2
+  renderer: NetworkManager
+
+  wifis:
+    wlan0:
+      dhcp4: no
+      addresses: [192.168.178.45/24]
+      gateway4: 192.168.178.1
+      nameservers:
+        addresses: [192.168.178.1]
+      access-points:
+        "MochauMilkhome5G":
+          password: "//PS4kko!!//"
+```
+Generieren und anwenden:
+
+```bash
+sudo netplan generate
+sudo netplan apply
+```
+Kurz prüfen (IP, Gateway, Tailscale):
+
+
+```bash
+sudo apt install ros-humble-xacro ros-humble-joint-state-publisher-gui
+```
+
+
