@@ -15,8 +15,12 @@ def generate_launch_description():
             output='screen',
             namespace='camera',
             parameters=[{
+                'video_device': '/dev/video0',
+                'pixel_format': 'yuyv',
+                'output_encoding': 'bgr8',
                 'image_size': [640,480],
-                'time_per_frame': [1, 6],
+                # 'time_per_frame': [1, 6],
+                'framerate': 15.0,
                 'camera_frame_id': 'camera_link_optical'
                 }]
     )
