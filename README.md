@@ -33,7 +33,7 @@ network:
 
 ### Raspberry Pi
 ```bash
-sudo apt-get install netplan.io python3-colcon-common-extensions
+sudo apt-get install netplan.io python3-colcon-common-extensions libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
 sudo apt install libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
 ```
 Tailscale Installation:

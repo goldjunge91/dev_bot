@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!-- <?xml version="1.0" encoding="UTF-8"?>
 <CycloneDDS xmlns="https://cdds.io/config">
   <Domain Id="any">
     <General>
@@ -19,6 +19,23 @@
       </Peers>
       <ParticipantIndex>auto</ParticipantIndex>
       <MaxAutoParticipantIndex>40</MaxAutoParticipantIndex>
+    </Discovery>
+  </Domain>
+</CycloneDDS> -->
+<?xml version="1.0" encoding="UTF-8"?>
+<CycloneDDS xmlns="https://cdds.io/config">
+  <Domain Id="any">
+    <General>
+      <Interfaces>
+        <NetworkInterface name="tailscale0"/>
+      </Interfaces>
+      <AllowMulticast>false</AllowMulticast>
+    </General>
+    <Discovery>
+      <Peers>
+        <Peer Address="100.67.220.49"/>
+        <Peer Address="100.104.50.79"/>
+      </Peers>
     </Discovery>
   </Domain>
 </CycloneDDS>
