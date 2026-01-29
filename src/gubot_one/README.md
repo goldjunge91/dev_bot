@@ -13,8 +13,8 @@ To set up the necessary ROS 2 packages, run the following command:
 sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-gazebo-ros2-control 
 sudo apt install python3-colcon-common-extensions
 sudo apt install ros-humble-xacro ros-humble-joint-state-publisher-gui
-sudo apt install ros-humble-gazebo-ros-pkgs ros-humble-twist-mux
-sudo apt install ros-humble-xacro ros-humble-joint-state-publisher-gui
+sudo apt install ros-humble-gazebo-ros-pkgs ros-humble-twist-mux 
+sudo apt install libserial-dev v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
 ```
 colcon build --symlink-install
 ```yaml
@@ -35,6 +35,7 @@ network:
 ```bash
 sudo apt-get install netplan.io python3-colcon-common-extensions libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
 sudo apt install libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
+sudo apt install libserial-dev
 ```
 Tailscale Installation:
 
@@ -102,8 +103,6 @@ vcgencmd get_camera
 v4l2-ctl --list-devices
 ```
 
-
-
 ## CycloneDDS Configuration (VPN Setup)
 
 We use a **Strict VPN** configuration using Tailscale to ensure reliable connectivity between PC and Pi, avoiding local network routing conflicts.
@@ -122,8 +121,6 @@ If connections fail:
 1. Ensure Tailscale is up: `tailscale status`
 2. Check env vars: `echo $CYCLONEDDS_URI`
 3. Restart ROS 2 daemon: `ros2 daemon stop`
-
-
 
 ## Bash änderungen
 
@@ -149,6 +146,13 @@ CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
 ROS_DISTRO=humble
 RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
+
+cd src/
+git clone https://github.com/joshnewans/serial
+
+git clone https://github.com/joshnewans/diffdrive_arduino
+git branch -a
+git switch humble
 
 Simulation starten
 ros2 launch gubot_one launch_sim.launch.py world:=/home/ros/projects/my_new_robot/worlds/obstacles.world
