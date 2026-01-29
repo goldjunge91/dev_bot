@@ -20,7 +20,7 @@ def generate_launch_description():
         package='usb_cam',
         executable='usb_cam_node_exe',
         name='usb_cam',
-        namespace='real_camera',
+        # namespace='real_camera',  # Temporarily disabled - might cause crash
         output='screen',
         parameters=[{
             'video_device': '/dev/video0',
