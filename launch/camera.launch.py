@@ -17,7 +17,6 @@ def generate_launch_description():
             parameters=[{
                 'video_device': '/dev/video0',
                 'pixel_format': 'yuyv',
-                'output_encoding': 'bgr8',
                 'image_size': [640,480],
                 # 'time_per_frame': [1, 6],
                 'framerate': 15.0,
