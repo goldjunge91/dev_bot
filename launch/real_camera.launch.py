@@ -20,7 +20,7 @@ def generate_launch_description():
         package='usb_cam',
         executable='usb_cam_node_exe',
         name='usb_cam',
-        namespace=camera_namespace,
+        namespace='real_camera',
         output='screen',
         parameters=[{
             'video_device': '/dev/video0',
@@ -30,7 +30,7 @@ def generate_launch_description():
             'image_height': 480,
             'framerate': 15.0,
             'camera_name': 'real_cam',
-            'camera_frame_id': 'real_camera_link_optical',
+            'camera_frame_id': 'camera_link_optical',
         }]
     )
     
