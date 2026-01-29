@@ -129,12 +129,26 @@ If connections fail:
 
 ```bash
 alias ws='source install/setup.bash'
-alias build_ws= 'colcon build --symlink-install'
 
 
 source /opt/ros/humble/setup.bash
 source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
+
 export ROS_DOMAIN_ID=0
 export CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ```
+Umgebungsvariablen prüfen:
+
+printenv | grep -E "ROS|DDS|RMW"
+ROS_VERSION=2
+ROS_PYTHON_VERSION=3
+ROS_DOMAIN_ID=0
+ROS_LOCALHOST_ONLY=0
+CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
+ROS_DISTRO=humble
+RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
+
+Simulation starten
+ros2 launch gubot_one launch_sim.launch.py world:=/home/ros/projects/my_new_robot/worlds/obstacles.world
