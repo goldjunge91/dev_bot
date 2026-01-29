@@ -30,7 +30,7 @@ def generate_launch_description():
             'image_height': 480,
             'framerate': 15.0,
             'camera_name': 'real_cam',
-            'camera_frame_id': 'camera_link_optical',
+            'frame_id': 'camera_link_optical',
         }]
     )
     
