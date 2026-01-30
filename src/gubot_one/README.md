@@ -154,5 +154,24 @@ git clone https://github.com/joshnewans/diffdrive_arduino
 git branch -a
 git switch humble
 
-Simulation starten
-ros2 launch gubot_one launch_sim.launch.py world:=/home/ros/projects/my_new_robot/worlds/obstacles.world
+### Running the Simulation
+
+1.  **Source ROS 2 and Workspace:**
+    ```bash
+    source /opt/ros/humble/setup.bash
+    cd ~/projects/my_new_robot
+    colcon build --symlink-install --packages-select gubot_one
+    source install/setup.bash
+    # Or if you have the alias set up: ws
+    ```
+
+2.  **Launch Simulation:**
+    Make sure to use the correct path to the world file:
+    ```bash
+    ros2 launch gubot_one launch_sim.launch.py world:=~/projects/my_new_robot/src/gubot_one/worlds/obstacles.world use_sim:=true
+    ```
+
+    *Note: If you encounter "Entity already exists" errors, kill old processes first:*
+    ```bash
+    killall -9 gzserver gzclient
+    ```
