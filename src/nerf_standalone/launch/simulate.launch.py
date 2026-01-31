@@ -29,6 +29,7 @@ def generate_launch_description():
     node_robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
+        name="robot_state_publisher",
         output="screen",
         parameters=[robot_description, {"use_sim_time": True}],
     )
@@ -65,4 +66,20 @@ def generate_launch_description():
         arguments=["-d", rviz_config],
     )
 
-    return LaunchDescription([gazebo, node_robot_state_publisher, spawn_entity, rviz])
+    # Spawner for Joint State Broadcaster
+    joint_state_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster"],
+        output="screen",
+    )
+
+    return LaunchDescription(
+        [
+            gazebo,
+            node_robot_state_publisher,
+            spawn_entity,
+            joint_state_broadcaster_spawner,
+            rviz,
+        ]
+    )
