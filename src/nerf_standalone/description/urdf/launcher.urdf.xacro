@@ -101,6 +101,10 @@
                 <cylinder length="0.03" radius="0.015"/>
             </geometry>
         </collision>
+        <inertial>
+            <mass value="0.05"/>
+            <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+        </inertial>
     </link>
 
     <!-- Motor Right (Fixed to Magazinplatte) -->
@@ -122,6 +126,68 @@
                 <cylinder length="0.03" radius="0.015"/>
             </geometry>
         </collision>
+        <inertial>
+            <mass value="0.05"/>
+            <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+        </inertial>
+    </link>
+
+    <!-- Flywheel Left -->
+    <joint name="flywheel_left_joint" type="continuous">
+        <origin xyz="0 0 0.0" rpy="0 0 0"/> 
+        <parent link="motor_left"/>
+        <child link="flywheel_left"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="5.0" velocity="100.0"/>
+        <dynamics damping="0.01" friction="0.01"/>
+    </joint>
+
+    <link name="flywheel_left">
+        <visual>
+            <origin xyz="0.08928 0.002734 0" rpy="-1.5708 0 0"/>
+            <geometry>
+                <mesh filename="file://$(find nerf_standalone)/description/meshes/Launcher_wheel_left.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="red"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.02" radius="0.02"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.05"/>
+            <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00002"/>
+        </inertial>
+    </link>
+
+    <!-- Flywheel Right -->
+    <joint name="flywheel_right_joint" type="continuous">
+        <origin xyz="0 0 0.005" rpy="0 0 0"/> 
+        <parent link="motor_right"/>
+        <child link="flywheel_right"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="5.0" velocity="100.0"/>
+        <dynamics damping="0.01" friction="0.01"/>
+    </joint>
+
+    <link name="flywheel_right">
+        <visual>
+            <origin xyz="0.08928 0.002734 0" rpy="-1.5708 0 0"/>
+            <geometry>
+                <mesh filename="file://$(find nerf_standalone)/description/meshes/Launcher_wheel_right.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="blue"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.02" radius="0.02"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.05"/>
+            <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00002"/>
+        </inertial>
     </link>
 
     <xacro:include filename="ros2_control.xacro" />
