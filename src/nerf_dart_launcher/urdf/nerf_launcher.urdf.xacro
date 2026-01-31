@@ -1,0 +1,186 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+        <xacro:macro name="nerf_launcher" params="parent *origin">
+
+                <!-- Joint to attach the launcher to the parent robot -->
+                <joint name="nerf_launcher_mount_joint" type="fixed">
+                        <xacro:insert_block name="origin" />
+                        <parent link="${parent}" />
+                        <child link="Motor_und_Magazinplatte" />
+                </joint>
+
+                <link name="Motor_und_Magazinplatte">
+                        <inertial>
+                                <origin xyz="-0.004359795554973456 0.03358258183969927 0.001265120837734419" rpy="0.0 0.0 0.0" />
+                                <mass value="0.24458145922412514" />
+                                <inertia ixx="0.0003647641226204799" iyy="0.00013686964150421205" izz="0.0004819759926625069" ixy="2.0860948198504204e-05" iyz="-1.3010298439075528e-05" ixz="1.0722200926243334e-05" />
+                        </inertial>
+                        <visual>
+                                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Motor_und_Magazinplatte.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                                <material name="dark_grey">
+                                        <color rgba="0.2 0.2 0.2 1.0"/>
+                                </material>
+                        </visual>
+                        <collision>
+                                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Motor_und_Magazinplatte.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                        </collision>
+                </link>
+
+                <link name="Montageplatte">
+                        <inertial>
+                                <origin xyz="-0.01475696086461896 0.035654652982680536 -0.013863007952839576" rpy="-2.4600458649679455e-91 -0.0 0.0" />
+                                <mass value="0.2021986172178209" />
+                                <inertia ixx="0.0004164048980779426" iyy="5.362127850968902e-05" izz="0.0003755793053200324" ixy="1.5574886339584447e-05" iyz="1.294564632218199e-06" ixz="9.440243990827335e-08" />
+                        </inertial>
+                        <visual>
+                                <origin xyz="0.0011922341116771707 0.10354220594792399 -0.08892309163261518" rpy="-3.141592653589793 -1.5707963267948961 0" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Montageplatte.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                                <material name="orange">
+                                        <color rgba="1.0 0.5 0.0 1.0"/>
+                                </material>
+                        </visual>
+                        <collision>
+                                <origin xyz="0.0011922341116771707 0.10354220594792399 -0.08892309163261518" rpy="-3.141592653589793 -1.5707963267948961 0" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Montageplatte.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                        </collision>
+                </link>
+
+                <joint name="trigger_joint" type="revolute">
+                        <origin xyz="0.013700002396642215 0.09803429898457079 5.2355448865171186e-11" rpy="-1.5707304396707225 -1.4744091283492464 -1.5707963267948832" />
+                        <parent link="Motor_und_Magazinplatte" />
+                        <child link="Montageplatte" />
+                        <axis xyz="0 0 1" />
+                        <limit lower="0.0" upper="1.22173" effort="10.0" velocity="10.0" />
+                </joint>
+
+                <link name="Dart-Tray">
+                        <inertial>
+                                <origin xyz="-0.00010653839468144038 -0.025288447180155806 -0.04791181620740161" rpy="0.0 -0.0 -3.985051008122404e-66" />
+                                <mass value="0.3738306581420113" />
+                                <inertia ixx="0.0007705630795353672" iyy="0.0005242439068715325" izz="0.0002956222039192135" ixy="1.47298558348824e-06" iyz="-2.5974240771499857e-05" ixz="2.161764697209049e-07" />
+                        </inertial>
+                        <visual>
+                                <origin xyz="0.009995371385116589 0.07019349865745103 -0.09591296688796005" rpy="0.0963871984456486 -2.0429366615881725e-15 -3.141526766465599" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Dart-Tray.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                                <material name="black">
+                                        <color rgba="0.1 0.1 0.1 1.0"/>
+                                </material>
+                        </visual>
+                        <collision>
+                                <origin xyz="0.009995371385116589 0.07019349865745103 -0.09591296688796005" rpy="0.0963871984456486 -2.0429366615881725e-15 -3.141526766465599" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Dart-Tray.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                        </collision>
+                </link>
+
+                <joint name="Motor_und_Magazinplatte_Starr-1" type="fixed">
+                        <origin xyz="5.068941492999556e-09 0.03633437473973884 -0.0010000001640259493" rpy="-3.0452054553520647 -6.3408463920637605e-06 6.558129917668899e-05" />
+                        <parent link="Motor_und_Magazinplatte" />
+                        <child link="Dart-Tray" />
+                </joint>
+
+                <!-- Left Flywheel Motor -->
+                <link name="Racerstar-BR2205-2300KV">
+                        <visual>
+                                <origin xyz="-3.801794399294067e-09 1.9128933992362817e-11 2.0267300948617618e-09" rpy="-1.6390580001891346 0.06810318885371751 0.7831378305873457" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Racerstar-BR2205-2300KV.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                                <material name="silver">
+                                        <color rgba="0.8 0.8 0.8 1.0"/>
+                                </material>
+                        </visual>
+                </link>
+                <joint name="Motor_und_Magazinplatte_Starr-2" type="fixed">
+                        <origin xyz="0.02250000380179312 0.0010342982673410494 2.01918775033505e-09" rpy="-3.0452054553520647 -6.3408463920637605e-06 6.558129917668899e-05" />
+                        <parent link="Motor_und_Magazinplatte" />
+                        <child link="Racerstar-BR2205-2300KV" />
+                </joint>
+
+                <link name="Launcher_wheel">
+                        <visual>
+                                <origin xyz="0.02716666713556573 0.004914418598712436 -0.08591500341696692" rpy="1.2631460250780786 1.2473817907857274 -0.29261124738612854" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Launcher_wheel.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                        </visual>
+                </link>
+                <joint name="flywheel_left_joint" type="continuous">
+                        <origin xyz="1.100000000020529e-07 -0.0016841700000000026 -0.01741877" rpy="1.5707963267948966 4.857226566884431e-17 1.418735199579997e-21" />
+                        <parent link="Racerstar-BR2205-2300KV" />
+                        <child link="Launcher_wheel" />
+                        <axis xyz="0 1 0" />
+                </joint>
+
+                <!-- Right Flywheel Motor -->
+                <link name="Racerstar-BR2205-2300KV1">
+                        <visual>
+                                <origin xyz="-3.7041193934328477e-09 -4.901457661965481e-09 2.0267302014431722e-09" rpy="-1.639058000189134 0.06810318885371679 0.7831378305873479" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Racerstar-BR2205-2300KV1.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                                <material name="silver"/>
+                        </visual>
+                </link>
+                <joint name="Motor_und_Magazinplatte_Starr-3" type="fixed">
+                        <origin xyz="-0.02249999629555762 0.0010342933695876866 1.5456397051138993e-09" rpy="-3.0452054553520647 -6.3408463920637605e-06 6.558129917668899e-05" />
+                        <parent link="Motor_und_Magazinplatte" />
+                        <child link="Racerstar-BR2205-2300KV1" />
+                </joint>
+
+                <link name="Launcher_wheel_v1">
+                        <visual>
+                                <origin xyz="0.018842831951028576 0.004700465957601905 -0.0881272922158252" rpy="1.1412271251111257 1.3376136560680079 -0.4192673044951444" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Launcher_wheel_v1.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                        </visual>
+                </link>
+                <joint name="flywheel_right_joint" type="continuous">
+                        <origin xyz="1.100000000020529e-07 -0.0016841699999999983 -0.01741877" rpy="1.5707963267948966 4.1633371764937074e-17 1.418735199579997e-21" />
+                        <parent link="Racerstar-BR2205-2300KV1" />
+                        <child link="Launcher_wheel_v1" />
+                        <axis xyz="0 1 0" />
+                </joint>
+
+                <!-- Servo -->
+                <link name="Servo-TD8320MG-TD8325MG">
+                        <visual>
+                                <origin xyz="-0.004998332736296394 -0.0252429939884319 -0.00805809992809504" rpy="1.5707963267948957 -0.09638719844564837 -1.5707304396707011" />
+                                <geometry>
+                                        <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Servo-TD8320MG-TD8325MG.stl" scale="0.001 0.001 0.001" />
+                                </geometry>
+                                <material name="black"/>
+                        </visual>
+                </link>
+                <joint name="Motor_und_Magazinplatte_Starr-4" type="fixed">
+                        <origin xyz="-0.015600004086274013 0.029634297052906267 0.0239999988873598" rpy="-3.0452054553520647 -6.3408463920637605e-06 6.558129917668899e-05" />
+                        <parent link="Motor_und_Magazinplatte" />
+                        <child link="Servo-TD8320MG-TD8325MG" />
+                </joint>
+
+                <!-- 360 Servo (Turret rotation) TODO: This seems to be the yaw joint -->
+                <!-- The structure in exported URDF is weird. "Turret" and "Nerf-Dart-Launcher_360_servo" are children of Motorbracket... 
+         usually the motor bracket would be ON the turret. 
+         Assuming the provided hierarchy is: Parent (Robot) -> Motorbracket -> Turret? 
+         Wait, let's look at the URDF again:
+         Motorbracket -> Turret (fixed)
+         Motorbracket -> Servo (fixed) -> 360_servo (continuous)? 
+    -->
+
+        </xacro:macro>
+</robot>

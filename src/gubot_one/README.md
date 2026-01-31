@@ -162,16 +162,27 @@ git switch humble
     cd ~/projects/my_new_robot
     colcon build --symlink-install --packages-select gubot_one
     source install/setup.bash
-    # Or if you have the alias set up: ws
+    ```
+
+    ```bash
+    source /opt/ros/humble/setup.bash
+    cd ~/projects/my_new_robot
+    colcon build --symlink-install
+    source install/setup.bash
     ```
 
 2.  **Launch Simulation:**
     Make sure to use the correct path to the world file:
     ```bash
-    ros2 launch gubot_one launch_sim.launch.py world:=~/projects/my_new_robot/src/gubot_one/worlds/obstacles.world use_sim:=true
+    ros2 launch gubot_one launch_sim.launch.py
+    ros2 launch gubot_one launch_sim.launch.py world:=src/gubot_one/worlds/obstacles.world use_sim:=true
+    ros2 launch gubot_one launch_sim.launch.py world:=/home/ros/projects/my_new_robot/src/gubot_one/worlds/obstacles.world
     ```
+    
 
     *Note: If you encounter "Entity already exists" errors, kill old processes first:*
     ```bash
     killall -9 gzserver gzclient
+    pkill -9 gzserver && pkill -9 gzclient && pkill -9 rviz2 && pkill -9 ros2
+    ps aux | grep -E "(gzserver|gzclient|launch)" | grep -v grep
     ```

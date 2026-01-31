@@ -1,0 +1,272 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- 
+    Nerf Launcher Macro - Simulation Optimized
+    Based on Dart.urdf export but using simplified collision geometry
+  -->
+  <xacro:macro name="nerf_launcher" params="parent_link xyz:='0.0 0.0 0.0' rpy:='0.0 0.0 0.0' tf_prefix:='' launcher_angle:=0.0">
+
+    <xacro:property name="prefix" value="${tf_prefix + '_' if tf_prefix != '' else ''}" />
+
+    <!-- Mount Link (Fixed to parent) -->
+    <joint name="${parent_link.rstrip('_link')}_to_${prefix}nerf_mount_joint" type="fixed">
+      <origin xyz="${xyz}" rpy="${rpy}" />
+      <parent link="${parent_link}" />
+      <child link="${prefix}nerf_mount_link" />
+    </joint>
+    <link name="${prefix}nerf_mount_link" />
+
+    <!-- Pan Servo Joint (Rotates the whole bracket) -->
+    <joint name="pan_servo_joint" type="revolute">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="${prefix}nerf_mount_link" />
+      <child link="Motor_und_Magazinplatte" />
+      <axis xyz="0 0 1" />
+      <limit lower="-1.57" upper="1.57" effort="5.0" velocity="2.0" />
+    </joint>
+
+    <!-- User Exported Root Link: Motorbracket -->
+    <link name="Motor_und_Magazinplatte">
+      <inertial>
+        <origin xyz="-0.004359795554973456 0.03358258183969927 0.001265120837734419" rpy="0 0 0" />
+        <mass value="0.24458145922412514" />
+        <inertia ixx="0.0003647641226204799" iyy="0.00013686964150421205" izz="0.0004819759926625069" ixy="2.0860948198504204e-05" iyz="-1.3010298439075528e-05" ixz="1.0722200926243334e-05" />
+      </inertial>
+      <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        <geometry>
+          <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Motor_und_Magazinplatte.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <material name="dark_grey">
+          <color rgba="0.2 0.2 0.2 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0.05 0" rpy="0 0 0" />
+        <geometry>
+          <box size="0.08 0.12 0.03"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Hinge Short (Tilt Mechanism) -->
+    <joint name="tilt_servo_joint" type="revolute">
+      <origin xyz="0.013700002396642215 0.09803429898457079 0" rpy="-1.5707304396707225 -1.4744091283492464 -1.5707963267948832" />
+      <parent link="Motor_und_Magazinplatte" />
+      <child link="Montageplatte" />
+      <axis xyz="0 0 1" />
+      <limit lower="0.0" upper="1.22173" effort="10.0" velocity="10.0" />
+    </joint>
+
+    <link name="Montageplatte">
+      <inertial>
+        <origin xyz="-0.01475696086461896 0.035654652982680536 -0.013863007952839576" rpy="0 0 0" />
+        <mass value="0.2021986172178209" />
+        <inertia ixx="0.0004164048980779426" iyy="5.362127850968902e-05" izz="0.0003755793053200324" ixy="1.5574886339584447e-05" iyz="1.294564632218199e-06" ixz="9.440243990827335e-08" />
+      </inertial>
+      <visual>
+        <origin xyz="0.0011922341116771707 0.10354220594792399 -0.08892309163261518" rpy="-3.141592653589793 -1.5707963267948961 0" />
+        <geometry>
+          <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Montageplatte.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <material name="orange">
+          <color rgba="1.0 0.5 0.0 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0.1 -0.09" rpy="0 0 0" />
+        <geometry>
+          <box size="0.04 0.02 0.02"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Attached Parts: Dart Tray -->
+    <link name="Dart-Tray">
+      <inertial>
+        <origin xyz="-0.00010653839468144038 -0.025288447180155806 -0.04791181620740161" rpy="0 0 0" />
+        <mass value="0.3738306581420113" />
+        <inertia ixx="0.0007705630795353672" iyy="0.0005242439068715325" izz="0.0002956222039192135" ixy="1.47298558348824e-06" iyz="-2.5974240771499857e-05" ixz="2.161764697209049e-07" />
+      </inertial>
+      <visual>
+        <origin xyz="0.009995371385116589 0.07019349865745103 -0.09591296688796005" rpy="0.0963871984456486 0 -3.141526766465599" />
+        <geometry>
+          <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Dart-Tray.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <material name="black">
+          <color rgba="0.1 0.1 0.1 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0.07 -0.096" rpy="0.0963871984456486 0 0" />
+        <geometry>
+          <box size="0.06 0.05 0.12"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="Motor_und_Magazinplatte_Starr-1" type="fixed">
+      <origin xyz="0 0.03633437473973884 -0.0010000001640259493" rpy="-3.0452054553520647 0 0" />
+      <parent link="Motor_und_Magazinplatte" />
+      <child link="Dart-Tray" />
+    </joint>
+
+    <!-- Left Flywheel Motor -->
+    <link name="Racerstar-BR2205-2300KV">
+      <inertial>
+        <origin xyz="0 -0.0007339570689727548 -0.00881189168728227" rpy="0 0 0" />
+        <mass value="0.062400101460318526" />
+        <inertia ixx="4.499632803687365e-06" iyy="4.5891481842654696e-06" izz="5.8317789246674205e-06" ixy="0" iyz="0" ixz="0" />
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="-1.6390580001891346 0.06810318885371751 0.7831378305873457" />
+        <geometry>
+          <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Racerstar-BR2205-2300KV.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <material name="silver">
+          <color rgba="0.8 0.8 0.8 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 -0.009" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="0.012" length="0.02"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="Motor_und_Magazinplatte_Starr-2" type="fixed">
+      <origin xyz="0.0225 0.0010342982673410494 0" rpy="-3.0452054553520647 0 0" />
+      <parent link="Motor_und_Magazinplatte" />
+      <child link="Racerstar-BR2205-2300KV" />
+    </joint>
+
+    <link name="Launcher_wheel">
+      <inertial>
+        <origin xyz="0 0.0028107888717013906 -0.0002718008458635568" rpy="0 0 0" />
+        <mass value="0.05069354299067629" />
+        <inertia ixx="7.110260968347819e-06" iyy="1.1882062018701812e-05" izz="7.135754318946734e-06" ixy="0" iyz="0" ixz="0" />
+      </inertial>
+      <visual>
+        <origin xyz="0.02716666713556573 0.004914418598712436 -0.08591500341696692" rpy="1.2631460250780786 1.2473817907857274 -0.29261124738612854" />
+        <geometry>
+          <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Launcher_wheel.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <material name="orange"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 1.57079632679 0" />
+        <geometry>
+          <cylinder radius="0.03" length="0.02"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="esc_left_joint" type="continuous">
+      <origin xyz="0 -0.00168417 -0.01741877" rpy="1.5707963267948966 0 0" />
+      <parent link="Racerstar-BR2205-2300KV" />
+      <child link="Launcher_wheel" />
+      <axis xyz="0 -0.995358 0.096238" />
+    </joint>
+
+    <!-- Right Flywheel Motor -->
+    <link name="Racerstar-BR2205-2300KV1">
+      <inertial>
+        <origin xyz="0 -0.0007339619895593552 -0.008811891687282207" rpy="0 0 0" />
+        <mass value="0.062400101460318526" />
+        <inertia ixx="4.499632803687311e-06" iyy="4.589148184265524e-06" izz="5.831778924667502e-06" ixy="0" iyz="0" ixz="0" />
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="-1.639058000189134 0.06810318885371679 0.7831378305873479" />
+        <geometry>
+          <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Racerstar-BR2205-2300KV1.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <material name="silver"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 -0.009" rpy="0 0 0" />
+        <geometry>
+          <cylinder radius="0.012" length="0.02"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="Motor_und_Magazinplatte_Starr-3" type="fixed">
+      <origin xyz="-0.0225 0.0010342933695876866 0" rpy="-3.0452054553520647 0 0" />
+      <parent link="Motor_und_Magazinplatte" />
+      <child link="Racerstar-BR2205-2300KV1" />
+    </joint>
+
+    <link name="Launcher_wheel_v1">
+      <inertial>
+        <origin xyz="0 0.0028107889863127956 -0.00027179473970162515" rpy="0 0 0" />
+        <mass value="0.05069354299067629" />
+        <inertia ixx="7.111397256134313e-06" iyy="1.1882051413700434e-05" izz="7.134628636162468e-06" ixy="0" iyz="0" ixz="0" />
+      </inertial>
+      <visual>
+        <origin xyz="0.018842831951028576 0.004700465957601905 -0.0881272922158252" rpy="1.1412271251111257 1.3376136560680079 -0.4192673044951444" />
+        <geometry>
+          <mesh filename="package://robot_description/meshes/nerf_launcher/meshes/Launcher_wheel_v1.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <material name="orange"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 1.57079632679 0" />
+        <geometry>
+          <cylinder radius="0.03" length="0.02"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="esc_right_joint" type="continuous">
+      <origin xyz="0 -0.0016841699999999983 -0.01741877" rpy="1.5707963267948966 0 0" />
+      <parent link="Racerstar-BR2205-2300KV1" />
+      <child link="Launcher_wheel_v1" />
+      <axis xyz="0 -0.9953579999999999 0.096238" />
+    </joint>
+
+    <!-- ros2_control Hardware Interfaces for Nerf Launcher -->
+    <ros2_control name="nerf_launcher" type="system">
+      <hardware>
+        <plugin>ign_ros2_control/IgnitionSystem</plugin>
+      </hardware>
+      
+      <!-- Pan Servo (rotates entire assembly left/right) -->
+      <joint name="pan_servo_joint">
+        <command_interface name="position">
+          <param name="min">-1.57</param>
+          <param name="max">1.57</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      
+      <!-- Tilt Servo (pitches launcher up/down) -->
+      <joint name="tilt_servo_joint">
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">1.22173</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      
+      <!-- Left Flywheel (velocity control) -->
+      <joint name="esc_left_joint">
+        <command_interface name="velocity">
+          <param name="min">-100.0</param>
+          <param name="max">100.0</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      
+      <!-- Right Flywheel (velocity control) -->
+      <joint name="esc_right_joint">
+        <command_interface name="velocity">
+          <param name="min">-100.0</param>
+          <param name="max">100.0</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+
+  </xacro:macro>
+</robot>
