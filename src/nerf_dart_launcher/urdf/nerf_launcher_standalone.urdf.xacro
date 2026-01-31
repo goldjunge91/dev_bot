@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.w3.org/wiki/xacro" name="nerf_launcher_only">
+    
+    <!-- Include the nerf launcher URDF directly -->
+    <xacro:include filename="$(find nerf_dart_launcher)/urdf/nerf_launcher.urdf.xacro" />
+    
+    <!-- Define a world link as root -->
+    <link name="world"/>
+    
+    <!-- Attach launcher directly to world with fixed joint -->
+    <xacro:nerf_launcher parent="world">
+        <origin xyz="0 0 0.2" rpy="0 0 0" />
+    </xacro:nerf_launcher>
+    
+    <!-- ros2_control for simulation -->
+    <ros2_control name="NerfLauncherGazeboSystem" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+        
+        <xacro:include filename="$(find nerf_dart_launcher)/urdf/nerf_launcher_ros2_control.xacro" />
+        <xacro:nerf_launcher_ros2_control_joints />
+    </ros2_control>
+    
+    <!-- Gazebo plugin -->
+    <gazebo>
+        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+            <robot_param>robot_description</robot_param>
+            <robot_param_node>robot_state_publisher</robot_param_node>
+        </plugin>
+    </gazebo>
+
+</robot>

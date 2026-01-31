@@ -4,26 +4,26 @@ Arduino firmware for controlling a Nerf dart launcher.
 
 ## Hardware
 
-| Component | Pin | Description |
-|-----------|-----|-------------|
-| ESC Motor 1 | D2 | Left flywheel (0-80%) |
-| ESC Motor 2 | D3 | Right flywheel (0-80%) |
-| Shot Servo | D4 | 360° continuous (dart pusher) |
-| Tilt Servo | D5 | 0-180° (up/down) |
-| UART TX | TX1 (D1) | Debug via USB-TTL |
-| UART RX | RX1 (D0) | Debug via USB-TTL |
+| Component   | Pin      | Description                   |
+| ----------- | -------- | ----------------------------- |
+| ESC Motor 1 | D2       | Left flywheel (0-80%)         |
+| ESC Motor 2 | D3       | Right flywheel (0-80%)        |
+| Shot Servo  | D4       | 360° continuous (dart pusher) |
+| Tilt Servo  | D5       | 0-180° (up/down)              |
+| UART TX     | TX1 (D1) | Debug via USB-TTL             |
+| UART RX     | RX1 (D0) | Debug via USB-TTL             |
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `ARM` | Arm the system |
-| `DISARM` | Disarm (safe state) |
-| `SHOT [0-80]` | Fire with optional power (default: 40%) |
-| `ESC <0-80>` | Manual ESC control (armed only) |
-| `TILT <0-180>` | Set tilt angle |
-| `STOP` | Emergency stop |
-| `STATUS` | Get armed state |
+| Command        | Description                             |
+| -------------- | --------------------------------------- |
+| `ARM`          | Arm the system                          |
+| `DISARM`       | Disarm (safe state)                     |
+| `SHOT [0-80]`  | Fire with optional power (default: 40%) |
+| `ESC <0-80>`   | Manual ESC control (armed only)         |
+| `TILT <0-180>` | Set tilt angle                          |
+| `STOP`         | Emergency stop                          |
+| `STATUS`       | Get armed state                         |
 
 ## Debug Setup
 
@@ -37,7 +37,7 @@ screen /dev/ttyUSB0 115200
 The Arduino connects via USB to the Raspberry Pi. Use the `nerf_launcher_node`:
 
 ```bash
-ros2 launch robot_nerf_launcher nerf_launcher.launch.py serial_port:=/dev/ttyACM0
+ros2 launch nerf_dart_launcher nerf_launcher.launch.py serial_port:=/dev/ttyACM0
 ```
 
 Topics:

@@ -28,7 +28,7 @@
                         <collision>
                                 <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
                                 <geometry>
-                                        <box size="0.06 0.08 0.02"/>
+                                        <mesh filename="file://$(find nerf_dart_launcher)/description/meshes/Motor_und_Magazinplatte.stl" scale="0.001 0.001 0.001" />
                                 </geometry>
                         </collision>
                 </link>
@@ -51,7 +51,7 @@
                         <collision>
                                 <origin xyz="0.0011922341116771707 0.10354220594792399 -0.08892309163261518" rpy="-3.141592653589793 -1.5707963267948961 0" />
                                 <geometry>
-                                        <box size="0.05 0.1 0.02"/>
+                                        <mesh filename="file://$(find nerf_dart_launcher)/description/meshes/Montageplatte.stl" scale="0.001 0.001 0.001" />
                                 </geometry>
                         </collision>
                 </link>
@@ -83,7 +83,7 @@
                         <collision>
                                 <origin xyz="0.009995371385116589 0.07019349865745103 -0.09591296688796005" rpy="0.0963871984456486 -2.0429366615881725e-15 -3.141526766465599" />
                                 <geometry>
-                                        <box size="0.03 0.08 0.1"/>
+                                        <mesh filename="file://$(find nerf_dart_launcher)/description/meshes/Dart-Tray.stl" scale="0.001 0.001 0.001" />
                                 </geometry>
                         </collision>
                 </link>

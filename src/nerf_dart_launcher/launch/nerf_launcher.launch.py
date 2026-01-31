@@ -29,7 +29,7 @@ def generate_launch_description():
                 description="Serial baud rate",
             ),
             Node(
-                package="robot_nerf_launcher",
+                package="nerf_dart_launcher",
                 executable="nerf_launcher_node",
                 namespace=namespace,
                 name="nerf_launcher",

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>robot_nerf_launcher</name>
+  <name>nerf_dart_launcher</name>
   <version>0.0.0</version>
   <description>Nerf launcher control and interfaces for the my_steel robot.</description>
   <maintainer email="30201929+goldjunge91@users.noreply.github.com">marco</maintainer>
