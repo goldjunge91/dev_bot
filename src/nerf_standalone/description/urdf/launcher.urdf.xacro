@@ -8,7 +8,19 @@
     <material name="grey">
         <color rgba="0.5 0.5 0.5 1.0"/>
     </material>
-    
+
+    <material name="blue">
+        <color rgba="0.2 0.2 1 1"/>
+    </material>
+
+    <!-- <material name="black">
+        <color rgba="0 0 0 1"/>
+    </material> -->
+
+    <material name="red">
+        <color rgba="1 0 0 1"/>
+    </material>
+
     <link name="world"/>
 
     <joint name="world_to_montage_joint" type="fixed">
@@ -37,18 +49,20 @@
     </link>
 
     <joint name="trigger_joint" type="revolute">
-        <origin xyz="0 0.0975 -0.013768" rpy="3.14159 -1.5708 0"/>
+        <!-- <origin xyz="0 0.0975 -0.013768" rpy="3.14159 -1.5708 0"/> -->
+        <origin xyz="0 0 0" rpy="3.14159 -1.5708 0"/>
         <parent link="Montageplatte"/>
         <child link="Motor_und_Magazinplatte"/>
-        <axis xyz="1 0 0"/>
-        <limit lower="0.0" upper="1.5708" effort="10.0" velocity="1.0"/>
+        <axis xyz="-1 0 0"/>
+        <limit lower="0.0" upper="2.1" effort="10.0" velocity="1.0"/>
         <dynamics damping="0.1" friction="0.1"/>
     </joint>
 
     <link name="Motor_und_Magazinplatte">
         <visual>
-             <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
+             <origin xyz="-0.013735 -0.0982192 0.0" rpy="0 0 0"/>
+             <!-- <origin xyz="-0.013735 -0.0991 0.0005" rpy="0 0 0"/> -->
+             <geometry>
                 <mesh filename="file://$(find nerf_standalone)/description/meshes/Motor_und_Magazinplatte.stl" scale="0.001 0.001 0.001"/>
             </geometry>
             <material name="grey">
@@ -65,6 +79,49 @@
             <mass value="0.25"/>
             <inertia ixx="0.00036" ixy="0" ixz="0" iyy="0.00014" iyz="0" izz="0.00048"/>
         </inertial>
+    </link>
+
+    <!-- Motor Left (Fixed to Magazinplatte) -->
+    <!-- Rotated -90 degrees around X (Counter-Clockwise if looking from front? Or standard?) -->
+    <joint name="motor_left_joint" type="fixed">
+        <origin xyz="0.055 0.035 0.02" rpy="-1.5708 3.1416 0"/> 
+        <parent link="Motor_und_Magazinplatte"/>
+        <child link="motor_left"/>
+    </joint>
+
+    <link name="motor_left">
+        <visual>
+            <geometry>
+                <mesh filename="file://$(find nerf_standalone)/description/meshes/motor_left.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="red"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.03" radius="0.015"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Motor Right (Fixed to Magazinplatte) -->
+    <joint name="motor_right_joint" type="fixed">
+        <origin xyz="0.055 0.035 -0.02" rpy="-1.5708 3.1416 0"/> 
+        <parent link="Motor_und_Magazinplatte"/>
+        <child link="motor_right"/>
+    </joint>
+
+    <link name="motor_right">
+        <visual>
+            <geometry>
+                <mesh filename="file://$(find nerf_standalone)/description/meshes/motor_right.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="blue"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.03" radius="0.015"/>
+            </geometry>
+        </collision>
     </link>
 
     <xacro:include filename="ros2_control.xacro" />

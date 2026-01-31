@@ -41,6 +41,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "verbose": "true",
+            "gui": "false",
             # Required plugins for successful spawning
             "server_required_plugins": "libgazebo_ros_init.so libgazebo_ros_factory.so",
         }.items(),
@@ -55,7 +56,7 @@ def generate_launch_description():
     )
 
     # RViz Config
-    rviz_config = os.path.join(pkg_nerf, "config", "view.rviz")
+    rviz_config = os.path.join(pkg_nerf, "config", "view_v1.rviz")
 
     # RViz
     rviz = Node(
