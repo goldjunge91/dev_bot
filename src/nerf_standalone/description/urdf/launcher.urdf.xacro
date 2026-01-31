@@ -84,7 +84,7 @@
     <!-- Motor Left (Fixed to Magazinplatte) -->
     <!-- Rotated -90 degrees around X (Counter-Clockwise if looking from front? Or standard?) -->
     <joint name="motor_left_joint" type="fixed">
-        <origin xyz="0.055 0.035 0.02" rpy="-1.5708 3.1416 0"/> 
+        <origin xyz="0.01 -0.09600 0" rpy="-1.5708 3.1416 0"/> 
         <parent link="Motor_und_Magazinplatte"/>
         <child link="motor_left"/>
     </joint>
@@ -105,7 +105,7 @@
 
     <!-- Motor Right (Fixed to Magazinplatte) -->
     <joint name="motor_right_joint" type="fixed">
-        <origin xyz="0.055 0.035 -0.02" rpy="-1.5708 3.1416 0"/> 
+        <origin xyz="-0.035 -0.0960 0" rpy="-1.5708 3.1416 0"/> 
         <parent link="Motor_und_Magazinplatte"/>
         <child link="motor_right"/>
     </joint>
