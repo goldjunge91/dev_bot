@@ -74,12 +74,21 @@ def generate_launch_description():
         output="screen",
     )
 
+    # Spawner for Trigger Controller
+    trigger_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["trigger_controller"],
+        output="screen",
+    )
+
     return LaunchDescription(
         [
             gazebo,
             node_robot_state_publisher,
             spawn_entity,
             joint_state_broadcaster_spawner,
+            trigger_controller_spawner,
             rviz,
         ]
     )

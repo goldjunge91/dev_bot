@@ -1,32 +1,15 @@
 controller_manager:
   ros__parameters:
-    update_rate: 30
+    update_rate: 100 # Increased rate to match sim better
     use_sim_time: true
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    flywheel_controller:
-      type: velocity_controllers/JointGroupVelocityController
-
     trigger_controller:
       type: position_controllers/JointGroupPositionController
-
-    pusher_controller:
-      type: position_controllers/JointGroupPositionController
-
-flywheel_controller:
-  ros__parameters:
-    joints:
-      - flywheel_left_joint
-      - flywheel_right_joint
 
 trigger_controller:
   ros__parameters:
     joints:
       - trigger_joint
-
-pusher_controller:
-  ros__parameters:
-    joints:
-      - dart_pusher_joint
