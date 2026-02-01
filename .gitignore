@@ -1,3 +1,6 @@
 install/
 build/
 log/
+__pycache__/
+src/nerf_standalone/nerf_standalone/__pycache__/
+/__pycache__/

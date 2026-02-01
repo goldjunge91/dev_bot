@@ -34,6 +34,20 @@ class NerfControlNode(Node):
         self.tilt_max = 6.28  # ~360 deg
 
         self.get_logger().info("Nerf Control Node Started")
+        # maybe we can delete it its not useful and dont work if we do not start the node.
+        # Initialization Timer (fire once after 1s)
+        self.init_timer = self.create_timer(1.0, self.init_callback)
+
+    def init_callback(self):
+        """Initializes the launcher position to 'UP' (6.28)"""
+        self.get_logger().info("Initializing Launcher Position to UP (6.28)...")
+        cmd = Float64MultiArray()
+        cmd.data = [6.28]
+        self.trigger_pub.publish(cmd)
+
+        # Destroy timer so it only runs once
+        self.init_timer.cancel()
+        self.get_logger().info("Initialization Complete.")
 
     def tilt_callback(self, msg):
         """
