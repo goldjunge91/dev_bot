@@ -83,6 +83,22 @@ def generate_launch_description():
         output="screen",
     )
 
+    # Spawner for Flywheel Controller
+    flywheel_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["flywheel_controller"],
+        output="screen",
+    )
+
+    # Spawner for Pusher Controller
+    pusher_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["pusher_controller"],
+        output="screen",
+    )
+
     return LaunchDescription(
         [
             gazebo,
@@ -90,6 +106,8 @@ def generate_launch_description():
             spawn_entity,
             joint_state_broadcaster_spawner,
             trigger_controller_spawner,
+            flywheel_controller_spawner,
+            pusher_controller_spawner,
             rviz,
         ]
     )
