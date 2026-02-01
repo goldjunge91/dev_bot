@@ -1,0 +1,5 @@
+gazebo_ros2_control:
+  ros__parameters:
+    gains:
+      dart_pusher_joint: {p: 1.0, i: 0.0, d: 0.01}
+      trigger_joint: {p: 100.0, i: 0.1, d: 5.0}
