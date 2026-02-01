@@ -167,8 +167,10 @@ git switch humble
     ```bash
     source /opt/ros/humble/setup.bash
     cd ~/projects/my_new_robot
+    source /opt/ros/humble/setup.bash
     colcon build --symlink-install
     source install/setup.bash
+    ros2 launch gubot_one launch_sim.launch.py
     ```
 
 2.  **Launch Simulation:**
