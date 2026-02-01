@@ -62,3 +62,4 @@ pkill -f gazebo && pkill -f gzserver && pkill -f gzclient && pkill -f ros2
 Feuern (Automatische Sequenz): Startet Flywheels -> Pusht Dart -> Stoppt alles.
 
 ros2 service call /nerf/fire std_srvs/srv/Trigger
+ros2 run nerf_standalone nerf_control_node

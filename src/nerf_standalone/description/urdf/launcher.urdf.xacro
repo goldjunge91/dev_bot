@@ -276,7 +276,24 @@
         <origin xyz="0 0 0.5" rpy="0 0 0"/>
     </joint>
 
+    <xacro:arg name="use_hardware" default="false"/>
+
+    <xacro:if value="$(arg use_hardware)">
+        <xacro:include filename="ros2_control_hardware.xacro" />
+        <xacro:nerf_ros2_control_hardware />
+    </xacro:if>
+    <xacro:unless value="$(arg use_hardware)">
+        <link name="arming_switch_link" />
+    <joint name="system_arming_joint" type="revolute">
+        <parent link="bottom_plate"/>
+        <child link="arming_switch_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <limit lower="0" upper="1" effort="1" velocity="1"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
     <xacro:include filename="ros2_control.xacro" />
-    <xacro:nerf_ros2_control />
+        <xacro:nerf_ros2_control />
+    </xacro:unless>
 
 </robot>

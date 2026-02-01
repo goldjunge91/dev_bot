@@ -14,6 +14,9 @@ controller_manager:
     pusher_controller:
       type: velocity_controllers/JointGroupVelocityController
 
+    arming_controller:
+      type: forward_command_controller/ForwardCommandController
+
 trigger_controller:
   ros__parameters:
     joints:
@@ -29,3 +32,9 @@ pusher_controller:
   ros__parameters:
     joints:
       - dart_pusher_joint
+
+arming_controller:
+  ros__parameters:
+    joints:
+      - system_arming_joint
+    interface_name: position

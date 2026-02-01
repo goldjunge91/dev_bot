@@ -41,7 +41,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "verbose": "true",
-            "gui": "false",
+            "gui": "true",
             # Required plugins for successful spawning
             "server_required_plugins": "libgazebo_ros_init.so libgazebo_ros_factory.so",
         }.items(),
