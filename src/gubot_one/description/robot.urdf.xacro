@@ -16,7 +16,7 @@
     <xacro:include filename="camera.xacro" />
     <!-- include filename="depth_camera.xacro" -->
     <xacro:include filename="face.xacro" />
-        <xacro:include filename="nerf_launcher.xacro" />
+    <!-- <xacro:include filename="nerf_launcher.xacro" /> -->
 
 
     

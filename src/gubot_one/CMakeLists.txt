@@ -37,4 +37,9 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(
+  PROGRAMS scripts/nerf_teleop.py scripts/nerf_joy.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()
