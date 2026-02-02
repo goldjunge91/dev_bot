@@ -25,8 +25,8 @@ Launcher Controls:
    
    SPACE : Fire Single Shot (Pulse Pusher)
    
-   t : Trigger Servo (Open)
-   g : Trigger Servo (Close)
+   t : Tilt Servo (UP - 6.28)
+   g : Tilt Servo (DOWN - 5.23)
 
 CTRL-C to quit
 """
@@ -78,6 +78,8 @@ class NerfTeleop(Node):
         self.flywheel_speed = 0.0
         self.pusher_active = False
         self.pusher_timer = 0
+        self.tilt_pos = 6.28  # Start UP
+        self.tilt_step = 0.05
 
         print(msg)
 
@@ -126,9 +128,13 @@ class NerfTeleop(Node):
                 self.publish_pusher(20.0)
 
         elif key == "t":
-            self.publish_trigger(0.5)
+            self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
+            self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
+            self.publish_trigger(self.tilt_pos)
         elif key == "g":
-            self.publish_trigger(0.0)
+            self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
+            self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
+            self.publish_trigger(self.tilt_pos)
 
         elif key == "\x03":  # CTRL-C
             self.publish_twist(0.0, 0.0)

@@ -174,7 +174,7 @@
         <parent link="bottom_plate" />
         <child link="motor_bracket" />
         <axis xyz="1.1287570791617654e-07 2.227474133869779e-15 1.0000000021779938" />
-        <limit lower="0.0" upper="1.5" effort="1.0" velocity="5.0" />
+        <limit lower="5.23" upper="6.28" effort="1.0" velocity="5.0" />
         <dynamics damping="10.0" friction="5.0"/>
     </joint>
     <joint name="motor_bracket_motor_left_fix_motor_bracket" type="fixed">
