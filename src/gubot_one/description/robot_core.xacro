@@ -1,14 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
-    <!-- Packages -->
     <xacro:property name="package_share_dir" value="$(find gubot_one)"/>
-    
-    <!-- Including files -->
-    <xacro:property name="package_share_dir" value="$(find gubot_one)"/>
-
     <xacro:include filename="inertial_macros.xacro"/>
-
-    <!-- Variablen -->
     <xacro:property name="chassis_length" value="0.335"/>
     <xacro:property name="chassis_width" value="0.265"/>
     <xacro:property name="chassis_height" value="0.138"/>
@@ -24,8 +17,6 @@
     <xacro:property name="caster_wheel_offset_x" value="0.075"/>
     <xacro:property name="caster_wheel_offset_z" value="${wheel_offset_z - wheel_radius + caster_wheel_radius}"/>
     <xacro:property name="mesh_scale" value="0.001 0.001 0.001"/>
-    
-    <!-- Colors -->
     <material name="white">
         <color rgba="1 1 1 1" />
     </material>
@@ -45,15 +36,8 @@
     <material name="red">
         <color rgba="1 0 0 1"/>
     </material>
-
-    <!-- BASE LINK -->
-
     <link name="base_link">
-
     </link>
-
-    <!-- BASE_FOOTPRINT LINK -->
-
     <joint name="base_footprint_joint" type="fixed">
         <parent link="base_link"/>
         <child link="base_footprint"/>
@@ -62,10 +46,6 @@
 
     <link name="base_footprint">
     </link>
-
-
-    <!-- CHASSIS LINK -->
-
     <joint name="chassis_joint" type="fixed">
         <parent link="base_link"/>
         <child link="chassis"/>
@@ -74,12 +54,9 @@
 
     <link name="chassis">
         <visual>
-            <!-- <origin xyz="${chassis_length/2} 0 ${chassis_height/2}"/>
-            <origin xyz="0 0 0" rpy="0 0 0"/> -->
             <origin xyz="${chassis_length/2} 0 0" rpy="0 0 0"/>
             <geometry>
                 <mesh filename="file://${package_share_dir}/meshes/bases/waffle_pi_base.stl" scale="${mesh_scale}"/>
-                <!-- <mesh filename="file://${package_share_dir}/meshes/bases/waffle_pi_base.stl" scale="0.001 0.001 0.001"/> -->
             </geometry>
             <material name="orange"/>
         </visual>
@@ -97,9 +74,6 @@
     <gazebo reference="chassis">
         <material>Gazebo/Orange</material>
     </gazebo>
-
-    <!-- LEFT WHEEL LINK -->
-
     <joint name="left_wheel_joint" type="continuous">
         <parent link="base_link"/>
         <child link="left_wheel"/>
@@ -130,9 +104,6 @@
     <gazebo reference="left_wheel">
         <material>Gazebo/Blue</material>
     </gazebo>
-
-    <!-- RIGHT WHEEL LINK -->
-
     <joint name="right_wheel_joint" type="continuous">
         <parent link="base_link"/>
         <child link="right_wheel"/>
@@ -164,10 +135,6 @@
     <gazebo reference="right_wheel">
         <material>Gazebo/Blue</material>
     </gazebo>
-
-
-    <!-- CASTER WHEEL LINK -->
-
     <joint name="caster_wheel_joint" type="fixed">
         <parent link="chassis"/>
         <child link="caster_wheel"/>

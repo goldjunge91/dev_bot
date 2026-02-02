@@ -1,9 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-
-    <!-- Full ros2_control macro with gazebo plugin - for standalone mode -->
     <xacro:macro name="nerf_ros2_control">
-
         <gazebo>
             <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
                 <robot_param>robot_description</robot_param>
@@ -12,7 +9,6 @@
                 <parameters>$(find nerf_standalone)/config/gains.yaml</parameters>
             </plugin>
         </gazebo>
-
         <ros2_control name="GazeboSystem" type="system">
             <hardware>
                 <plugin>gazebo_ros2_control/GazeboSystem</plugin>
@@ -25,22 +21,16 @@
                   <param name="initial_value">6.28</param>
                 </state_interface>
             </joint>
-
-            <!-- Pusher Joint (Velocity Control) -->
             <joint name="dart_pusher_joint">
                 <command_interface name="velocity"/>
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
-
-            <!-- Flywheel Left -->
             <joint name="flywheel_left_joint">
                 <command_interface name="velocity"/>
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
-
-            <!-- Flywheel Right -->
             <joint name="flywheel_right_joint">
                 <command_interface name="velocity"/>
                 <state_interface name="velocity"/>
@@ -50,10 +40,7 @@
         </ros2_control>
 
     </xacro:macro>
-
-    <!-- Joints-only macro for integration mode (no gazebo plugin) -->
-    <xacro:macro name="nerf_ros2_control_joints_only">
-        
+    <xacro:macro name="nerf_ros2_control_joints_only">        
         <joint name="trigger_joint">
             <command_interface name="position"/>
             <state_interface name="velocity"/>
@@ -61,22 +48,16 @@
               <param name="initial_value">6.28</param>
             </state_interface>
         </joint>
-
-        <!-- Pusher Joint (Velocity Control) -->
         <joint name="dart_pusher_joint">
             <command_interface name="velocity"/>
             <state_interface name="velocity"/>
             <state_interface name="position"/>
         </joint>
-
-        <!-- Flywheel Left -->
         <joint name="flywheel_left_joint">
             <command_interface name="velocity"/>
             <state_interface name="velocity"/>
             <state_interface name="position"/>
         </joint>
-
-        <!-- Flywheel Right -->
         <joint name="flywheel_right_joint">
             <command_interface name="velocity"/>
             <state_interface name="velocity"/>

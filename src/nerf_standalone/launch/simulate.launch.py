@@ -1,24 +1,25 @@
+from launch.substitutions import LaunchConfiguration
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 import xacro
 
 
 def generate_launch_description():
+    package_name = "nerf_standalone"
+
     pkg_nerf = get_package_share_directory("nerf_standalone")
     pkg_gazebo_ros = get_package_share_directory("gazebo_ros")
 
     # Declare the 'world' argument
-    # world_arg = DeclareLaunchArgument(
-    #     "world",
-    #     default_value=os.path.join(
-    #         get_package_share_directory(pkg_nerf), "worlds", "obstacles.world"
-    #     ),
-    #     description="World to load",
-    # )
+    world_arg = DeclareLaunchArgument(
+        "world",
+        default_value=os.path.join(pkg_nerf, "worlds", "obstacles.world"),
+        description="World to load",
+    )
 
     # Process URDF
     xacro_file = os.path.join(pkg_nerf, "description", "urdf", "launcher.urdf.xacro")
@@ -35,18 +36,40 @@ def generate_launch_description():
     )
 
     # Gazebo
+    # gazebo = IncludeLaunchDescription(
+    # PythonLaunchDescriptionSource(
+    #     os.path.join(pkg_gazebo_ros, "launch", "gazebo.launch.py")
+    # ),
+    #     launch_arguments={
+    #         "verbose": "true",
+    #         "gui": "true",
+    #         # Required plugins for successful spawning
+    #         "server_required_plugins": "libgazebo_ros_init.so libgazebo_ros_factory.so",
+    #     }.items(),
+    # )
+    # Gazebo
+    gazebo_params_file = os.path.join(
+        get_package_share_directory(package_name), "config", "gazebo_params.yaml"
+    )
     gazebo = IncludeLaunchDescription(
+        # PythonLaunchDescriptionSource(
+        #     [
+        #         os.path.join(
+        #             get_package_share_directory("gazebo_ros"),
+        #             "launch",
+        #             "gazebo.launch.py",
+        #         )
+        #     ]
+        # ),
         PythonLaunchDescriptionSource(
             os.path.join(pkg_gazebo_ros, "launch", "gazebo.launch.py")
         ),
         launch_arguments={
-            "verbose": "true",
-            "gui": "true",
-            # Required plugins for successful spawning
-            "server_required_plugins": "libgazebo_ros_init.so libgazebo_ros_factory.so",
+            "world": LaunchConfiguration("world"),
+            "extra_gazebo_args": "--verbose --ros-args --params-file "
+            + gazebo_params_file,
         }.items(),
     )
-
     # Spawn Entity
     spawn_entity = Node(
         package="gazebo_ros",
@@ -106,6 +129,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            world_arg,
             gazebo,
             node_robot_state_publisher,
             spawn_entity,

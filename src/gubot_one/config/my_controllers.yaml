@@ -9,6 +9,18 @@ controller_manager:
     joint_broad:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+    trigger_controller:
+      type: position_controllers/JointGroupPositionController
+
+    flywheel_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    pusher_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    arming_controller:
+      type: forward_command_controller/ForwardCommandController
+
 diff_cont:
   ros__parameters:
 
@@ -66,3 +78,25 @@ diff_cont:
 
 # joint_broad:
 #   ros__parameters:
+
+trigger_controller:
+  ros__parameters:
+    joints:
+      - trigger_joint
+
+flywheel_controller:
+  ros__parameters:
+    joints:
+      - flywheel_left_joint
+      - flywheel_right_joint
+
+pusher_controller:
+  ros__parameters:
+    joints:
+      - dart_pusher_joint
+
+arming_controller:
+  ros__parameters:
+    joints:
+      - system_arming_joint
+    interface_name: position

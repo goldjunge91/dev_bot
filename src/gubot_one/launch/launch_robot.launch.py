@@ -13,19 +13,21 @@ from launch.event_handlers import OnProcessStart
 from launch_ros.actions import Node
 
 
-
 def generate_launch_description():
-
-
     # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
     # !!! MAKE SURE YOU SET THE PACKAGE NAME CORRECTLY !!!
 
-    package_name='gubot_one' #<--- CHANGE ME
+    package_name = "gubot_one"  # <--- CHANGE ME
 
     rsp = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory(package_name),'launch','rsp.launch.py'
-                )]), launch_arguments={'use_sim_time': 'false', 'use_ros2_control': 'true'}.items()
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    get_package_share_directory(package_name), "launch", "rsp.launch.py"
+                )
+            ]
+        ),
+        launch_arguments={"use_sim_time": "false", "use_ros2_control": "true"}.items(),
     )
 
     # joystick = IncludeLaunchDescription(
@@ -34,27 +36,28 @@ def generate_launch_description():
     #             )])
     # )
 
-
-    twist_mux_params = os.path.join(get_package_share_directory(package_name),'config','twist_mux.yaml')
+    twist_mux_params = os.path.join(
+        get_package_share_directory(package_name), "config", "twist_mux.yaml"
+    )
     twist_mux = Node(
-            package="twist_mux",
-            executable="twist_mux",
-            parameters=[twist_mux_params],
-            remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')]
-        )
+        package="twist_mux",
+        executable="twist_mux",
+        parameters=[twist_mux_params],
+        remappings=[("/cmd_vel_out", "/diff_cont/cmd_vel_unstamped")],
+    )
 
-    
+    robot_description = Command(
+        ["ros2 param get --hide-type /robot_state_publisher robot_description"]
+    )
 
-
-    robot_description = Command(['ros2 param get --hide-type /robot_state_publisher robot_description'])
-
-    controller_params_file = os.path.join(get_package_share_directory(package_name),'config','my_controllers.yaml')
+    controller_params_file = os.path.join(
+        get_package_share_directory(package_name), "config", "my_controllers.yaml"
+    )
 
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[{'robot_description': robot_description},
-                    controller_params_file]
+        parameters=[{"robot_description": robot_description}, controller_params_file],
     )
 
     delayed_controller_manager = TimerAction(period=3.0, actions=[controller_manager])
@@ -85,9 +88,8 @@ def generate_launch_description():
         )
     )
 
-
     # Code for delaying a node (I haven't tested how effective it is)
-    # 
+    #
     # First add the below lines to imports
     # from launch.actions import RegisterEventHandler
     # from launch.event_handlers import OnProcessExit
@@ -102,14 +104,75 @@ def generate_launch_description():
     #
     # Replace the diff_drive_spawner in the final return with delayed_diff_drive_spawner
 
+    # Nerf Launcher Controllers - from nerf_standalone (hardware mode)
+    nerf_flywheel_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["flywheel_controller"],
+        output="screen",
+    )
 
+    delayed_nerf_flywheel = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=controller_manager,
+            on_start=[nerf_flywheel_spawner],
+        )
+    )
+
+    nerf_trigger_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["trigger_controller"],
+        output="screen",
+    )
+
+    delayed_nerf_trigger = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=controller_manager,
+            on_start=[nerf_trigger_spawner],
+        )
+    )
+
+    nerf_pusher_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["pusher_controller"],
+        output="screen",
+    )
+
+    delayed_nerf_pusher = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=controller_manager,
+            on_start=[nerf_pusher_spawner],
+        )
+    )
+
+    nerf_arming_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["arming_controller"],
+        output="screen",
+    )
+
+    delayed_nerf_arming = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=controller_manager,
+            on_start=[nerf_arming_spawner],
+        )
+    )
 
     # Launch them all!
-    return LaunchDescription([
-        rsp,
-        # joystick,
-        twist_mux,
-        delayed_controller_manager,
-        delayed_diff_drive_spawner,
-        delayed_joint_broad_spawner
-    ])
+    return LaunchDescription(
+        [
+            rsp,
+            # joystick,
+            twist_mux,
+            delayed_controller_manager,
+            delayed_diff_drive_spawner,
+            delayed_joint_broad_spawner,
+            delayed_nerf_flywheel,
+            delayed_nerf_trigger,
+            delayed_nerf_pusher,
+            delayed_nerf_arming,
+        ]
+    )

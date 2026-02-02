@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:arg name="integrated_mode" default="true"/>
+    
+    <xacro:include filename="$(find nerf_standalone)/description/urdf/launcher.urdf.xacro" />
+    <joint name="nerf_mount_joint" type="fixed">
+        <parent link="chassis"/>
+        <child link="bottom_plate"/>
+        <origin xyz="0.16 0 0.15" rpy="0 0 0"/>
+    </joint>
+
+    <gazebo reference="nerf_mount_joint">
+        <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
+
+</robot>

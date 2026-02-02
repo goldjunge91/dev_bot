@@ -27,6 +27,14 @@ def generate_launch_description():
         description="World to load",
     )
 
+    # Declare the 'use_sim_time' argument
+    use_sim_time = LaunchConfiguration("use_sim_time")
+    declare_use_sim_time_cmd = DeclareLaunchArgument(
+        "use_sim_time",
+        default_value="true",
+        description="Use sim time if true",
+    )
+
     # Robot State Publisher
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -36,7 +44,11 @@ def generate_launch_description():
                 )
             ]
         ),
-        launch_arguments={"use_sim_time": "true", "use_ros2_control": "true"}.items(),
+        launch_arguments={
+            "use_sim_time": use_sim_time,
+            "use_ros2_control": "true",
+            "integrated_mode": "true",
+        }.items(),
     )
 
     # Joystick
@@ -80,7 +92,8 @@ def generate_launch_description():
         ),
         launch_arguments={
             "world": LaunchConfiguration("world"),
-            "extra_gazebo_args": "--ros-args --params-file " + gazebo_params_file,
+            "extra_gazebo_args": "--verbose --ros-args --params-file "
+            + gazebo_params_file,
         }.items(),
     )
 
@@ -88,7 +101,14 @@ def generate_launch_description():
     spawn_entity = Node(
         package="gazebo_ros",
         executable="spawn_entity.py",
-        arguments=["-topic", "robot_description", "-entity", "gubot_one"],
+        arguments=[
+            "-topic",
+            "robot_description",
+            "-entity",
+            "gubot_one",
+            "-timeout",
+            "120",
+        ],
         output="screen",
     )
 
@@ -120,23 +140,60 @@ def generate_launch_description():
         )
     )
 
-    # Nerf Launcher Controllers - auch verzögern
-    nerf_controllers = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                os.path.join(
-                    get_package_share_directory("nerf_dart_launcher"),
-                    "launch",
-                    "nerf_controllers.launch.py",
-                )
-            ]
-        ),
+    # Nerf Launcher Controllers - from nerf_standalone
+    flywheel_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["flywheel_controller"],
+        output="screen",
     )
 
-    delayed_nerf_controllers = RegisterEventHandler(
+    trigger_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["trigger_controller"],
+        output="screen",
+    )
+
+    pusher_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["pusher_controller"],
+        output="screen",
+    )
+
+    delayed_nerf_flywheel = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_entity,
-            on_exit=[nerf_controllers],
+            on_exit=[flywheel_controller_spawner],
+        )
+    )
+
+    delayed_nerf_trigger = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawn_entity,
+            on_exit=[trigger_controller_spawner],
+        )
+    )
+
+    delayed_nerf_pusher = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawn_entity,
+            on_exit=[pusher_controller_spawner],
+        )
+    )
+
+    arming_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["arming_controller"],
+        output="screen",
+    )
+
+    delayed_nerf_arming = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawn_entity,
+            on_exit=[arming_controller_spawner],
         )
     )
 
@@ -160,6 +217,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             world_arg,
+            declare_use_sim_time_cmd,
             rsp,
             joystick,
             twist_mux,
@@ -167,7 +225,10 @@ def generate_launch_description():
             spawn_entity,
             delayed_diff_drive_spawner,
             delayed_joint_broad_spawner,
-            delayed_nerf_controllers,
+            delayed_nerf_flywheel,
+            delayed_nerf_trigger,
+            delayed_nerf_pusher,
+            delayed_nerf_arming,
             rviz_node,
         ]
     )

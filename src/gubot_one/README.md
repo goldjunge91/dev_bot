@@ -187,4 +187,10 @@ git switch humble
     killall -9 gzserver gzclient
     pkill -9 gzserver && pkill -9 gzclient && pkill -9 rviz2 && pkill -9 ros2
     ps aux | grep -E "(gzserver|gzclient|launch)" | grep -v grep
+    pkill -9 -f "joy|teleop|twist_mux|robot_state_publisher|controller_manager"
     ```
+pkill -9 -f robot_state_publisher
+ros2 daemon stop
+cd /home/ros/projects/my_new_robot
+source install/setup.bash
+ros2 launch gubot_one launch_sim.launch.py

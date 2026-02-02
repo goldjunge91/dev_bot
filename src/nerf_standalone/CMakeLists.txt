@@ -61,9 +61,9 @@ install(PROGRAMS
   RENAME nerf_control_node
 )
 
-# Install launch, config, description, worlds
+# Install launch, config, description, worlds, firmware
 install(
-  DIRECTORY launch config description firmware
+  DIRECTORY launch config description firmware worlds
   DESTINATION share/${PROJECT_NAME}
 )
 
