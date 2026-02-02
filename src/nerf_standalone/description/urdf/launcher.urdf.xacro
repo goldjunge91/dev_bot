@@ -269,14 +269,19 @@
         <child link="Servoarm-v1" />
     </joint>
     
-    <link name="world"/>
-    <joint name="world_to_base" type="fixed">
-        <parent link="world"/>
-        <child link="bottom_plate"/>
-        <origin xyz="0 0 0.5" rpy="0 0 0"/>
-    </joint>
+    <!-- World link and joint - only for standalone mode -->
+    <xacro:arg name="integrated_mode" default="false"/>
+    <xacro:unless value="$(arg integrated_mode)">
+        <link name="world"/>
+        <joint name="world_to_base" type="fixed">
+            <parent link="world"/>
+            <child link="bottom_plate"/>
+            <origin xyz="0 0 0.5" rpy="0 0 0"/>
+        </joint>
+    </xacro:unless>
 
     <xacro:arg name="use_hardware" default="false"/>
+
 
     <xacro:if value="$(arg use_hardware)">
         <xacro:include filename="ros2_control_hardware.xacro" />

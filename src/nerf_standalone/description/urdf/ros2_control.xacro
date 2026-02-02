@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+    <!-- Full ros2_control macro with gazebo plugin - for standalone mode -->
     <xacro:macro name="nerf_ros2_control">
 
         <gazebo>
@@ -47,6 +48,40 @@
             </joint>
 
         </ros2_control>
+
+    </xacro:macro>
+
+    <!-- Joints-only macro for integration mode (no gazebo plugin) -->
+    <xacro:macro name="nerf_ros2_control_joints_only">
+        
+        <joint name="trigger_joint">
+            <command_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position">
+              <param name="initial_value">6.28</param>
+            </state_interface>
+        </joint>
+
+        <!-- Pusher Joint (Velocity Control) -->
+        <joint name="dart_pusher_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+
+        <!-- Flywheel Left -->
+        <joint name="flywheel_left_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+
+        <!-- Flywheel Right -->
+        <joint name="flywheel_right_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
 
     </xacro:macro>
 
