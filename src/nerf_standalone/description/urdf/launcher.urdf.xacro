@@ -4,7 +4,7 @@
     <link name="bottom_plate">
         <inertial>
             <origin xyz="0.07506008367977571 0.06788755296524361 -0.015949194976296238" rpy="0.0 0.0 0.0" />
-            <mass value="0.2021986172178209" />
+            <mass value="0.04" />
             <inertia ixx="0.00037557930532003186" iyy="5.362127850969058e-05" izz="0.00041640489807794057" ixy="-1.2945646322185759e-06" iyz="-1.5574886339585816e-05" ixz="9.440243990688213e-08" />
         </inertial>
         <visual name="bottom_plate_visual">
@@ -23,7 +23,7 @@
     <link name="motor_bracket">
         <inertial>
             <origin xyz="0.06 0 0" rpy="0 0 0" />
-            <mass value="0.25" />
+            <mass value="0.03" />
             <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="motor_bracket_visual">
@@ -42,7 +42,7 @@
     <link name="magazin">
         <inertial>
             <origin xyz="0 -0.02 0.05" rpy="0 0 0" />
-            <mass value="0.4" />
+            <mass value="0.03" />
             <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="magazin_visual">
@@ -55,7 +55,7 @@
     <link name="motor_right">
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="0.1" />
+            <mass value="0.01" />
             <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="motor_right_visual">
@@ -68,7 +68,7 @@
     <link name="motor_left">
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="0.1" />
+            <mass value="0.01" />
             <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="motor_left_visual">
@@ -81,7 +81,7 @@
     <link name="Servo_dart_pusher">
         <inertial>
             <origin xyz="0 0.02 -0.01" rpy="0 0 0" />
-            <mass value="0.25" />
+            <mass value="0.02" />
             <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="Servo_dart_pusher_visual">
@@ -94,7 +94,7 @@
     <link name="flywheel_left">
         <inertial>
             <origin xyz="0 0.003 0" rpy="0 0 0" />
-            <mass value="0.1" />
+            <mass value="0.01" />
             <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="flywheel_left_visual">
@@ -107,7 +107,7 @@
     <link name="flywheel_right">
         <inertial>
             <origin xyz="0 0.003 0" rpy="0 0 0" />
-            <mass value="0.1" />
+            <mass value="0.01" />
             <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="flywheel_right_visual">
@@ -120,8 +120,8 @@
     <link name="pusher_servo_part">
         <inertial>
             <origin xyz="-0.002 -0.002 0" rpy="0 0 0" />
-            <mass value="0.05" />
-            <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.01" />
+            <inertia ixx="0.000001" iyy="0.000001" izz="0.000001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="pusher_servo_part_visual">
             <origin xyz="5.0358234648939514e-09 -0.0031999983978120905 1.4265863324780527e-06" rpy="-1.5712424656484945 6.588712419531712e-05 9.66531786022265e-16" />
@@ -133,7 +133,7 @@
     <link name="Turret">
         <inertial>
             <origin xyz="0 -0.02 0.01" rpy="0 0 0" />
-            <mass value="0.1" />
+            <mass value="0.01" />
             <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="Turret_visual">
@@ -146,7 +146,7 @@
     <link name="Servoarm-v1">
         <inertial>
             <origin xyz="0.003 0.004 0" rpy="0 0 0" />
-            <mass value="0.05" />
+            <mass value="0.01" />
             <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="Servoarm-v1_visual">
@@ -159,7 +159,7 @@
     <link name="Nerf-Dart-Launcher_Servo-MG-v1">
         <inertial>
             <origin xyz="0.01 0 -0.01" rpy="0 0 0" />
-            <mass value="0.1" />
+            <mass value="0.01" />
             <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
         </inertial>
         <visual name="Nerf-Dart-Launcher_Servo-MG-v1_visual">
@@ -174,7 +174,7 @@
         <parent link="bottom_plate" />
         <child link="motor_bracket" />
         <axis xyz="1.1287570791617654e-07 2.227474133869779e-15 1.0000000021779938" />
-        <limit lower="5.235988" upper="6.283185" effort="100.0" velocity="5.0" />
+        <limit lower="0.0" upper="1.5" effort="1.0" velocity="5.0" />
         <dynamics damping="10.0" friction="5.0"/>
     </joint>
     <joint name="motor_bracket_motor_left_fix_motor_bracket" type="fixed">
@@ -193,7 +193,7 @@
         <child link="flywheel_right" />
         <axis xyz="-7.22468811426675e-18 -1.0 0.0004460000000000001" />
         <limit effort="10.0" velocity="100.0"/>
-        <dynamics damping="0.1" friction="0.01"/>
+        <dynamics damping="0.0" friction="0.0"/>
     </joint>
     <joint name="flywheel_left_joint" type="continuous">
         <origin xyz="0.0 -7.810000000000317e-06 -0.0175" rpy="1.5707963267948966 -1.0870161501361781e-16 -2.35430244640625e-21" />
@@ -201,7 +201,7 @@
         <child link="flywheel_left" />
         <axis xyz="-1.0870161747549608e-16 -0.9999999999999999 0.000446" />
         <limit effort="10.0" velocity="100.0"/>
-        <dynamics damping="0.1" friction="0.01"/>
+        <dynamics damping="0.0" friction="0.0"/>
     </joint>
     <joint name="motor_bracket_torret_on_motor_bracket" type="fixed">
         <origin xyz="0.11710034290805325 0.0007477600039520603 -0.01370000462490558" rpy="-1.570796326761147 -1.5707304396707 3.141592653589793" />
@@ -223,8 +223,8 @@
         <parent link="Servo_dart_pusher" />
         <child link="pusher_servo_part" />
         <axis xyz="-2.7546953265439552e-21 1.0 -0.000446" />
-        <limit effort="10.0" velocity="10.0"/>
-        <dynamics damping="0.1" friction="0.01"/>
+        <limit effort="0.1" velocity="20.0"/>
+        <dynamics damping="0.0" friction="0.0"/>
     </joint>
     <joint name="bottom_plate_servo_fix_bottom_plate" type="fixed">
         <origin xyz="0.06821931 0.04425035 -0.01359223" rpy="-1.5707963267948966 -4.855375361027351e-14 -1.5707963267978802" />

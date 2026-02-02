@@ -194,3 +194,25 @@ ros2 daemon stop
 cd /home/ros/projects/my_new_robot
 source install/setup.bash
 ros2 launch gubot_one launch_sim.launch.py
+
+
+1. nerf_joy.py (Joystick Steuerung)
+Dieses Script benötigt einen Gamepad/Joystick Node.
+
+Stelle sicher, dass dein Gamepad eingesteckt ist.
+Starte den Joy-Node (falls noch nicht läuft):
+bash
+ros2 run joy joy_node
+Starte dein Script:
+bash
+ros2 run gubot_one nerf_joy.py
+2. nerf_teleop.py (Tastatur Steuerung)
+Dieses Script nimmst Eingaben direkt aus dem Terminal entgegen.
+
+Öffne ein neues Terminal.
+Starte das Script:
+bash
+ros2 run gubot_one nerf_teleop.py
+Navigiere den Roboter mit WASD und steuere den Nerf-Launcher mit den Tasten 1-5, Space, t, g.
+
+ros2 launch gubot_one launch_sim.launch.py

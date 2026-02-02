@@ -4,10 +4,9 @@
     
     <xacro:include filename="$(find nerf_standalone)/description/urdf/launcher.urdf.xacro" />
     <joint name="nerf_mount_joint" type="fixed">
-        <parent link="chassis"/>
-        <child link="bottom_plate"/>
-        <origin xyz="0.16 0 0.15" rpy="0 0 0"/>
-    </joint>
+    <parent link="chassis"/>
+    <child link="bottom_plate"/>
+    <origin xyz="0.155 0 0.15" rpy="0 0 ${pi/2}"/> </joint>
 
     <gazebo reference="nerf_mount_joint">
         <preserveFixedJoint>true</preserveFixedJoint>

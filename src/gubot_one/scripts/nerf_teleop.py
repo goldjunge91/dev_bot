@@ -123,7 +123,7 @@ class NerfTeleop(Node):
                 self.get_logger().info("FIRING!")
                 self.pusher_active = True
                 self.pusher_timer = 5  # 0.5 seconds at 10Hz
-                self.publish_pusher(15.0)
+                self.publish_pusher(20.0)
 
         elif key == "t":
             self.publish_trigger(0.5)
