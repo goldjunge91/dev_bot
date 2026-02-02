@@ -1,177 +1,102 @@
-/*
- * Nerf Launcher Firmware for Arduino Pro Micro (Brushless ESC Version)
- * 
- * Hardware Mapping:
- * - Tilt Servo: Pin 9 (Standard Servo)
- * - Pusher Servo: Pin 10 (Continuous Servo or Standard)
- * - Flywheel Left: Pin 5 (ESC - Servo Signal)
- * - Flywheel Right: Pin 6 (ESC - Servo Signal)
- * 
- * Serial Protocol (115200 baud):
- * - t <angle>: Set Tilt Servo (0-180)
- * - p <speed>: Set Pusher Speed/Angle (0-180)
- * - f <val_l> <val_r>: Set Flywheel Speed (0-255 mapped to 1000-2000us)
- * - a: ARM System (Sends Min throttle to ESCs)
- * - d: DISARM System (Stops motors)
+/**
+ * NERF OS PRO - Modular Version
+ *
+ * Overview:
+ * - Config.h:   Settings & Pins
+ * - Launcher.h: Core Logic (Servos, ESCs, State Machine)
+ * - Comms.h:    Communication (USB/UART)
+ * - Tilt.h:     Tilt logic (Decoupled)
+ *
+ * This file is the entry point.
  */
 
-#include <Servo.h>
+#include "Comms.h"
+#include "Config.h"
+#include "Launcher.h"
+#include "Tilt.h"
 
-// --- Configuration ---
-const int PIN_FLYWHEEL_L = 5;
-const int PIN_FLYWHEEL_R = 6;
-const int PIN_SERVO_TILT = 9;
-const int PIN_SERVO_PUSHER = 10;
+// --- OBJECTS ---
+Launcher nerf;
+TiltController tiltCtrl(Config::PIN_TILT, Config::TILT_NEUTRAL_DEFAULT);
 
-const long BAUD_RATE = 115200;
+// Comms now takes both objects
+Comms commsUSB(nerf, tiltCtrl, Serial);
+Comms commsUART(nerf, tiltCtrl, Serial1);
 
-// ESC Limits
-const int ESC_MIN_US = 1000;
-const int ESC_MAX_US = 2000;
-const int ESC_ARM_US = 1000;
-
-class Launcher {
-private:
-    Servo tiltServo;
-    Servo pusherServo;
-    Servo escLeft;
-    Servo escRight;
-    
-    bool isArmed = false;
-
-public:
-    void begin() {
-        // Init Servos & ESCs
-        tiltServo.attach(PIN_SERVO_TILT);
-        pusherServo.attach(PIN_SERVO_PUSHER);
-        escLeft.attach(PIN_FLYWHEEL_L);
-        escRight.attach(PIN_FLYWHEEL_R);
-
-        // Safe Start (Disarmed)
-        disarm();
-        
-        // Center Servos
-        setTilt(90);
-        setPusher(90); 
-    }
-
-    void arm() {
-        isArmed = true;
-        // ESCs usually need min signal to arm
-        escLeft.writeMicroseconds(ESC_ARM_US);
-        escRight.writeMicroseconds(ESC_ARM_US);
-    }
-
-    void disarm() {
-        isArmed = false;
-        escLeft.writeMicroseconds(ESC_ARM_US);
-        escRight.writeMicroseconds(ESC_ARM_US);
-        pusherServo.write(90); // Stop pusher
-    }
-
-    void setTilt(int angle) {
-        angle = constrain(angle, 0, 180);
-        tiltServo.write(angle);
-    }
-
-    void setPusher(int val) {
-        if (!isArmed) val = 90; // Safety
-        val = constrain(val, 0, 180);
-        pusherServo.write(val);
-    }
-
-    void setFlywheels(int val_l, int val_r) {
-        if (!isArmed) {
-            val_l = 0;
-            val_r = 0;
-        }
-        
-        // Map 0-255 -> 1000-2000us
-        int us_l = map(constrain(val_l, 0, 255), 0, 255, ESC_MIN_US, ESC_MAX_US);
-        int us_r = map(constrain(val_r, 0, 255), 0, 255, ESC_MIN_US, ESC_MAX_US);
-        
-        escLeft.writeMicroseconds(us_l);
-        escRight.writeMicroseconds(us_r);
-    }
-
-    bool getArmed() { return isArmed; }
-};
-
-class SerialComms {
-private:
-    Launcher& launcher;
-    String inputBuffer;
-
-public:
-    SerialComms(Launcher& l) : launcher(l) {
-        inputBuffer.reserve(32);
-    }
-
-    void update() {
-        while (Serial.available()) {
-            char c = Serial.read();
-            if (c == '\n' || c == '\r') {
-                if (inputBuffer.length() > 0) {
-                    processCommand(inputBuffer);
-                    inputBuffer = "";
-                }
-            } else {
-                inputBuffer += c;
-            }
-        }
-    }
-
-    void processCommand(String cmd) {
-        char type = cmd.charAt(0);
-        String args = cmd.substring(2); // Skip command char and space
-        
-        if (type == 'a') {
-            launcher.arm();
-            Serial.println("OK: ARMED");
-        }
-        else if (type == 'd') {
-            launcher.disarm();
-            Serial.println("OK: DISARMED");
-        }
-        else if (type == 't') {
-            int angle = args.toInt();
-            launcher.setTilt(angle);
-            Serial.println("OK: Tilt");
-        } 
-        else if (type == 'p') {
-            int val = args.toInt();
-            launcher.setPusher(val);
-            Serial.println("OK: Pusher");
-        } 
-        else if (type == 'f') {
-            int spaceIdx = args.indexOf(' ');
-            if (spaceIdx != -1) {
-                int val_l = args.substring(0, spaceIdx).toInt();
-                int val_r = args.substring(spaceIdx + 1).toInt();
-                launcher.setFlywheels(val_l, val_r);
-                Serial.println("OK: Flywheels");
-            }
-        }
-    }
-};
-
-// --- Main Program ---
-
-Launcher nerfLauncher;
-SerialComms comms(nerfLauncher);
-
-void setup() {
-    Serial.begin(BAUD_RATE);
-    nerfLauncher.begin();
-    
-    pinMode(LED_BUILTIN, OUTPUT);
-    // Blink 3 times to signal ready
-    for(int i=0; i<3; i++) {
-        digitalWrite(LED_BUILTIN, HIGH); delay(100);
-        digitalWrite(LED_BUILTIN, LOW); delay(100);
-    }
+// --- GLOBALE AUSGABE-HELFER ---
+void globalPrint(const __FlashStringHelper *msg) {
+  Serial.println(msg);
+  Serial1.println(msg);
 }
 
+void globalPrintf(const char *format, long value) {
+  char buf[64];
+  sprintf(buf, format, value);
+  Serial.println(buf);
+  Serial1.println(buf);
+}
+
+void printHelp() {
+  globalPrint(F("\n--- COMMAND LIST ---"));
+  globalPrint(F(" [ SYSTEM ]"));
+  globalPrint(F(" > ARM / STOP / STATUS   - Flywheel & Safety"));
+  globalPrint(F(" > SAVE                  - Show Current Config"));
+  globalPrint(F(" [ FIRING ]"));
+  globalPrint(F(" > SHOT <pwr>            - Fire (0-100)"));
+  globalPrint(F(" > TEST_ESC <pwr>        - Flywheels Only"));
+  globalPrint(F(" > PWM <us>              - Manual ESC Signal"));
+  globalPrint(F(" > CAL                   - Calibrate ESCs"));
+  globalPrint(F(" > TEST_SHOT <ms>        - Pusher Cycle Only"));
+  globalPrint(F(" > NF / NB               - Nudge Pusher"));
+  globalPrint(F(" [ TILT ]"));
+  globalPrint(F(" > UP / DN <ms>          - Move Tilt"));
+  globalPrint(F(" > ZERO_S / ZERO_T       - Set Neutrals"));
+  globalPrint(F("--------------------\n"));
+}
+
+void printConfig() {
+  globalPrint(F("\n--- CURRENT CONFIG ---"));
+  // Zugriff über Getter-Funktionen der Klassen
+  globalPrintf("Shot Zero:     %ld us", (long)nerf.getShotZero());
+  globalPrintf("Tilt Zero:     %ld us", (long)tiltCtrl.getNeutral());
+  globalPrintf("Shot Duration: %ld ms", (long)nerf.getShotDur());
+  globalPrint(F("----------------------"));
+}
+
+void printStartup() {
+  globalPrint(F("================================"));
+  globalPrint(F("      NERF OS PRO ONLINE        "));
+  globalPrint(F("================================"));
+  globalPrintf("Baudrate:      %ld", (long)Config::BAUD_RATE);
+  printConfig();
+  globalPrint(F("Type 'HELP' for commands."));
+  globalPrint(F("================================\n"));
+}
+
+// --- SETUP ---
+void setup() {
+  Serial.begin(Config::BAUD_RATE);
+  Serial1.begin(Config::BAUD_RATE);
+  // Kurzer Sicherheits-Check für USB
+  uint32_t startWait = millis();
+  while (!Serial && millis() - startWait < 2000)
+    ;
+  pinMode(LED_BUILTIN, OUTPUT);
+  // Blink 3 times to signal ready
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+  }
+  nerf.begin();
+  printStartup();
+}
+
+// --- LOOP ---
 void loop() {
-    comms.update();
+  nerf.update();
+  tiltCtrl.update();
+  commsUSB.update();
+  commsUART.update();
 }
