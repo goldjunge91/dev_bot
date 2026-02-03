@@ -3,16 +3,17 @@
   <Domain Id="any">
     <General>
       <Interfaces>
-        <NetworkInterface name="wlan0" priority="default" multicast="default" />
+        <NetworkInterface name="tailscale0" priority="default" multicast="default" />
       </Interfaces>
-      <AllowMulticast>true</AllowMulticast>
+      <AllowMulticast>false</AllowMulticast>
       <Transport>udp</Transport>
     </General>
     <Discovery>
-      <ParticipantIndex>auto</ParticipantIndex>
-      <MaxAutoParticipantIndex>120</MaxAutoParticipantIndex>
       <Peers>
+        <Peer Address="100.104.50.79"/>
+        <Peer Address="100.67.220.49"/>
       </Peers>
+      <ParticipantIndex>auto</ParticipantIndex>
     </Discovery>
   </Domain>
 </CycloneDDS>
