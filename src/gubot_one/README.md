@@ -212,6 +212,7 @@ Dieses Script nimmst Eingaben direkt aus dem Terminal entgegen.
 Öffne ein neues Terminal.
 Starte das Script:
 bash
+source install/setup.bash
 ros2 run gubot_one nerf_teleop.py
 Navigiere den Roboter mit WASD und steuere den Nerf-Launcher mit den Tasten 1-5, Space, t, g.
 
