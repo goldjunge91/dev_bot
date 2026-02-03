@@ -1,40 +1,22 @@
-<!-- <?xml version="1.0" encoding="UTF-8"?>
-<CycloneDDS xmlns="https://cdds.io/config">
-  <Domain Id="any">
-    <General>
-      <Interfaces>
-        <NetworkInterface name="tailscale0"/>
-      </Interfaces>
-      <AllowMulticast>false</AllowMulticast>
-      <Transport>udp</Transport>
-      <FragmentSize>1194B</FragmentSize>
-    </General>
-    <Discovery>
-      <Peers>
-        <Peer Address="100.104.50.79"/>
-      </Peers>
-      <ParticipantIndex>auto</ParticipantIndex>
-      <MaxAutoParticipantIndex>40</MaxAutoParticipantIndex>
-    </Discovery>
-  </Domain>
-</CycloneDDS> -->
-
 <?xml version="1.0" encoding="UTF-8"?>
 <CycloneDDS xmlns="https://cdds.io/config">
   <Domain Id="any">
     <General>
       <Interfaces>
-        <NetworkInterface name="tailscale0"/>
+        <!-- Allow any interface, prioritizing wlan0/eth0 over internal ones -->
+        <NetworkInterface name="wlan0" priority="default" multicast="default" />
+        <NetworkInterface name="eth0" priority="default" multicast="default" />
       </Interfaces>
-      <AllowMulticast>false</AllowMulticast>
+      <AllowMulticast>true</AllowMulticast>
       <Transport>udp</Transport>
     </General>
     <Discovery>
-      <Peers>
-        <Peer Address="100.104.50.79"/>
-        <Peer Address="100.67.220.49"/>
-      </Peers>
       <ParticipantIndex>auto</ParticipantIndex>
+      <MaxAutoParticipantIndex>120</MaxAutoParticipantIndex>
+      <Peers>
+        <!-- Uncomment and add your PC IP here if needed for cross-device talk -->
+        <!-- <Peer Address="192.168.178.XX"/> -->
+      </Peers>
     </Discovery>
   </Domain>
 </CycloneDDS>
