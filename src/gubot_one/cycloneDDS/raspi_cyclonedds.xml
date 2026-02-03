@@ -3,9 +3,7 @@
   <Domain Id="any">
     <General>
       <Interfaces>
-        <!-- Allow any interface, prioritizing wlan0/eth0 over internal ones -->
         <NetworkInterface name="wlan0" priority="default" multicast="default" />
-        <NetworkInterface name="eth0" priority="default" multicast="default" />
       </Interfaces>
       <AllowMulticast>true</AllowMulticast>
       <Transport>udp</Transport>
@@ -14,8 +12,6 @@
       <ParticipantIndex>auto</ParticipantIndex>
       <MaxAutoParticipantIndex>120</MaxAutoParticipantIndex>
       <Peers>
-        <!-- Uncomment and add your PC IP here if needed for cross-device talk -->
-        <!-- <Peer Address="192.168.178.XX"/> -->
       </Peers>
     </Discovery>
   </Domain>
