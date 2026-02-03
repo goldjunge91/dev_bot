@@ -27,7 +27,11 @@ def generate_launch_description():
                 )
             ]
         ),
-        launch_arguments={"use_sim_time": "false", "use_ros2_control": "true"}.items(),
+        launch_arguments={
+            "use_sim_time": "false",
+            "use_ros2_control": "true",
+            "integrated_mode": "true",
+        }.items(),
     )
 
     joystick = IncludeLaunchDescription(
