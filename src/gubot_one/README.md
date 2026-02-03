@@ -213,7 +213,32 @@ Dieses Script nimmst Eingaben direkt aus dem Terminal entgegen.
 Starte das Script:
 bash
 source install/setup.bash
-ros2 run gubot_one nerf_teleop.py
+ross2 run gubot_one nerf_teleop.py
 Navigiere den Roboter mit WASD und steuere den Nerf-Launcher mit den Tasten 1-5, Space, t, g.
+
+
+## Running on Real Robot (Raspberry Pi)
+
+### 1. Firmware Flash (Pi Pico)
+Beachte die Anleitung unter `src/diffdrive_arduino/firmware/README.md` für die genaue Pin-Belegung und Installation.
+Kurzfassung:
+1. Arduino IDE installieren & `arduino-pico` Core hinzufügen.
+2. `ROSArduinoBridge.ino` öffnen.
+3. Board "Raspberry Pi Pico" wählen.
+4. Hochladen.
+
+### 2. Launch
+Um alles (Basis, LiDAR, Kamera, Nerf) auf dem Pi zu starten:
+
+```bash
+# Workspace bauen (falls noch nicht geschehen)
+cd ~/projects/my_new_robot
+colcon build --symlink-install --packages-select gubot_one
+
+# Starten
+source install/setup.bash
+ros2 launch gubot_one launch_all_real.launch.py
+```
+
 
 ros2 launch gubot_one launch_sim.launch.py
