@@ -6,7 +6,7 @@
         <ros2_control name="NerfSystem" type="system">
             <hardware>
                 <plugin>nerf_standalone/NerfSystem</plugin>
-                <param name="port">/dev/ttyUSB0</param>
+                <param name="port">/dev/ttyACM0</param>
                 <param name="baud_rate">115200</param>
             </hardware>
             
