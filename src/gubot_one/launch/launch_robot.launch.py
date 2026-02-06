@@ -73,6 +73,13 @@ def generate_launch_description():
 
     delayed_controller_manager = TimerAction(period=3.0, actions=[controller_manager])
 
+    # --- Spawner daisy-chaining to prevent "thundering herd" on DDS ---
+    # Chain: diff_cont -> joint_broad -> trigger -> flywheel -> pusher -> arming -> control_node
+    # We use OnProcessExit because spawners exit after successful loading.
+
+    from launch.event_handlers import OnProcessExit
+
+    # 1. Diff Drive (starts after controller_manager starts)
     diff_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -86,6 +93,7 @@ def generate_launch_description():
         )
     )
 
+    # 2. Joint Broadcaster (starts after diff_drive exits)
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -93,43 +101,13 @@ def generate_launch_description():
     )
 
     delayed_joint_broad_spawner = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=controller_manager,
-            on_start=[joint_broad_spawner],
+        event_handler=OnProcessExit(
+            target_action=diff_drive_spawner,
+            on_exit=[joint_broad_spawner],
         )
     )
 
-    # Code for delaying a node (I haven't tested how effective it is)
-    #
-    # First add the below lines to imports
-    # from launch.actions import RegisterEventHandler
-    # from launch.event_handlers import OnProcessExit
-    #
-    # Then add the following below the current diff_drive_spawner
-    # delayed_diff_drive_spawner = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=spawn_entity,
-    #         on_exit=[diff_drive_spawner],
-    #     )
-    # )
-    #
-    # Replace the diff_drive_spawner in the final return with delayed_diff_drive_spawner
-
-    # Nerf Launcher Controllers - from nerf_standalone (hardware mode)
-    nerf_flywheel_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["flywheel_controller"],
-        output="screen",
-    )
-
-    delayed_nerf_flywheel = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=controller_manager,
-            on_start=[nerf_flywheel_spawner],
-        )
-    )
-
+    # 3. Nerf Trigger (starts after joint_broad exits)
     nerf_trigger_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -138,12 +116,28 @@ def generate_launch_description():
     )
 
     delayed_nerf_trigger = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=controller_manager,
-            on_start=[nerf_trigger_spawner],
+        event_handler=OnProcessExit(
+            target_action=joint_broad_spawner,
+            on_exit=[nerf_trigger_spawner],
         )
     )
 
+    # 4. Nerf Flywheel (starts after trigger exits)
+    nerf_flywheel_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["flywheel_controller"],
+        output="screen",
+    )
+
+    delayed_nerf_flywheel = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=nerf_trigger_spawner,
+            on_exit=[nerf_flywheel_spawner],
+        )
+    )
+
+    # 5. Nerf Pusher (starts after flywheel exits)
     nerf_pusher_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -152,12 +146,13 @@ def generate_launch_description():
     )
 
     delayed_nerf_pusher = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=controller_manager,
-            on_start=[nerf_pusher_spawner],
+        event_handler=OnProcessExit(
+            target_action=nerf_flywheel_spawner,
+            on_exit=[nerf_pusher_spawner],
         )
     )
 
+    # 6. Nerf Arming (starts after pusher exits)
     nerf_arming_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -166,13 +161,13 @@ def generate_launch_description():
     )
 
     delayed_nerf_arming = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=controller_manager,
-            on_start=[nerf_arming_spawner],
+        event_handler=OnProcessExit(
+            target_action=nerf_pusher_spawner,
+            on_exit=[nerf_arming_spawner],
         )
     )
 
-    # High-level Control Node (Nerf)
+    # 7. Nerf Control Node (starts after arming exits)
     nerf_control = Node(
         package="nerf_standalone",
         executable="nerf_control_node",
@@ -180,13 +175,15 @@ def generate_launch_description():
     )
 
     delayed_nerf_control = RegisterEventHandler(
-        event_handler=OnProcessStart(
-            target_action=controller_manager,
-            on_start=[nerf_control],
+        event_handler=OnProcessExit(
+            target_action=nerf_arming_spawner,
+            on_exit=[nerf_control],
         )
     )
 
     # Launch them all!
+    # Only need to return the first trigger (delayed_diff_drive_spawner)
+    # The rest triggers automatically via events.
     return LaunchDescription(
         [
             rsp,
@@ -195,8 +192,8 @@ def generate_launch_description():
             delayed_controller_manager,
             delayed_diff_drive_spawner,
             delayed_joint_broad_spawner,
-            delayed_nerf_flywheel,
             delayed_nerf_trigger,
+            delayed_nerf_flywheel,
             delayed_nerf_pusher,
             delayed_nerf_arming,
             delayed_nerf_control,
