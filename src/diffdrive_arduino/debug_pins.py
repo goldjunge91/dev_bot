@@ -35,13 +35,21 @@ try:
     print(">>> MOTOR SHOULD BE SPINNING FAST NOW <<<")
     send(f"w {LEFT_PWM} 1")
     time.sleep(5)
-    send(f"w {LEFT_PWM} 0")
 
-    print("\n[STOPPING] Preparing for PWM Test in:")
+    print(">>> STOPPING (Hard Brake) <<<")
+    send(f"w {LEFT_PWM} 0")
+    send(f"w {LEFT_IN1} 0")
+    send(f"w {LEFT_IN2} 0")
+
+    print("\n[STOPPED] Preparing for PWM Test in:")
     for i in range(3, 0, -1):
         print(f"{i}...")
         time.sleep(1)
     print(">>> GO! <<<")
+
+    print("\nNeed to reset direction for PWM Test...")
+    send(f"w {LEFT_IN1} 1")
+    send(f"w {LEFT_IN2} 0")
 
     print("\n4. PWM Test (Analog Write 200/255)...")
     print(">>> MOTOR SHOULD BE SPINNING AT ~80% SPEED NOW <<<")
@@ -49,9 +57,10 @@ try:
     send(f"x {LEFT_PWM} 200")
     time.sleep(5)
 
-    print("\n5. Stopping...")
+    print(">>> STOPPING (Hard Brake) <<<")
     send(f"w {LEFT_PWM} 0")
     send(f"w {LEFT_IN1} 0")
+    send(f"w {LEFT_IN2} 0")
 
     ser.close()
     print("Done.")
