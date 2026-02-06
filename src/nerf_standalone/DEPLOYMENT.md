@@ -15,10 +15,12 @@ git pull
 3.  Select Board and Port.
 4.  Upload.
 
-### Base Controller (Arduino Mega / Uno)
-1.  Connect the Base Arduino.
+### Base Controller (Raspberry Pi Pico)
+1.  Connect the Pi Pico (holding BOOTSEL if needed, though Arduino IDE usually handles it).
 2.  Open `src/diffdrive_arduino/firmware/ROSArduinoBridge/ROSArduinoBridge.ino`.
-3.  Upload.
+3.  Ensure you have the **Raspberry Pi Pico/RP2040** board support installed (e.g., Earle Philhower core).
+4.  Select Board: **Raspberry Pi Pico**.
+5.  Upload.
 
 ## 3. Build ROS Workspace
 On the Raspberry Pi:
