@@ -32,14 +32,16 @@ try:
     send(f"w {LEFT_IN2} 0")
 
     print("\n3. Digital Write High (Max Speed)...")
+    print(">>> MOTOR SHOULD BE SPINNING FAST NOW <<<")
     send(f"w {LEFT_PWM} 1")
-    time.sleep(2)
+    time.sleep(5)
     send(f"w {LEFT_PWM} 0")
 
     print("\n4. PWM Test (Analog Write 200/255)...")
+    print(">>> MOTOR SHOULD BE SPINNING AT ~80% SPEED NOW <<<")
     # Using 'x' command for analogWrite
     send(f"x {LEFT_PWM} 200")
-    time.sleep(2)
+    time.sleep(5)
 
     print("\n5. Stopping...")
     send(f"w {LEFT_PWM} 0")
