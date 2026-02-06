@@ -100,6 +100,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            arg_port,
             node_robot_state_publisher,
             controller_manager,
             joint_state_broadcaster,
