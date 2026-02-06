@@ -60,6 +60,24 @@ try:
     print("Stop PWM...")
     send(f"w {LEFT_PWM} 0")
 
+    print("\n--- TEST 3: PWM Check (Right Motor) ---")
+    # Does analogWrite work?
+    print("Setting Right Motor Direction...")
+    # Re-config in case reset
+    send(f"c {RIGHT_PWM} 1")
+    send(f"c {RIGHT_IN1} 1")
+    send(f"c {RIGHT_IN2} 1")
+    send(f"w {RIGHT_IN1} 1")
+    send(f"w {RIGHT_IN2} 0")
+
+    print("Sending analogWrite (PWM) 200/255 to RIGHT...")
+    # 'x' is ANALOG_WRITE in commands.h
+    send(f"x {RIGHT_PWM} 200")
+
+    time.sleep(2)
+    print("Stop PWM...")
+    send(f"w {RIGHT_PWM} 0")
+
     ser.close()
     print("Done.")
 
