@@ -37,6 +37,12 @@ try:
     time.sleep(5)
     send(f"w {LEFT_PWM} 0")
 
+    print("\n[STOPPING] Preparing for PWM Test in:")
+    for i in range(3, 0, -1):
+        print(f"{i}...")
+        time.sleep(1)
+    print(">>> GO! <<<")
+
     print("\n4. PWM Test (Analog Write 200/255)...")
     print(">>> MOTOR SHOULD BE SPINNING AT ~80% SPEED NOW <<<")
     # Using 'x' command for analogWrite
