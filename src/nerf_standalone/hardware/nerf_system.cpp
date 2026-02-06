@@ -195,9 +195,30 @@ NerfSystem::write(const rclcpp::Time & /*time*/,
   if (!armed)
     return hardware_interface::return_type::OK;
 
-  // 1. Trigger (Position) - Not used in new firmware protocol via Serial for
-  // now, or could map to TILT if needed. Firmware has UP/DN. Leaving blank to
-  // avoid safety issues or complexity for now.
+  // 1. Tilt (Trigger Joint) Logic
+  // Map Radians [5.23, 6.28] -> Microseconds [500, 2500]
+  double tilt_rad = hw_commands_.trigger_pos;
+
+  // Clamping for safety
+  if (tilt_rad < 5.23)
+    tilt_rad = 5.23;
+  if (tilt_rad > 6.28)
+    tilt_rad = 6.28;
+
+  // Linear Interpolation
+  double slope = (2500.0 - 500.0) / (6.28 - 5.23);
+  int tilt_us = static_cast<int>(500.0 + slope * (tilt_rad - 5.23));
+
+  static int last_tilt_us = -1;
+  if (std::abs(tilt_us - last_tilt_us) > 20) { // Deadband of 20us
+    std::stringstream ss;
+    ss << "T_POS " << tilt_us;
+    comms_.send_command(ss.str());
+    last_tilt_us = tilt_us;
+  }
+
+  // Feedback: Update state to match command (Open Loop)
+  hw_states_.trigger_pos = tilt_rad;
 
   // 2. Pusher (Velocity)
   // Logic: If velocity > threshold, trigger a single shot or burst

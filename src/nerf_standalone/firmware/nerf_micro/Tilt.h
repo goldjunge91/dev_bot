@@ -69,6 +69,24 @@ public:
   }
 
   int getNeutral() { return _neutralUs; }
+
+  void setPosition(int us) {
+    // Constraint safety
+    if (us < Config::SV_MIN_US)
+      us = Config::SV_MIN_US;
+    if (us > Config::SV_MAX_US)
+      us = Config::SV_MAX_US;
+
+    _tiltServo.attach(_pin, Config::SV_MIN_US, Config::SV_MAX_US);
+    _tiltServo.writeMicroseconds(us);
+
+    // reset moving state so update() doesn't detach immediately
+    _isMoving = false;
+
+    char buf[64];
+    sprintf(buf, "OK: TILT SET %d", us);
+    tiltDebug(buf);
+  }
 };
 
 #endif // TILT_H
