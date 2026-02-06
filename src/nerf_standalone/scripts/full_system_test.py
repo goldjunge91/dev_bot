@@ -20,6 +20,9 @@ class FullSystemTest(Node):
         self.trigger_pub = self.create_publisher(
             Float64MultiArray, "/trigger_controller/commands", 10
         )
+        self.arming_pub = self.create_publisher(
+            Float64MultiArray, "/arming_controller/commands", 10
+        )
 
         # Subscribers
         self.create_subscription(JointState, "/joint_states", self.joint_callback, 10)
@@ -62,6 +65,16 @@ class FullSystemTest(Node):
     def run_nerf_test(self):
         self.get_logger().info("--- STARTING NERF TEST ---")
 
+        # 1. ARM THE SYSTEM (Required for NerfSystem hardware)
+        self.get_logger().info("Arming System... (Waiting 2s)")
+        arm_cmd = Float64MultiArray()
+        arm_cmd.data = [1.0]
+        # Publish multiple times to ensure it's received
+        for _ in range(5):
+            self.arming_pub.publish(arm_cmd)
+            time.sleep(0.1)
+        time.sleep(1.5)  # Wait for arming sequence/safety
+
         # Test Tilt
         targets = [5.23, 6.28, 5.75]  # Down, Up, Middle
         for t in targets:
@@ -80,6 +93,12 @@ class FullSystemTest(Node):
             self.get_logger().info(f"Fire Result: {future.result().message}")
         else:
             self.get_logger().error("Fire Service not available!")
+
+        # DISARM at the end
+        self.get_logger().info("Disarming System...")
+        arm_cmd.data = [0.0]
+        self.arming_pub.publish(arm_cmd)
+        time.sleep(0.5)
 
 
 def main():
