@@ -5,14 +5,14 @@ PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
 BAUD = 57600
 
 # Confirmed Left Pins
-LEFT_PWM = 5
-LEFT_IN1 = 6
-LEFT_IN2 = 7
+LEFT_PWM = 2
+LEFT_IN1 = 3
+LEFT_IN2 = 4
 
 # Candidate Right Pins (Guessing sequential)
-RIGHT_CANDIDATE_PWM = 8
-RIGHT_CANDIDATE_IN1 = 9
-RIGHT_CANDIDATE_IN2 = 10
+RIGHT_CANDIDATE_PWM = 5
+RIGHT_CANDIDATE_IN1 = 6
+RIGHT_CANDIDATE_IN2 = 7
 
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
