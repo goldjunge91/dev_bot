@@ -51,10 +51,10 @@ try:
     send(f"w {LEFT_IN1} 1")
     send(f"w {LEFT_IN2} 0")
 
-    print("\n4. PWM Test (Analog Write 200/255)...")
-    print(">>> MOTOR SHOULD BE SPINNING AT ~80% SPEED NOW <<<")
+    print("\n4. PWM Test (Analog Write 100/255)...")
+    print(">>> MOTOR SHOULD BE SPINNING SLOWER (~40%) NOW <<<")
     # Using 'x' command for analogWrite
-    send(f"x {LEFT_PWM} 200")
+    send(f"x {LEFT_PWM} 100")
     time.sleep(5)
 
     print(">>> STOPPING (Hard Brake) <<<")
