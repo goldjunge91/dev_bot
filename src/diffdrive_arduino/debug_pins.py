@@ -35,11 +35,12 @@ try:
     send(f"w {LEFT_IN1} 1")
     send(f"w {LEFT_IN2} 0")
 
-    print("Ramping PWM from 0 to 255...")
-    for pwm in range(0, 256, 10):
-        print(f"PWM: {pwm}")
+    print("\n--- LOW SPEED RAMP (0 to 100) ---")
+    print("Checking for ANY speed change...")
+    for pwm in range(0, 105, 10):
+        print(f"PWM: {pwm}/255")
         send(f"x {LEFT_PWM} {pwm}")
-        time.sleep(0.2)
+        time.sleep(1.0)  # Longer wait to observe
 
     print("STOPPING Left...")
     send(f"w {LEFT_PWM} 0")
