@@ -172,6 +172,20 @@ def generate_launch_description():
         )
     )
 
+    # High-level Control Node (Nerf)
+    nerf_control = Node(
+        package="nerf_standalone",
+        executable="nerf_control_node",
+        output="screen",
+    )
+
+    delayed_nerf_control = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=controller_manager,
+            on_start=[nerf_control],
+        )
+    )
+
     # Launch them all!
     return LaunchDescription(
         [
@@ -185,5 +199,6 @@ def generate_launch_description():
             delayed_nerf_trigger,
             delayed_nerf_pusher,
             delayed_nerf_arming,
+            delayed_nerf_control,
         ]
     )

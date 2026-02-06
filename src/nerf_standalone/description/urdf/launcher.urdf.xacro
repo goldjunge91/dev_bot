@@ -248,11 +248,12 @@
     </xacro:unless>
 
     <xacro:arg name="use_hardware" default="false"/>
+    <xacro:arg name="port" default="/dev/ttyACM0"/>
 
 
     <xacro:if value="$(arg use_hardware)">
         <xacro:include filename="ros2_control_hardware.xacro" />
-        <xacro:nerf_ros2_control_hardware />
+        <xacro:nerf_ros2_control_hardware port="$(arg port)"/>
     </xacro:if>
     <xacro:unless value="$(arg use_hardware)">
         <link name="arming_switch_link">

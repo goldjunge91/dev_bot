@@ -30,15 +30,18 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-## 4. Run Full System Test
-Ensure both Arduinos are connected (`/dev/ttyACM0`, `/dev/ttyUSB0` etc - check permissions!).
+## 4. Launch Robot Stack
+**Terminal 1:**
+Launch the FULL robot (Base + Nerf) using the unified launch file:
 ```bash
+ros2 launch gubot_one launch_robot.launch.py
+```
+*Note details: This assumes Nerf is on `/dev/ttyACM0` and Pico Base is on `/dev/ttyACM1`.*
+
+## 5. Run Full System Test
+**Terminal 2:**
+While the launch file is running, execute the test script:
+```bash
+source install/setup.bash
 python3 src/nerf_standalone/scripts/full_system_test.py
 ```
-
-## 5. Standard Launch
-To run the full robot stack:
-```bash
-ros2 launch gubot_one robot.launch.py
-```
-(Or whichever main launch file wraps both base and launcher)

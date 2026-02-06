@@ -11,9 +11,18 @@ def generate_launch_description():
     # Process URDF (with hardware flag)
     xacro_file = os.path.join(pkg_nerf, "description", "urdf", "launcher.urdf.xacro")
 
-    # Process xacro with use_hardware=true
+    # Declare Launch Arguments
+    from launch.actions import DeclareLaunchArgument
+    from launch.substitutions import LaunchConfiguration
+
+    arg_port = DeclareLaunchArgument(
+        "port", default_value="/dev/ttyACM0", description="Serial port for Nerf Arduino"
+    )
+
+    # Process xacro with use_hardware=true and port
     robot_description_config = xacro.process_file(
-        xacro_file, mappings={"use_hardware": "true"}
+        xacro_file,
+        mappings={"use_hardware": "true", "port": LaunchConfiguration("port")},
     )
     robot_description = {"robot_description": robot_description_config.toxml()}
 
