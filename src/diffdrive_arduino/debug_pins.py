@@ -6,9 +6,9 @@ PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
 BAUD = 57600
 
 # Pins from motor_driver.h (Left Side Only)
-LEFT_PWM = 2
-LEFT_IN1 = 3
-LEFT_IN2 = 4
+LEFT_PWM = 5
+LEFT_IN1 = 6
+LEFT_IN2 = 7
 
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
