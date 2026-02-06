@@ -43,3 +43,8 @@ ermöglicht so die Erkennung der Motordrehrichtung.
 
 ## Motor Wiring
 ![Motor Wiring](src/gubot_one/Motor_wiring.png)
+
+
+
+raspberry pi installation
+sudo apt install screen tio
