@@ -1,66 +1,74 @@
 import serial
 import time
 
-# Update with your actual device path if different
 PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
 BAUD = 57600
 
-# Pins from motor_driver.h (Left Side Only)
+# Confirmed Left Pins
 LEFT_PWM = 5
 LEFT_IN1 = 6
 LEFT_IN2 = 7
 
+# Candidate Right Pins (Guessing sequential)
+RIGHT_CANDIDATE_PWM = 8
+RIGHT_CANDIDATE_IN1 = 9
+RIGHT_CANDIDATE_IN2 = 10
+
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
-    time.sleep(2)  # Wait for DTR reset
+    time.sleep(2)
     print(f"Connected to {PORT}")
 
     def send(cmd):
         ser.write(f"{cmd}\r".encode())
-        print(f"Sent: {cmd}")
-        print(f"Recv: {ser.readline().decode().strip()}")
+        # print(f"Sent: {cmd}")
+        return ser.readline().decode().strip()
 
-    print("--- LEFT MOTOR TEST ---")
-
-    print("1. Configuring Pins to OUTPUT...")
+    # --- LEFT MOTOR RAMP TEST ---
+    print("\n=== LEFT MOTOR RAMP TEST ===")
+    print("Configuring Left Pins...")
     send(f"c {LEFT_PWM} 1")
     send(f"c {LEFT_IN1} 1")
     send(f"c {LEFT_IN2} 1")
 
-    print("\n2. Setting Direction (IN1=High, IN2=Low)...")
+    print("Setting Direction...")
     send(f"w {LEFT_IN1} 1")
     send(f"w {LEFT_IN2} 0")
 
-    print("\n3. Digital Write High (Max Speed)...")
-    print(">>> MOTOR SHOULD BE SPINNING FAST NOW <<<")
-    send(f"w {LEFT_PWM} 1")
-    time.sleep(5)
+    print("Ramping PWM from 0 to 255...")
+    for pwm in range(0, 256, 10):
+        print(f"PWM: {pwm}")
+        send(f"x {LEFT_PWM} {pwm}")
+        time.sleep(0.2)
 
-    print(">>> STOPPING (Hard Brake) <<<")
+    print("STOPPING Left...")
     send(f"w {LEFT_PWM} 0")
     send(f"w {LEFT_IN1} 0")
-    send(f"w {LEFT_IN2} 0")
+    pass
 
-    print("\n[STOPPED] Preparing for PWM Test in:")
-    for i in range(3, 0, -1):
-        print(f"{i}...")
-        time.sleep(1)
-    print(">>> GO! <<<")
+    time.sleep(2)
 
-    print("\nNeed to reset direction for PWM Test...")
-    send(f"w {LEFT_IN1} 1")
-    send(f"w {LEFT_IN2} 0")
+    # --- RIGHT MOTOR DISCOVERY ---
+    print("\n=== RIGHT MOTOR TEST (Pins 8, 9, 10) ===")
+    print("If this works, we found the Right Motor.")
 
-    print("\n4. PWM Test (Analog Write 100/255)...")
-    print(">>> MOTOR SHOULD BE SPINNING SLOWER (~40%) NOW <<<")
-    # Using 'x' command for analogWrite
-    send(f"x {LEFT_PWM} 100")
-    time.sleep(5)
+    print("Configuring Right Candidate Pins...")
+    send(f"c {RIGHT_CANDIDATE_PWM} 1")
+    send(f"c {RIGHT_CANDIDATE_IN1} 1")
+    send(f"c {RIGHT_CANDIDATE_IN2} 1")
 
-    print(">>> STOPPING (Hard Brake) <<<")
-    send(f"w {LEFT_PWM} 0")
-    send(f"w {LEFT_IN1} 0")
-    send(f"w {LEFT_IN2} 0")
+    print("Setting Right Direction...")
+    send(f"w {RIGHT_CANDIDATE_IN1} 1")
+    send(f"w {RIGHT_CANDIDATE_IN2} 0")
+
+    print("Full Power Right...")
+    send(f"w {RIGHT_CANDIDATE_PWM} 1")
+
+    time.sleep(3)
+
+    print("STOPPING Right...")
+    send(f"w {RIGHT_CANDIDATE_PWM} 0")
+    send(f"w {RIGHT_CANDIDATE_IN1} 0")
 
     ser.close()
     print("Done.")
