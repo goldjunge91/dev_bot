@@ -10,9 +10,9 @@ LEFT_IN1 = 3
 LEFT_IN2 = 4
 
 # Candidate Right Pins (Guessing sequential)
-RIGHT_CANDIDATE_PWM = 5
-RIGHT_CANDIDATE_IN1 = 6
-RIGHT_CANDIDATE_IN2 = 7
+RIGHT_CANDIDATE_PWM = 6
+RIGHT_CANDIDATE_IN1 = 7
+RIGHT_CANDIDATE_IN2 = 8
 
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
