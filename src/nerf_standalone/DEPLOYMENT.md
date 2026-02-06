@@ -7,7 +7,7 @@ ssh ros@<RASPBERRY_IP>
 cd ~/dev_bot
 git pull
 ```
-
+ ls /dev/ttyACM* /dev/ttyUSB*
 ## 2. Build Firmware
 ### Nerf Controller (Arduino Nano / Micro)
 1.  Connect the Nerf Arduino to your PC (or compile on Pi if setup).

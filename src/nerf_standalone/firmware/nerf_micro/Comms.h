@@ -105,6 +105,14 @@ public:
     else if (cmd == "CAL")
       _launcher.startCalibration();
 
+    // Manual Calibration (User Request)
+    else if (cmd == "1")
+      _launcher.calibrateMax();
+    else if (cmd == "0")
+      _launcher.calibrateMin();
+    else if (cmd == "2")
+      _launcher.testSequence();
+
     else if (cmd == "NF")
       _launcher.nudge(true);
     else if (cmd == "NB")

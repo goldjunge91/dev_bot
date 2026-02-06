@@ -81,6 +81,13 @@ void setup() {
   uint32_t startWait = millis();
   while (!Serial && millis() - startWait < 2000)
     ;
+
+  // FLUSH BUFFER: Clear any old commands (e.g. from ROS buffered write)
+  while (Serial.available())
+    Serial.read();
+  while (Serial1.available())
+    Serial1.read();
+
   pinMode(LED_BUILTIN, OUTPUT);
   // Blink 3 times to signal ready
   for (int i = 0; i < 3; i++) {

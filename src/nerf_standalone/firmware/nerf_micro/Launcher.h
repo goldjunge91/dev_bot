@@ -12,7 +12,8 @@ enum class FiringState {
   PUSHING,
   BRAKING,
   COOLDOWN,
-  ESC_TEST
+  ESC_TEST,
+  CALIBRATING
 };
 
 class Launcher {
@@ -44,7 +45,15 @@ private:
 public:
   Launcher() {} // No tilt init
 
-  void begin() { _lastActivityTime = millis(); }
+  void begin() {
+    _lastActivityTime = millis();
+    // SAFETY: Ensure everything is detached on boot
+    if (_escL.attached())
+      _escL.detach();
+    if (_escR.attached())
+      _escR.detach();
+    _shot.detach();
+  }
 
   // --- HELPER OUTPUT ---
   void debugPrint(const __FlashStringHelper *msg) {
@@ -62,21 +71,36 @@ public:
 
   // --- ARMING ---
   void arm() {
+    // Keep-Alive: If ROS sends "ARM" constantly, we stay armed.
+    _lastActivityTime = millis();
+
     if (_isArmed || _fState == FiringState::ARMING)
       return;
 
     // Attach ESCs ONLY. Pusher stays detached for safety!
     _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
     _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
-    applyFlywheelPower(0); // Arm with 0% power (Stop/Arm signal)
+
+    // SAFETY: Explicitly send the ARM value (usually 1000 or 1500)
+    _escL.writeMicroseconds(Config::ESC_ARM);
+    _escR.writeMicroseconds(Config::ESC_ARM);
 
     _fState = FiringState::ARMING;
     _stateStartTime = millis();
-    _lastActivityTime = millis();
+    // _lastActivityTime set above
     debugPrint(F("STATUS: ARMING sequence started (2s)..."));
   }
 
   void disarm() {
+    // Special Case: Calibration finishing
+    if (_fState == FiringState::CALIBRATING) {
+      _escL.writeMicroseconds(Config::ESC_MIN);
+      _escR.writeMicroseconds(Config::ESC_MIN);
+      _fState = FiringState::IDLE;
+      debugPrint(F("OK: CALIBRATION FINISH (Sent MIN). Verify ESC beeps."));
+      return; // Stay attached so ESC sees the signal
+    }
+
     _isArmed = false;
     _fState = FiringState::IDLE;
 
@@ -122,11 +146,54 @@ public:
     recordActivity();
   }
 
+  // --- CALIBRATION HELPERS (User Logic) ---
+  void calibrateMax() {
+    if (!_escL.attached())
+      _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
+    if (!_escR.attached())
+      _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
+    _escL.writeMicroseconds(Config::ESC_MAX);
+    _escR.writeMicroseconds(Config::ESC_MAX);
+    debugPrint(F("Sending maximum throttle"));
+  }
+
+  void calibrateMin() {
+    if (!_escL.attached())
+      _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
+    if (!_escR.attached())
+      _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
+    _escL.writeMicroseconds(Config::ESC_MIN);
+    _escR.writeMicroseconds(Config::ESC_MIN);
+    debugPrint(F("Sending minimum throttle"));
+  }
+
+  void testSequence() {
+    debugPrint(F("Running test in 3..."));
+    delay(1000);
+    debugPrint(F("Running test in 2..."));
+    delay(1000);
+    debugPrint(F("Running test in 1..."));
+    delay(1000);
+
+    // Ramp UP
+    for (uint16_t i = Config::ESC_MIN; i <= Config::ESC_MAX; i += 5) {
+      _escL.writeMicroseconds(i);
+      _escR.writeMicroseconds(i);
+      debugPrintf("Pulse length = %d", i);
+      delay(200);
+    }
+
+    debugPrint(F("STOP"));
+    _escL.writeMicroseconds(Config::ESC_MIN);
+    _escR.writeMicroseconds(Config::ESC_MIN);
+  }
+
   void nudge(bool forward) {
+    debugPrint(F("STATUS: Nudging..."));
     _shot.attach(Config::PIN_SHOT, Config::SV_MIN_US, Config::SV_MAX_US);
-    int s = forward ? (shotNeutralUs + 300) : (shotNeutralUs - 300);
+    int s = forward ? (shotNeutralUs + 500) : (shotNeutralUs - 500);
     _shot.writeMicroseconds(s);
-    delay(100);
+    delay(200);
     _shot.writeMicroseconds(shotNeutralUs);
     delay(50);
     _shot.detach();
@@ -140,22 +207,24 @@ public:
   }
 
   void setRawPWM(int us) {
-    if (!_escL.attached()) {
+    if (!_escL.attached())
       _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
+    if (!_escR.attached())
       _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
-    }
     _escL.writeMicroseconds(us);
     _escR.writeMicroseconds(us);
     debugPrintf("OK: Manual PWM %d us", us);
   }
 
   void startCalibration() {
-    if (!_escL.attached()) {
+    if (!_escL.attached())
       _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
+    if (!_escR.attached())
       _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
-    }
     _escL.writeMicroseconds(Config::ESC_MAX);
     _escR.writeMicroseconds(Config::ESC_MAX);
+
+    _fState = FiringState::CALIBRATING;
     debugPrint(F("WARNING: CALIBRATION MODE - MAX THROTTLE (2000us)"));
     debugPrint(F("1. Connect Battery NOW (Wait for Beep-Beep)"));
     debugPrint(F("2. Type 'STOP' immediately after beeps to finish"));
@@ -230,6 +299,9 @@ public:
       break;
 
     case FiringState::ESC_TEST:
+      break;
+
+    case FiringState::CALIBRATING:
       break;
 
     case FiringState::ARMING:
