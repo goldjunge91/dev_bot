@@ -6,9 +6,14 @@ PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
 BAUD = 57600
 
 # Pins from motor_driver.h
+# Left
 LEFT_PWM = 2
 LEFT_IN1 = 3
 LEFT_IN2 = 4
+# Right
+RIGHT_PWM = 6
+RIGHT_IN1 = 7
+RIGHT_IN2 = 8
 
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
@@ -18,28 +23,42 @@ try:
     def send(cmd):
         ser.write(f"{cmd}\r".encode())
         print(f"Sent: {cmd}")
-        # Response might be "OK" or value
         print(f"Recv: {ser.readline().decode().strip()}")
 
-    print("1. Configuring Pins to OUTPUT...")
+    print("--- TEST 1: RIGHT Motor Digital Check ---")
+    print("Configuring RIGHT Pins to OUTPUT...")
+    send(f"c {RIGHT_PWM} 1")
+    send(f"c {RIGHT_IN1} 1")
+    send(f"c {RIGHT_IN2} 1")
+
+    print("Setting RIGHT Motor Direction...")
+    send(f"w {RIGHT_IN1} 1")
+    send(f"w {RIGHT_IN2} 0")
+
+    print("Turning ON RIGHT PWM Pin (HIGH - Full Speed)...")
+    send(f"w {RIGHT_PWM} 1")
+
+    time.sleep(2)
+    print("Stop RIGHT...")
+    send(f"w {RIGHT_PWM} 0")
+
+    print("\n--- TEST 2: PWM Check (Left Motor) ---")
+    # Does analogWrite work?
+    print("Setting LEFT Motor Direction...")
+    # Re-config in case reset
     send(f"c {LEFT_PWM} 1")
     send(f"c {LEFT_IN1} 1")
     send(f"c {LEFT_IN2} 1")
-
-    print("\n2. Setting LEFT Motor Direction (IN1=HIGH, IN2=LOW)...")
     send(f"w {LEFT_IN1} 1")
     send(f"w {LEFT_IN2} 0")
 
-    print("\n3. Turning ON PWM Pin (HIGH/Max Speed)...")
-    # Using 'w' (digitalWrite) to rule out PWM frequency issues. pure DC.
-    send(f"w {LEFT_PWM} 1")
+    print("Sending analogWrite (PWM) 200/255 to LEFT...")
+    # 'x' is ANALOG_WRITE in commands.h
+    send(f"x {LEFT_PWM} 200")
 
-    print("\n--- MOTOR SHOULD SPIN NOW (Wait 3s) ---")
-    time.sleep(3)
-
-    print("\n4. Stopping...")
+    time.sleep(2)
+    print("Stop PWM...")
     send(f"w {LEFT_PWM} 0")
-    send(f"w {LEFT_IN1} 0")
 
     ser.close()
     print("Done.")
