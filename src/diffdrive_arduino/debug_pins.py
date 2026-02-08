@@ -4,15 +4,15 @@ import time
 PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
 BAUD = 57600
 
-# Confirmed Left Pins
-LEFT_PWM = 0
-LEFT_IN1 = 4
-LEFT_IN2 = 5
-
-# Candidate Right Pins (Guessing sequential)
-RIGHT_PWM = 6
-RIGHT_IN1 = 7
-RIGHT_IN2 = 8
+# ============================================================
+# This script uses the 'o' command (MOTOR_RAW_PWM) which:
+# 1. Resets the auto-stop timer (prevents firmware from zeroing PWM)
+# 2. Uses the firmware's setMotorSpeeds() (correct pin handling)
+# 3. Works with whatever pins are defined in motor_driver.h
+#
+# 'o <left_pwm> <right_pwm>' - values from -255 to 255
+# Negative = reverse, Positive = forward
+# ============================================================
 
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
@@ -21,70 +21,52 @@ try:
 
     def send(cmd):
         ser.write(f"{cmd}\r".encode())
-        # print(f"Sent: {cmd}")
+        time.sleep(0.05)
         return ser.readline().decode().strip()
 
-    # Disable all
-    send(f"w {LEFT_PWM} 0")
-    send(f"w {LEFT_IN1} 0")
-    send(f"w {RIGHT_PWM} 0")
-    send(f"w {RIGHT_IN1} 0")
+    # --- STOP BOTH ---
+    print("Stopping both motors...")
+    send("o 0 0")
 
     # --- LEFT MOTOR RAMP TEST ---
     print("\n=== LEFT MOTOR RAMP TEST ===")
-    print("Configuring Left Pins...")
-    send(f"c {LEFT_PWM} 1")
-    send(f"c {LEFT_IN1} 1")
-    send(f"c {LEFT_IN2} 1")
+    print("Ramping LEFT motor speed (0 to 200)...")
+    for pwm in range(0, 210, 20):
+        print(f"  LEFT PWM: {pwm}/255 (RIGHT: 0)")
+        send(f"o {pwm} 0")
+        time.sleep(1.0)
 
-    print("Setting Direction...")
-    send(f"w {LEFT_IN1} 1")
-    send(f"w {LEFT_IN2} 0")
-
-    print("\n--- LOW SPEED RAMP (0 to 100) ---")
-    print("Checking for ANY speed change...")
-    for pwm in range(0, 105, 10):
-        print(f"PWM: {pwm}/255")
-        send(f"x {LEFT_PWM} {pwm}")
-        time.sleep(1.0)  # Longer wait to observe
-
-    print("STOPPING Left...")
-    send(f"w {LEFT_PWM} 0")
-    send(f"w {LEFT_IN1} 0")
-    pass
-
+    print("STOPPING...")
+    send("o 0 0")
     time.sleep(2)
 
-    # --- RIGHT MOTOR DISCOVERY ---
-    print("\n=== RIGHT MOTOR TEST (Pins6, 7, 8) ===")
-    print("If this works, we found the Right Motor.")
+    # --- RIGHT MOTOR RAMP TEST ---
+    print("\n=== RIGHT MOTOR RAMP TEST ===")
+    print("Ramping RIGHT motor speed (0 to 200)...")
+    for pwm in range(0, 210, 20):
+        print(f"  RIGHT PWM: {pwm}/255 (LEFT: 0)")
+        send(f"o 0 {pwm}")
+        time.sleep(1.0)
 
-    print("Configuring Right Candidate Pins...")
-    send(f"c {RIGHT_PWM} 1")
-    send(f"c {RIGHT_IN1} 1")
-    send(f"c {RIGHT_IN2} 1")
+    print("STOPPING...")
+    send("o 0 0")
+    time.sleep(2)
 
-    print("Setting Right Direction...")
-    send(f"w {RIGHT_IN1} 1")
-    send(f"w {RIGHT_IN2} 0")
-    print("\n--- LOW SPEED RAMP (0 to 100) ---")
-    print("Checking for ANY speed change...")
-    for pwm in range(0, 105, 10):
-        print(f"PWM: {pwm}/255")
-        send(f"x {RIGHT_PWM} {pwm}")
-        time.sleep(1.0)  # Longer wait to observe
-
-    # print("Full Power Right...")
-    # send(f"w {RIGHT_PWM} 1")
-
+    # --- BOTH MOTORS ---
+    print("\n=== BOTH MOTORS TEST ===")
+    print("Both forward at PWM 150...")
+    send("o 150 150")
     time.sleep(3)
 
-    print("STOPPING Right...")
-    send(f"w {RIGHT_PWM} 0")
-    send(f"w {RIGHT_IN1} 0")
+    print("Both reverse at PWM 150...")
+    send("o -150 -150")
+    time.sleep(3)
+
+    print("STOPPING...")
+    send("o 0 0")
 
     ser.close()
-    print("Done.")
+    print("\nDone!")
 
 except Exception as e:
     print(f"Error: {e}")

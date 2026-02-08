@@ -145,35 +145,37 @@
       spd = 255;
     
     if (i == LEFT) {
-      // Set direction FIRST (before PWM on RP2040)
-      if (reverse == 0) {
+      if (spd == 0) {
+        // Coast stop: both direction pins LOW
+        digitalWrite(LEFT_MOTOR_IN1, LOW);
+        digitalWrite(LEFT_MOTOR_IN2, LOW);
+      } else if (reverse == 0) {
         digitalWrite(LEFT_MOTOR_IN1, HIGH);
         digitalWrite(LEFT_MOTOR_IN2, LOW);
       } else {
         digitalWrite(LEFT_MOTOR_IN1, LOW);
         digitalWrite(LEFT_MOTOR_IN2, HIGH);
       }
-      // Small delay for RP2040 to ensure direction is set
       #if defined(ARDUINO_ARCH_RP2040)
         delayMicroseconds(1);
       #endif
-      // Then set PWM speed
       analogWrite(LEFT_MOTOR_PWM, spd);
     }
     else { // RIGHT
-      // Set direction FIRST (before PWM on RP2040)
-      if (reverse == 0) {
+      if (spd == 0) {
+        // Coast stop: both direction pins LOW
+        digitalWrite(RIGHT_MOTOR_IN1, LOW);
+        digitalWrite(RIGHT_MOTOR_IN2, LOW);
+      } else if (reverse == 0) {
         digitalWrite(RIGHT_MOTOR_IN1, HIGH);
         digitalWrite(RIGHT_MOTOR_IN2, LOW);
       } else {
         digitalWrite(RIGHT_MOTOR_IN1, LOW);
         digitalWrite(RIGHT_MOTOR_IN2, HIGH);
       }
-      // Small delay for RP2040 to ensure direction is set
       #if defined(ARDUINO_ARCH_RP2040)
         delayMicroseconds(1);
       #endif
-      // Then set PWM speed
       analogWrite(RIGHT_MOTOR_PWM, spd);
     }
   }
