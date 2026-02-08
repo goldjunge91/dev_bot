@@ -24,6 +24,12 @@ try:
         # print(f"Sent: {cmd}")
         return ser.readline().decode().strip()
 
+    # Disable all
+    send(f"w {LEFT_PWM} 0")
+    send(f"w {LEFT_IN1} 0")
+    send(f"w {RIGHT_PWM} 0")
+    send(f"w {RIGHT_IN1} 0")
+
     # --- LEFT MOTOR RAMP TEST ---
     print("\n=== LEFT MOTOR RAMP TEST ===")
     print("Configuring Left Pins...")
