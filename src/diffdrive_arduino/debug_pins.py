@@ -4,15 +4,16 @@ import time
 PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
 BAUD = 57600
 
-# Confirmed Left Pins
-LEFT_PWM = 2
-LEFT_IN1 = 3
-LEFT_IN2 = 4
+# Left Motor Pins (UPDATED - avoid PWM slice conflict AND encoder conflicts)
+# Encoders use: LEFT(GP22,GP21), RIGHT(GP11,GP10)
+LEFT_PWM = 16  # GP16 - PWM0A (separate slice, no conflicts)
+LEFT_IN1 = 13  # GP13 - Direction
+LEFT_IN2 = 14  # GP14 - Direction
 
-# Candidate Right Pins (Guessing sequential)
-RIGHT_PWM = 6
-RIGHT_IN1 = 7
-RIGHT_IN2 = 8
+# Right Motor Pins (Working correctly)
+RIGHT_PWM = 6  # GP6 - PWM3A
+RIGHT_IN1 = 7  # GP7
+RIGHT_IN2 = 8  # GP8
 
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
