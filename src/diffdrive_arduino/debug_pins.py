@@ -10,10 +10,10 @@ BAUD = 57600
 # See firmware/ROSArduinoBridge/pinout.h for complete documentation
 
 # Left Motor Pins (TB6612FNG Motor Driver)
-# PWM on PWM0A, direction pins on PWM2 (different slice - avoids conflicts!)
-LEFT_PWM = 0   # GP0 - PWM0A (separate slice from direction pins)
-LEFT_IN1 = 4   # GP4 - Direction (PWM2A, used as digital)
-LEFT_IN2 = 5   # GP5 - Direction (PWM2B, used as digital)
+# RESTORED TO ORIGINAL PINS to match existing hardware
+LEFT_PWM = 2   # GP2 - PWM1A
+LEFT_IN1 = 3   # GP3 - PWM1B (WARNING: shares PWM slice with GP2!)
+LEFT_IN2 = 4   # GP4 - PWM2A
 
 # Right Motor Pins (TB6612FNG Motor Driver)
 RIGHT_PWM = 6  # GP6 - PWM3A
