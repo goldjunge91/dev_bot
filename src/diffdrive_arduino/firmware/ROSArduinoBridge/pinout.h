@@ -30,12 +30,12 @@
 // ============================================================
 // MOTOR DRIVER PINS (TB6612FNG)
 // ============================================================
-// Motor A (Left Motor)
-// Note: PWM pin must be on different slice than direction pins
-// to avoid PWM conflicts when using digitalWrite()
-#define LEFT_MOTOR_PWM    0    // GP0  - PWM0A
-#define LEFT_MOTOR_IN1    4    // GP4  - PWM2A (used as digital output)
-#define LEFT_MOTOR_IN2    5    // GP5  - PWM2B (used as digital output)
+// Motor A (Left Motor)  
+// Using ORIGINAL pins (GP2, GP3, GP4) to match existing hardware
+// WARNING: GP2 and GP3 share PWM Slice 1, which may cause conflicts!
+#define LEFT_MOTOR_PWM    2    // GP2  - PWM1A
+#define LEFT_MOTOR_IN1    3    // GP3  - PWM1B (shares slice with GP2!)
+#define LEFT_MOTOR_IN2    4    // GP4  - PWM2A
 
 // Motor B (Right Motor)
 #define RIGHT_MOTOR_PWM   6    // GP6  - PWM3A
@@ -86,9 +86,8 @@
 // ============================================================
 // UART0 (USB Serial via USB)
 // ============================================================
-// GP0 (TX) and GP1 (RX) are default UART0
-// But we're using USB serial, so these are available
-// Already using GP0 for LEFT_MOTOR_PWM
+// GP0 (TX) and GP1 (RX) are default UART0 pins
+// But we're using USB serial (Serial over USB), so GP0 and GP1 are available as GPIO
 
 // ============================================================
 // UART1 (Hardware Serial - Optional GPS, etc.)
@@ -106,9 +105,9 @@
 // ============================================================
 // DIGITAL I/O PINS (Available/Spare)
 // ============================================================
-#define GPIO_SPARE_1      1    // GP1  - PWM0B
-#define GPIO_SPARE_2      2    // GP2  - PWM1A
-#define GPIO_SPARE_3      3    // GP3  - PWM1B
+#define GPIO_SPARE_1      0    // GP0  - PWM0A
+#define GPIO_SPARE_2      1    // GP1  - PWM0B
+#define GPIO_SPARE_3      5    // GP5  - PWM2B
 #define GPIO_SPARE_4      9    // GP9  - PWM4B
 
 // GP15 might be available if not using I2C1
@@ -133,12 +132,12 @@
 /*
     PIN ALLOCATION MAP:
     
-    GP0  - LEFT_MOTOR_PWM      (Motor Control)
+    GP0  - SPARE               (Available)
     GP1  - SPARE               (Available)
-    GP2  - SPARE               (Available)
-    GP3  - SPARE               (Available)
-    GP4  - LEFT_MOTOR_IN1      (Motor Control)
-    GP5  - LEFT_MOTOR_IN2      (Motor Control)
+    GP2  - LEFT_MOTOR_PWM      (Motor Control)
+    GP3  - LEFT_MOTOR_IN1      (Motor Control - WARNING: shares PWM slice with GP2!)
+    GP4  - LEFT_MOTOR_IN2      (Motor Control)
+    GP5  - SPARE               (Available)
     GP6  - RIGHT_MOTOR_PWM     (Motor Control)
     GP7  - RIGHT_MOTOR_IN1     (Motor Control)
     GP8  - RIGHT_MOTOR_IN2     (Motor Control)
