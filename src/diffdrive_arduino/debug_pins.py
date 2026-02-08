@@ -10,9 +10,9 @@ LEFT_IN1 = 3
 LEFT_IN2 = 4
 
 # Candidate Right Pins (Guessing sequential)
-RIGHT_CANDIDATE_PWM = 6
-RIGHT_CANDIDATE_IN1 = 7
-RIGHT_CANDIDATE_IN2 = 8
+RIGHT_PWM = 6
+RIGHT_IN1 = 7
+RIGHT_IN2 = 8
 
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
@@ -54,22 +54,28 @@ try:
     print("If this works, we found the Right Motor.")
 
     print("Configuring Right Candidate Pins...")
-    send(f"c {RIGHT_CANDIDATE_PWM} 1")
-    send(f"c {RIGHT_CANDIDATE_IN1} 1")
-    send(f"c {RIGHT_CANDIDATE_IN2} 1")
+    send(f"c {RIGHT_PWM} 1")
+    send(f"c {RIGHT_IN1} 1")
+    send(f"c {RIGHT_IN2} 1")
 
     print("Setting Right Direction...")
-    send(f"w {RIGHT_CANDIDATE_IN1} 1")
-    send(f"w {RIGHT_CANDIDATE_IN2} 0")
+    send(f"w {RIGHT_IN1} 1")
+    send(f"w {RIGHT_IN2} 0")
+    print("\n--- LOW SPEED RAMP (0 to 100) ---")
+    print("Checking for ANY speed change...")
+    for pwm in range(0, 105, 10):
+        print(f"PWM: {pwm}/255")
+        send(f"x {RIGHT_PWM} {pwm}")
+        time.sleep(1.0)  # Longer wait to observe
 
-    print("Full Power Right...")
-    send(f"w {RIGHT_CANDIDATE_PWM} 1")
+    # print("Full Power Right...")
+    # send(f"w {RIGHT_PWM} 1")
 
     time.sleep(3)
 
     print("STOPPING Right...")
-    send(f"w {RIGHT_CANDIDATE_PWM} 0")
-    send(f"w {RIGHT_CANDIDATE_IN1} 0")
+    send(f"w {RIGHT_PWM} 0")
+    send(f"w {RIGHT_IN1} 0")
 
     ser.close()
     print("Done.")
