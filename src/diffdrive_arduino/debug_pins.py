@@ -50,7 +50,7 @@ try:
     time.sleep(2)
 
     # --- RIGHT MOTOR DISCOVERY ---
-    print("\n=== RIGHT MOTOR TEST (Pins 8, 9, 10) ===")
+    print("\n=== RIGHT MOTOR TEST (Pins6, 7, 8) ===")
     print("If this works, we found the Right Motor.")
 
     print("Configuring Right Candidate Pins...")
