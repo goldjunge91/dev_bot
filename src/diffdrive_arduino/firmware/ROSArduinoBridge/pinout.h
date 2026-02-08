@@ -117,7 +117,8 @@
 // ============================================================
 // ONBOARD LED
 // ============================================================
-#define LED_BUILTIN       25   // GP25 - Onboard LED (PWM4B)
+// LED_BUILTIN is already defined by Arduino Core as PIN_LED (GP25)
+// No need to redefine it here
 
 // ============================================================
 // RESERVED/INTERNAL PINS (Do not use)
@@ -157,7 +158,7 @@
     GP22 - LEFT_ENC_PIN_A      (Encoder)
     GP23 - INTERNAL            (Do not use)
     GP24 - INTERNAL            (Do not use)
-    GP25 - LED_BUILTIN         (Onboard LED)
+    GP25 - LED_BUILTIN         (Onboard LED - defined by Arduino Core)
     GP26 - ADC0                (Analog Input - Available)
     GP27 - ADC1                (Analog Input - Available)
     GP28 - ADC2                (Analog Input - Available)
