@@ -4,16 +4,25 @@ import time
 PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
 BAUD = 57600
 
-# Left Motor Pins (UPDATED - avoid PWM slice conflict AND encoder conflicts)
-# Encoders use: LEFT(GP22,GP21), RIGHT(GP11,GP10)
-LEFT_PWM = 16  # GP16 - PWM0A (separate slice, no conflicts)
-LEFT_IN1 = 13  # GP13 - Direction
-LEFT_IN2 = 14  # GP14 - Direction
+# ============================================================
+# Raspberry Pi Pico Pin Configuration
+# ============================================================
+# See firmware/ROSArduinoBridge/pinout.h for complete documentation
 
-# Right Motor Pins (Working correctly)
+# Left Motor Pins (TB6612FNG Motor Driver)
+# PWM on PWM0A, direction pins on PWM2 (different slice - avoids conflicts!)
+LEFT_PWM = 0   # GP0 - PWM0A (separate slice from direction pins)
+LEFT_IN1 = 4   # GP4 - Direction (PWM2A, used as digital)
+LEFT_IN2 = 5   # GP5 - Direction (PWM2B, used as digital)
+
+# Right Motor Pins (TB6612FNG Motor Driver)
 RIGHT_PWM = 6  # GP6 - PWM3A
-RIGHT_IN1 = 7  # GP7
-RIGHT_IN2 = 8  # GP8
+RIGHT_IN1 = 7  # GP7 - Direction
+RIGHT_IN2 = 8  # GP8 - Direction
+
+# Reserved Pins (not used in this test script):
+# - Encoders: LEFT(GP22,GP21), RIGHT(GP11,GP10)
+# - IMU/SPI0: GP16-19
 
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
