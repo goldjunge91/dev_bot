@@ -32,9 +32,9 @@
   // ============== RASPBERRY PI PICO (RP2040) ==============
   #elif defined(ARDUINO_ARCH_RP2040)
     // Motor A (Left Motor)
-    #define LEFT_MOTOR_PWM    2   // GP2 - PWM1A
-    #define LEFT_MOTOR_IN1    3   // GP3 - PWM1B (WARNING: shares PWM slice with GP2!)
-    #define LEFT_MOTOR_IN2    4   // GP4 - PWM2A
+    #define LEFT_MOTOR_PWM    0   // GP0 - PWM0A
+    #define LEFT_MOTOR_IN1    4   // GP4 - PWM2A
+    #define LEFT_MOTOR_IN2    5   // GP5 - PWM2B
     
     // Motor B (Right Motor)  
     #define RIGHT_MOTOR_PWM   6   // GP6 - PWM3A

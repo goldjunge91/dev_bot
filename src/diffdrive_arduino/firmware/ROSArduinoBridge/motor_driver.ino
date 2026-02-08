@@ -8,6 +8,11 @@
    *************************************************************/
 
 #ifdef USE_BASE
+
+// Include RP2040 PWM hardware support if needed
+#if defined(ARDUINO_ARCH_RP2040)
+  #include "hardware/pwm.h"
+#endif
    
 #ifdef POLOLU_VNH5019
   /* Include the Pololu library */
@@ -87,6 +92,14 @@
     setMotorSpeed(RIGHT, rightSpeed);
   }
 #elif defined TB6612_MOTOR_DRIVER
+  
+  #if defined(ARDUINO_ARCH_RP2040)
+    // RP2040-specific: We need to handle PWM carefully to avoid conflicts
+    // Store PWM slice numbers for each motor
+    uint8_t left_pwm_slice;
+    uint8_t right_pwm_slice;
+  #endif
+  
   void initMotorController() {
     // Set all motor control pins as outputs
     pinMode(LEFT_MOTOR_PWM, OUTPUT);
@@ -96,13 +109,29 @@
     pinMode(RIGHT_MOTOR_IN1, OUTPUT);
     pinMode(RIGHT_MOTOR_IN2, OUTPUT);
     
-    // Initialize motors stopped
-    digitalWrite(LEFT_MOTOR_IN1, LOW);
-    digitalWrite(LEFT_MOTOR_IN2, LOW);
-    digitalWrite(RIGHT_MOTOR_IN1, LOW);
-    digitalWrite(RIGHT_MOTOR_IN2, LOW);
-    analogWrite(LEFT_MOTOR_PWM, 0);
-    analogWrite(RIGHT_MOTOR_PWM, 0);
+    #if defined(ARDUINO_ARCH_RP2040)
+      // For RP2040: Store PWM slice numbers and ensure PWM is initialized
+      left_pwm_slice = pwm_gpio_to_slice_num(LEFT_MOTOR_PWM);
+      right_pwm_slice = pwm_gpio_to_slice_num(RIGHT_MOTOR_PWM);
+      
+      // Initialize direction pins BEFORE enabling PWM
+      digitalWrite(LEFT_MOTOR_IN1, LOW);
+      digitalWrite(LEFT_MOTOR_IN2, LOW);
+      digitalWrite(RIGHT_MOTOR_IN1, LOW);
+      digitalWrite(RIGHT_MOTOR_IN2, LOW);
+      
+      // Now enable PWM on PWM pins
+      analogWrite(LEFT_MOTOR_PWM, 0);
+      analogWrite(RIGHT_MOTOR_PWM, 0);
+    #else
+      // For other platforms: Standard initialization
+      digitalWrite(LEFT_MOTOR_IN1, LOW);
+      digitalWrite(LEFT_MOTOR_IN2, LOW);
+      digitalWrite(RIGHT_MOTOR_IN1, LOW);
+      digitalWrite(RIGHT_MOTOR_IN2, LOW);
+      analogWrite(LEFT_MOTOR_PWM, 0);
+      analogWrite(RIGHT_MOTOR_PWM, 0);
+    #endif
   }
   
   void setMotorSpeed(int i, int spd) {
@@ -116,6 +145,7 @@
       spd = 255;
     
     if (i == LEFT) {
+      // Set direction FIRST (before PWM on RP2040)
       if (reverse == 0) {
         digitalWrite(LEFT_MOTOR_IN1, HIGH);
         digitalWrite(LEFT_MOTOR_IN2, LOW);
@@ -123,9 +153,15 @@
         digitalWrite(LEFT_MOTOR_IN1, LOW);
         digitalWrite(LEFT_MOTOR_IN2, HIGH);
       }
+      // Small delay for RP2040 to ensure direction is set
+      #if defined(ARDUINO_ARCH_RP2040)
+        delayMicroseconds(1);
+      #endif
+      // Then set PWM speed
       analogWrite(LEFT_MOTOR_PWM, spd);
     }
     else { // RIGHT
+      // Set direction FIRST (before PWM on RP2040)
       if (reverse == 0) {
         digitalWrite(RIGHT_MOTOR_IN1, HIGH);
         digitalWrite(RIGHT_MOTOR_IN2, LOW);
@@ -133,6 +169,11 @@
         digitalWrite(RIGHT_MOTOR_IN1, LOW);
         digitalWrite(RIGHT_MOTOR_IN2, HIGH);
       }
+      // Small delay for RP2040 to ensure direction is set
+      #if defined(ARDUINO_ARCH_RP2040)
+        delayMicroseconds(1);
+      #endif
+      // Then set PWM speed
       analogWrite(RIGHT_MOTOR_PWM, spd);
     }
   }

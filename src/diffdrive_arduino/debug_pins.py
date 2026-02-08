@@ -5,9 +5,9 @@ PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
 BAUD = 57600
 
 # Confirmed Left Pins
-LEFT_PWM = 2
-LEFT_IN1 = 3
-LEFT_IN2 = 4
+LEFT_PWM = 0
+LEFT_IN1 = 4
+LEFT_IN2 = 5
 
 # Candidate Right Pins (Guessing sequential)
 RIGHT_PWM = 6
