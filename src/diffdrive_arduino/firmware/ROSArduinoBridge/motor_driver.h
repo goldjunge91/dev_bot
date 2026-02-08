@@ -6,9 +6,6 @@
 #ifndef MOTOR_DRIVER_H
 #define MOTOR_DRIVER_H
 
-// Include centralized pin definitions for Raspberry Pi Pico
-#include "pinout.h"
-
 #ifdef L298_MOTOR_DRIVER
   #define RIGHT_MOTOR_BACKWARD 5
   #define LEFT_MOTOR_BACKWARD  6
@@ -34,9 +31,15 @@
 
   // ============== RASPBERRY PI PICO (RP2040) ==============
   #elif defined(ARDUINO_ARCH_RP2040)
-    // Pin definitions are now in pinout.h for centralized management
-    // See pinout.h for complete pin allocation table
-    // Motor pins are already defined in pinout.h
+    // Motor A (Left Motor)
+    #define LEFT_MOTOR_PWM    2   // GP2 - PWM1A
+    #define LEFT_MOTOR_IN1    3   // GP3 - PWM1B (WARNING: shares PWM slice with GP2!)
+    #define LEFT_MOTOR_IN2    4   // GP4 - PWM2A
+    
+    // Motor B (Right Motor)  
+    #define RIGHT_MOTOR_PWM   6   // GP6 - PWM3A
+    #define RIGHT_MOTOR_IN1   7   // GP7 - PWM3B
+    #define RIGHT_MOTOR_IN2   8   // GP8 - PWM4A
   #endif
   
   // STBY should be connected to 3.3V (Pico) or 5V (Nano)

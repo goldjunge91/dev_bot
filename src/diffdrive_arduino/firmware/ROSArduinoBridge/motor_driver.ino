@@ -96,6 +96,14 @@
     pinMode(RIGHT_MOTOR_IN1, OUTPUT);
     pinMode(RIGHT_MOTOR_IN2, OUTPUT);
     
+    // Raspberry Pi Pico specific PWM configuration
+    #if defined(ARDUINO_ARCH_RP2040)
+      // Set PWM frequency to 50kHz (optimal for TB6612)
+      analogWriteFreq(50000);
+      // Set PWM range to 0-255 (8-bit resolution)
+      analogWriteRange(255);
+    #endif
+    
     // Initialize motors stopped
     digitalWrite(LEFT_MOTOR_IN1, LOW);
     digitalWrite(LEFT_MOTOR_IN2, LOW);
@@ -116,6 +124,7 @@
       spd = 255;
     
     if (i == LEFT) {
+      // Set direction first (before PWM to avoid glitches)
       if (reverse == 0) {
         digitalWrite(LEFT_MOTOR_IN1, HIGH);
         digitalWrite(LEFT_MOTOR_IN2, LOW);
@@ -123,9 +132,11 @@
         digitalWrite(LEFT_MOTOR_IN1, LOW);
         digitalWrite(LEFT_MOTOR_IN2, HIGH);
       }
+      // Then set speed
       analogWrite(LEFT_MOTOR_PWM, spd);
     }
     else { // RIGHT
+      // Set direction first (before PWM to avoid glitches)
       if (reverse == 0) {
         digitalWrite(RIGHT_MOTOR_IN1, HIGH);
         digitalWrite(RIGHT_MOTOR_IN2, LOW);
@@ -133,6 +144,7 @@
         digitalWrite(RIGHT_MOTOR_IN1, LOW);
         digitalWrite(RIGHT_MOTOR_IN2, HIGH);
       }
+      // Then set speed
       analogWrite(RIGHT_MOTOR_PWM, spd);
     }
   }

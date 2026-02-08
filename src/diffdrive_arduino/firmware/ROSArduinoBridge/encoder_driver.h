@@ -5,9 +5,6 @@
 
 #ifndef ENCODER_DRIVER_H
 #define ENCODER_DRIVER_H
-
-// Include centralized pin definitions for Raspberry Pi Pico
-#include "pinout.h"
    
 #ifdef ARDUINO_ENC_COUNTER
   //below can be changed, but should be PORTD pins; 
@@ -26,9 +23,12 @@
     
   // ============== RASPBERRY PI PICO (RP2040) ==============
   #elif defined(ARDUINO_ARCH_RP2040)
-    // Pin definitions are now in pinout.h for centralized management
-    // See pinout.h for complete pin allocation table
-    // Encoder pins are already defined in pinout.h
+    // Pi Pico can use any GPIO pin for interrupts
+    #define LEFT_ENC_PIN_A  22    // GP22
+    #define LEFT_ENC_PIN_B  21    // GP21
+    
+    #define RIGHT_ENC_PIN_A 11    // GP11
+    #define RIGHT_ENC_PIN_B 10    // GP10
     
   #else
     #error "Unsupported platform! Use Arduino AVR or Raspberry Pi Pico"
@@ -41,4 +41,3 @@ void resetEncoder(int i);
 void resetEncoders();
 
 #endif // ENCODER_DRIVER_H
-

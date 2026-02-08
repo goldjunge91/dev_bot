@@ -4,25 +4,15 @@ import time
 PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
 BAUD = 57600
 
-# ============================================================
-# Raspberry Pi Pico Pin Configuration
-# ============================================================
-# See firmware/ROSArduinoBridge/pinout.h for complete documentation
+# Confirmed Left Pins
+LEFT_PWM = 2
+LEFT_IN1 = 3
+LEFT_IN2 = 4
 
-# Left Motor Pins (TB6612FNG Motor Driver)
-# RESTORED TO ORIGINAL PINS to match existing hardware
-LEFT_PWM = 2   # GP2 - PWM1A
-LEFT_IN1 = 3   # GP3 - PWM1B (WARNING: shares PWM slice with GP2!)
-LEFT_IN2 = 4   # GP4 - PWM2A
-
-# Right Motor Pins (TB6612FNG Motor Driver)
-RIGHT_PWM = 6  # GP6 - PWM3A
-RIGHT_IN1 = 7  # GP7 - Direction
-RIGHT_IN2 = 8  # GP8 - Direction
-
-# Reserved Pins (not used in this test script):
-# - Encoders: LEFT(GP22,GP21), RIGHT(GP11,GP10)
-# - IMU/SPI0: GP16-19
+# Candidate Right Pins (Guessing sequential)
+RIGHT_PWM = 6
+RIGHT_IN1 = 7
+RIGHT_IN2 = 8
 
 try:
     ser = serial.Serial(PORT, BAUD, timeout=1)
