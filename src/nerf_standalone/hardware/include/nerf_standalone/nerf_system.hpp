@@ -93,7 +93,7 @@ private:
   // Mappings
   double tilt_min_rad_ = 5.23;
   double tilt_max_rad_ = 6.28;
-
+    
   double *get_state_ptr(const std::string &joint_name,
                          const std::string &interface_name);
   double *get_command_ptr(const std::string &joint_name,
