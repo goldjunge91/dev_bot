@@ -101,6 +101,11 @@
   #endif
   
   void initMotorController() {
+    #ifdef TB6612_STBY
+      pinMode(TB6612_STBY, OUTPUT);
+      digitalWrite(TB6612_STBY, HIGH);
+    #endif
+
     // Set all motor control pins as outputs
     pinMode(LEFT_MOTOR_PWM, OUTPUT);
     pinMode(LEFT_MOTOR_IN1, OUTPUT);
@@ -135,6 +140,12 @@
   }
   
   void setMotorSpeed(int i, int spd) {
+    #ifdef LEFT_MOTOR_REVERSE
+      if (i == LEFT) spd = -spd;
+    #endif
+    #ifdef RIGHT_MOTOR_REVERSE
+      if (i == RIGHT) spd = -spd;
+    #endif
     unsigned char reverse = 0;
     
     if (spd < 0) {

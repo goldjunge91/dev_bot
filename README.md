@@ -44,7 +44,7 @@ ermöglicht so die Erkennung der Motordrehrichtung.
 ## Motor Wiring
 ![Motor Wiring](src/gubot_one/Motor_wiring.png)
 
-
+ICM-20948 Modul, 3-Achsen-Accelerometer, Gyroskop und -Magnetometer, 9DOF, I2C, SPI, MPU-9250 Upgrade
 
 raspberry pi installation
 sudo apt install screen tio

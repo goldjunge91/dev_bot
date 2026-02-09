@@ -32,17 +32,20 @@
 // ============== RASPBERRY PI PICO (RP2040) ==============
 #elif defined(ARDUINO_ARCH_RP2040)
 // Motor A (Left Motor)
-#define LEFT_MOTOR_PWM 0  // GP0 - PWM1A
-#define LEFT_MOTOR_IN1 4  // GP4 - Direction
-#define LEFT_MOTOR_IN2 5  // GP5 - Direction
+#define LEFT_MOTOR_PWM 3  // GP3 - PWMA - PWM pin
+#define LEFT_MOTOR_IN1 4  // GP4 - AIN1 - Direction
+#define LEFT_MOTOR_IN2 5  // GP5 - AIN2 - Direction
 
 // Motor B (Right Motor)
-#define RIGHT_MOTOR_PWM 6 // GP6 - PWM3A
-#define RIGHT_MOTOR_IN1 7 // GP7 - Direction
-#define RIGHT_MOTOR_IN2 8 // GP8 - Direction
+#define RIGHT_MOTOR_PWM 6 // GP6 - PWMB - PWM pin
+#define RIGHT_MOTOR_IN1 7 // GP7 - BIN1 - Direction
+#define RIGHT_MOTOR_IN2 8 // GP8 - BIN2 - Direction
+
+// Invert motor direction if positive speeds drive backward
+#define LEFT_MOTOR_REVERSE 1
+#define RIGHT_MOTOR_REVERSE 1
 #endif
 
-// STBY should be connected to 3.3V (Pico) or 5V (Nano)
 #endif
 
 void initMotorController();
