@@ -75,6 +75,33 @@ NerfSystem::on_init(const hardware_interface::HardwareInfo &info) {
   for (const hardware_interface::ComponentInfo &joint : info_.joints) {
     RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Joint found: %s",
                 joint.name.c_str());
+
+    if (joint.name != "trigger_joint" && joint.name != "dart_pusher_joint" &&
+        joint.name != "flywheel_left_joint" &&
+        joint.name != "flywheel_right_joint" &&
+        joint.name != "system_arming_joint") {
+      RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
+                   "Unsupported joint '%s'", joint.name.c_str());
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    for (const auto &command_interface : joint.command_interfaces) {
+      if (!get_command_ptr(joint.name, command_interface.name)) {
+        RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
+                     "Unsupported command interface '%s' for joint '%s'",
+                     command_interface.name.c_str(), joint.name.c_str());
+        return hardware_interface::CallbackReturn::ERROR;
+      }
+    }
+
+    for (const auto &state_interface : joint.state_interfaces) {
+      if (!get_state_ptr(joint.name, state_interface.name)) {
+        RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
+                     "Unsupported state interface '%s' for joint '%s'",
+                     state_interface.name.c_str(), joint.name.c_str());
+        return hardware_interface::CallbackReturn::ERROR;
+      }
+    }
   }
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -85,15 +112,17 @@ NerfSystem::export_state_interfaces() {
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   for (const auto &joint : info_.joints) {
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        joint.name, hardware_interface::HW_IF_POSITION,
-        &hw_states_.trigger_pos));
-
-    // Add velocity too just in case controllers ask for it
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        joint.name, hardware_interface::HW_IF_VELOCITY,
-        &hw_states_.flywheel_l_vel));
-    // Note: mapping same var to all for now as dummy feedback
+    for (const auto &interface : joint.state_interfaces) {
+      double *state_ptr = get_state_ptr(joint.name, interface.name);
+      if (!state_ptr) {
+        RCLCPP_ERROR(rclcpp::get_logger("NerfSystem"),
+                     "Skipping unsupported state interface '%s' for joint '%s'",
+                     interface.name.c_str(), joint.name.c_str());
+        continue;
+      }
+      state_interfaces.emplace_back(
+          hardware_interface::StateInterface(joint.name, interface.name, state_ptr));
+    }
   }
 
   return state_interfaces;
@@ -104,26 +133,16 @@ NerfSystem::export_command_interfaces() {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   for (const auto &joint : info_.joints) {
-    if (joint.name == "trigger_joint") {
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joint.name, hardware_interface::HW_IF_POSITION,
-          &hw_commands_.trigger_pos));
-    } else if (joint.name == "dart_pusher_joint") {
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joint.name, hardware_interface::HW_IF_VELOCITY,
-          &hw_commands_.pusher_vel));
-    } else if (joint.name == "flywheel_left_joint") {
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joint.name, hardware_interface::HW_IF_VELOCITY,
-          &hw_commands_.flywheel_l_vel));
-    } else if (joint.name == "flywheel_right_joint") {
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joint.name, hardware_interface::HW_IF_VELOCITY,
-          &hw_commands_.flywheel_r_vel));
-    } else if (joint.name == "system_arming_joint") {
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joint.name, hardware_interface::HW_IF_POSITION,
-          &hw_commands_.arming_pos));
+    for (const auto &interface : joint.command_interfaces) {
+      double *command_ptr = get_command_ptr(joint.name, interface.name);
+      if (!command_ptr) {
+        RCLCPP_ERROR(rclcpp::get_logger("NerfSystem"),
+                     "Skipping unsupported command interface '%s' for joint '%s'",
+                     interface.name.c_str(), joint.name.c_str());
+        continue;
+      }
+      command_interfaces.emplace_back(
+          hardware_interface::CommandInterface(joint.name, interface.name, command_ptr));
     }
   }
 
@@ -172,6 +191,13 @@ NerfSystem::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) {
 hardware_interface::return_type
 NerfSystem::read(const rclcpp::Time & /*time*/,
                  const rclcpp::Duration & /*period*/) {
+  // Open-loop feedback: mirror commands into state values.
+  hw_states_.trigger_pos = hw_commands_.trigger_pos;
+  hw_states_.trigger_vel = 0.0;
+  hw_states_.pusher_vel = hw_commands_.pusher_vel;
+  hw_states_.flywheel_l_vel = hw_commands_.flywheel_l_vel;
+  hw_states_.flywheel_r_vel = hw_commands_.flywheel_r_vel;
+  hw_states_.arming_pos = hw_commands_.arming_pos;
   return hardware_interface::return_type::OK;
 }
 
@@ -255,6 +281,77 @@ NerfSystem::write(const rclcpp::Time & /*time*/,
   }
 
   return hardware_interface::return_type::OK;
+}
+
+double *NerfSystem::get_state_ptr(const std::string &joint_name,
+                                  const std::string &interface_name) {
+  if (interface_name == hardware_interface::HW_IF_POSITION) {
+    if (joint_name == "trigger_joint") {
+      return &hw_states_.trigger_pos;
+    }
+    if (joint_name == "dart_pusher_joint") {
+      return &hw_states_.pusher_pos;
+    }
+    if (joint_name == "flywheel_left_joint") {
+      return &hw_states_.flywheel_l_pos;
+    }
+    if (joint_name == "flywheel_right_joint") {
+      return &hw_states_.flywheel_r_pos;
+    }
+    if (joint_name == "system_arming_joint") {
+      return &hw_states_.arming_pos;
+    }
+  }
+
+  if (interface_name == hardware_interface::HW_IF_VELOCITY) {
+    if (joint_name == "trigger_joint") {
+      return &hw_states_.trigger_vel;
+    }
+    if (joint_name == "dart_pusher_joint") {
+      return &hw_states_.pusher_vel;
+    }
+    if (joint_name == "flywheel_left_joint") {
+      return &hw_states_.flywheel_l_vel;
+    }
+    if (joint_name == "flywheel_right_joint") {
+      return &hw_states_.flywheel_r_vel;
+    }
+    if (joint_name == "system_arming_joint") {
+      return &hw_states_.arming_vel;
+    }
+  }
+
+  return nullptr;
+}
+
+double *NerfSystem::get_command_ptr(const std::string &joint_name,
+                                    const std::string &interface_name) {
+  if (joint_name == "trigger_joint" &&
+      interface_name == hardware_interface::HW_IF_POSITION) {
+    return &hw_commands_.trigger_pos;
+  }
+
+  if (joint_name == "dart_pusher_joint" &&
+      interface_name == hardware_interface::HW_IF_VELOCITY) {
+    return &hw_commands_.pusher_vel;
+  }
+
+  if (joint_name == "flywheel_left_joint" &&
+      interface_name == hardware_interface::HW_IF_VELOCITY) {
+    return &hw_commands_.flywheel_l_vel;
+  }
+
+  if (joint_name == "flywheel_right_joint" &&
+      interface_name == hardware_interface::HW_IF_VELOCITY) {
+    return &hw_commands_.flywheel_r_vel;
+  }
+
+  if (joint_name == "system_arming_joint" &&
+      interface_name == hardware_interface::HW_IF_POSITION) {
+    return &hw_commands_.arming_pos;
+  }
+
+  return nullptr;
 }
 
 } // namespace nerf_standalone

@@ -127,6 +127,14 @@ def generate_launch_description():
         output="screen",
     )
 
+    # Spawner for Arming Controller
+    arming_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["arming_controller"],
+        output="screen",
+    )
+
     return LaunchDescription(
         [
             world_arg,
@@ -137,6 +145,7 @@ def generate_launch_description():
             trigger_controller_spawner,
             flywheel_controller_spawner,
             pusher_controller_spawner,
+            arming_controller_spawner,
             rviz,
         ]
     )

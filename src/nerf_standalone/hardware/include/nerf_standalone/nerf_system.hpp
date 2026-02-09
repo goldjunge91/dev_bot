@@ -22,6 +22,19 @@ struct NerfJoints {
   double arming_pos = 0.0;
 };
 
+struct NerfJointStates {
+  double trigger_pos = 0.0;
+  double trigger_vel = 0.0;
+  double pusher_pos = 0.0;
+  double pusher_vel = 0.0;
+  double flywheel_l_pos = 0.0;
+  double flywheel_l_vel = 0.0;
+  double flywheel_r_pos = 0.0;
+  double flywheel_r_vel = 0.0;
+  double arming_pos = 0.0;
+  double arming_vel = 0.0;
+};
+
 class NerfComms {
 public:
   NerfComms() = default;
@@ -71,7 +84,7 @@ public:
 private:
   NerfComms comms_;
   NerfJoints hw_commands_;
-  NerfJoints hw_states_; // Optional, if we had feedback
+  NerfJointStates hw_states_; // Optional, if we had feedback
 
   // Config
   std::string port_;
@@ -80,6 +93,11 @@ private:
   // Mappings
   double tilt_min_rad_ = 5.23;
   double tilt_max_rad_ = 6.28;
+
+  double *get_state_ptr(const std::string &joint_name,
+                         const std::string &interface_name);
+  double *get_command_ptr(const std::string &joint_name,
+                           const std::string &interface_name);
 };
 
 } // namespace nerf_standalone
