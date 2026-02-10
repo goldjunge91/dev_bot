@@ -33,11 +33,11 @@ private:
   void applyFlywheelPower(int powerPercent) {
     int powerLimit = constrain(powerPercent, 0, 100);
     int usL = Config::INV_L
-                  ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
-                  : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
+      ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
+      : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
     int usR = Config::INV_R
-                  ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
-                  : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
+      ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
+      : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
     _escL.writeMicroseconds(usL);
     _escR.writeMicroseconds(usR);
   }
@@ -56,11 +56,11 @@ public:
   }
 
   // --- HELPER OUTPUT ---
-  void debugPrint(const __FlashStringHelper *msg) {
+  void debugPrint(const __FlashStringHelper* msg) {
     Serial.println(msg);
     Serial1.println(msg);
   }
-  void debugPrintf(const char *format, int value) {
+  void debugPrintf(const char* format, int value) {
     char buf[64];
     sprintf(buf, format, value);
     Serial.println(buf);
@@ -132,8 +132,22 @@ public:
     int duration = (ms > 0) ? ms : shotDurationMs;
     debugPrintf("OK: Test shot %d ms", duration);
 
+    // Safety: Ensure flywheels are stopped for TEST_SHOT
+    bool escWasAttached = _escL.attached() || _escR.attached();
+    if (_escL.attached() || _escR.attached()) {
+      applyFlywheelPower(0);
+      delay(20);
+      if (_escL.attached())
+        _escL.detach();
+      if (_escR.attached())
+        _escR.detach();
+    }
+    if (escWasAttached) {
+      debugPrint(F("WARN: ESCs were attached during TEST_SHOT; forced stop."));
+    }
+
     _shot.attach(Config::PIN_SHOT, Config::SV_MIN_US, Config::SV_MAX_US);
-    _shot.writeMicroseconds(shotNeutralUs + Config::SHOT_SPEED_OFFSET);
+    _shot.writeMicroseconds(shotNeutralUs + Config::TEST_SHOT_OFFSET);
 
     delay(duration);
 

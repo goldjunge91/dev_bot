@@ -34,9 +34,11 @@ const uint32_t AUTO_DISARM_MS = 60000;
 
 // Deine kalibrierten Werte
 const uint16_t SHOT_NEUTRAL_DEFAULT = 1430;
-const uint16_t TILT_NEUTRAL_DEFAULT = 1430;
 const uint32_t SHOT_DURATION_DEFAULT = 2520;
 const uint16_t SHOT_SPEED_OFFSET = 220;
+// Test-only Offset (stärkerer Ausschlag für reinen Pusher-Test)
+const uint16_t TEST_SHOT_OFFSET = 500;
+const uint16_t TILT_NEUTRAL_DEFAULT = 1430;
 // ZEIT: 2210ms | SPEED: 300 | NEUTRAL: 1430
 // ZEIT: 2520ms | SPEED: 220 | NEUTRAL: 1430
 

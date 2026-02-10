@@ -144,7 +144,7 @@ public:
     } else if (cmd == "ZERO_T")
       _tilt.setNeutral(val);
     else if (cmd == "T_POS")
-      _tilt.setPosition(val);
+      _stream.println(F("ERR: T_POS disabled. Use UP/DN <ms>."));
     else if (cmd == "HELP")
       _launcher.printHelp(); // Launcher handles help text
     else if (cmd == "STATUS") {
