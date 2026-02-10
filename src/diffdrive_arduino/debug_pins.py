@@ -1,7 +1,7 @@
 import serial
 import time
 
-PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_5033592712D0351F-if00"
+PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00"
 BAUD = 57600
 
 # ============================================================
