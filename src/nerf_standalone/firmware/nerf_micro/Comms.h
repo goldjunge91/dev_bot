@@ -7,20 +7,20 @@
 
 class Comms {
 private:
-  Launcher &_launcher;
-  TiltController &_tilt;
-  Stream &_stream;
+  Launcher& _launcher;
+  TiltController& _tilt;
+  Stream& _stream;
   String _buffer;
 
   // Helper for broadcasting to both Serial ports
-  void broadcast(const char *msg) {
+  void broadcast(const char* msg) {
     _stream.println(msg);
     if (&_stream == &Serial)
       Serial1.println(msg);
     else
       Serial.println(msg);
   }
-  void broadcast(const __FlashStringHelper *msg) {
+  void broadcast(const __FlashStringHelper* msg) {
     _stream.println(msg);
     if (&_stream == &Serial)
       Serial1.println(msg);
@@ -46,8 +46,8 @@ private:
 
 public:
   // Updated Constructor: Takes both Launcher and TiltController
-  Comms(Launcher &l, TiltController &t, Stream &s)
-      : _launcher(l), _tilt(t), _stream(s) {
+  Comms(Launcher& l, TiltController& t, Stream& s)
+    : _launcher(l), _tilt(t), _stream(s) {
     _buffer.reserve(32);
   }
 
@@ -59,7 +59,8 @@ public:
           execute(_buffer);
           _buffer = "";
         }
-      } else if (c >= 32 && c <= 126) {
+      }
+      else if (c >= 32 && c <= 126) {
         _buffer += c;
       }
     }
@@ -139,9 +140,11 @@ public:
       _tilt.nudge(false);
     else if (cmd == "SAVE") {
       printConfig();
-    } else if (cmd == "SAVE_OLD") {
+    }
+    else if (cmd == "SAVE_OLD") {
       printConfig(); // Unified behavior
-    } else if (cmd == "ZERO_T")
+    }
+    else if (cmd == "ZERO_T")
       _tilt.setNeutral(val);
     else if (cmd == "T_POS")
       _stream.println(F("ERR: T_POS disabled. Use UP/DN <ms>."));
@@ -150,7 +153,8 @@ public:
     else if (cmd == "STATUS") {
       _stream.println(_launcher.isArmed() ? F("STATUS: ARMED")
                                           : F("STATUS: DISARMED"));
-    } else {
+    }
+    else {
       if (cmd.length() > 1) {
         _stream.print(F("ERR: Unknown "));
         _stream.println(cmd);
