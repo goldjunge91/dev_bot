@@ -14,8 +14,8 @@ def generate_launch_description():
     # Check if we're told to use sim time
     use_sim_time = LaunchConfiguration("use_sim_time")
     use_ros2_control = LaunchConfiguration("use_ros2_control")
-
     integrated_mode = LaunchConfiguration("integrated_mode")
+    use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
 
     # Process the URDF file
     pkg_path = os.path.join(get_package_share_directory("gubot_one"))
@@ -31,6 +31,8 @@ def generate_launch_description():
             use_sim_time,
             " integrated_mode:=",
             integrated_mode,
+            " use_nerf_hardware:=",
+            use_nerf_hardware,
         ]
     )
 
@@ -64,6 +66,11 @@ def generate_launch_description():
                 "integrated_mode",
                 default_value="false",
                 description="Use integrated mode if true",
+            ),
+            DeclareLaunchArgument(
+                "use_nerf_hardware",
+                default_value="true",
+                description="Enable Nerf hardware if true",
             ),
             node_robot_state_publisher,
         ]

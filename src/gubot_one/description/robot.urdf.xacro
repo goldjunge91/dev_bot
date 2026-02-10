@@ -4,6 +4,8 @@
     <xacro:arg name="use_ros2_control" default="true"/>
     <xacro:arg name="sim_mode" default="false"/>
     <xacro:arg name="integrated_mode" default="true"/>
+    <xacro:arg name="use_nerf_hardware" default="true"/>
+    <xacro:arg name="nerf_port" default="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00"/>
 
     <xacro:include filename="robot_core.xacro" />
 

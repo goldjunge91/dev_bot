@@ -4,9 +4,9 @@ from ament_index_python.packages import get_package_share_directory
 
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, TimerAction
+from launch.actions import IncludeLaunchDescription, TimerAction, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command
+from launch.substitutions import Command, LaunchConfiguration
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessStart
 
@@ -18,6 +18,8 @@ def generate_launch_description():
     # !!! MAKE SURE YOU SET THE PACKAGE NAME CORRECTLY !!!
 
     package_name = "gubot_one"  # <--- CHANGE ME
+
+    use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
 
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -31,6 +33,7 @@ def generate_launch_description():
             "use_sim_time": "false",
             "use_ros2_control": "true",
             "integrated_mode": "true",
+            "use_nerf_hardware": use_nerf_hardware,
         }.items(),
     )
 
@@ -57,8 +60,18 @@ def generate_launch_description():
         remappings=[("/cmd_vel_out", "/diff_cont/cmd_vel_unstamped")],
     )
 
+    pkg_path = os.path.join(get_package_share_directory(package_name))
+    xacro_file = os.path.join(pkg_path, "description", "robot.urdf.xacro")
     robot_description = Command(
-        ["ros2 param get --hide-type /robot_state_publisher robot_description"]
+        [
+            "xacro ",
+            xacro_file,
+            " use_ros2_control:=true",
+            " sim_mode:=false",
+            " integrated_mode:=true",
+            " use_nerf_hardware:=",
+            use_nerf_hardware,
+        ]
     )
 
     controller_params_file = os.path.join(
@@ -186,6 +199,11 @@ def generate_launch_description():
     # The rest triggers automatically via events.
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                "use_nerf_hardware",
+                default_value="false",
+                description="Enable Nerf hardware if true",
+            ),
             rsp,
             joystick,
             twist_mux,
