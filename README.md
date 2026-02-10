@@ -48,3 +48,9 @@ ICM-20948 Modul, 3-Achsen-Accelerometer, Gyroskop und -Magnetometer, 9DOF, I2C, 
 
 raspberry pi installation
 sudo apt install screen tio
+
+
+source /opt/ros/humble/setup.bash && source /home/ros/dev_bot/install/setup.bash 
+&& ros2 launch gubot_one launch_all_real.launch.py use_nerf_hardware:=true nerf_port:=/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00 launch_lidar:=false launch_camera:=false
+
+os2 run joy joy_node --ros-args -r __node:=joy_node --param device_id:=0

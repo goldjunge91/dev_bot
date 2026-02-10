@@ -206,12 +206,40 @@ namespace nerf_standalone {
     NerfSystem::read(const rclcpp::Time& /*time*/,
                      const rclcpp::Duration& /*period*/) {
     // Open-loop feedback: mirror commands into state values.
-    hw_states_.trigger_pos = hw_commands_.trigger_pos;
+    // Guard against NaN/Inf coming from controllers by sanitizing values.
+    auto safe_copy = [](double src, double& dst, const char* name) {
+      if (std::isfinite(src)) {
+        dst = src;
+      }
+      else {
+        // on invalid input, keep previous dst (or set to 0.0 if uninitialized)
+        dst = dst; // preserve previous value
+      }
+      };
+
+    safe_copy(hw_commands_.trigger_pos, hw_states_.trigger_pos, "trigger_pos");
     hw_states_.trigger_vel = 0.0;
-    hw_states_.pusher_vel = hw_commands_.pusher_vel;
-    hw_states_.flywheel_l_vel = hw_commands_.flywheel_l_vel;
-    hw_states_.flywheel_r_vel = hw_commands_.flywheel_r_vel;
-    hw_states_.arming_pos = hw_commands_.arming_pos;
+    safe_copy(hw_commands_.pusher_vel, hw_states_.pusher_vel, "pusher_vel");
+    safe_copy(hw_commands_.flywheel_l_vel, hw_states_.flywheel_l_vel,
+              "flywheel_l_vel");
+    safe_copy(hw_commands_.flywheel_r_vel, hw_states_.flywheel_r_vel,
+              "flywheel_r_vel");
+    safe_copy(hw_commands_.arming_pos, hw_states_.arming_pos, "arming_pos");
+
+    // Final safety: ensure no state contains NaN/Inf before publishing
+    auto sanitize = [](double& v) {
+      if (!std::isfinite(v)) v = 0.0;
+      };
+    sanitize(hw_states_.trigger_pos);
+    sanitize(hw_states_.trigger_vel);
+    sanitize(hw_states_.pusher_pos);
+    sanitize(hw_states_.pusher_vel);
+    sanitize(hw_states_.flywheel_l_pos);
+    sanitize(hw_states_.flywheel_l_vel);
+    sanitize(hw_states_.flywheel_r_pos);
+    sanitize(hw_states_.flywheel_r_vel);
+    sanitize(hw_states_.arming_pos);
+    sanitize(hw_states_.arming_vel);
     return hardware_interface::return_type::OK;
   }
 

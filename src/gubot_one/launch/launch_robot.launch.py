@@ -4,11 +4,17 @@ from ament_index_python.packages import get_package_share_directory
 
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, TimerAction, DeclareLaunchArgument
+from launch.actions import (
+    IncludeLaunchDescription,
+    TimerAction,
+    DeclareLaunchArgument,
+    GroupAction,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessStart
+from launch.conditions import IfCondition
 
 from launch_ros.actions import Node
 
@@ -194,6 +200,17 @@ def generate_launch_description():
         )
     )
 
+    nerf_group = GroupAction(
+        condition=IfCondition(use_nerf_hardware),
+        actions=[
+            delayed_nerf_trigger,
+            delayed_nerf_flywheel,
+            delayed_nerf_pusher,
+            delayed_nerf_arming,
+            delayed_nerf_control,
+        ],
+    )
+
     # Launch them all!
     # Only need to return the first trigger (delayed_diff_drive_spawner)
     # The rest triggers automatically via events.
@@ -210,10 +227,6 @@ def generate_launch_description():
             delayed_controller_manager,
             delayed_diff_drive_spawner,
             delayed_joint_broad_spawner,
-            delayed_nerf_trigger,
-            delayed_nerf_flywheel,
-            delayed_nerf_pusher,
-            delayed_nerf_arming,
-            delayed_nerf_control,
+            nerf_group,
         ]
     )

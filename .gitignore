@@ -47,3 +47,6 @@ env/
 # C/C++
 compile_commands.json
 .cache/
+src/nerf_standalone/nerf_standalone/__pycache__/__init__.cpython-310.pyc
+src/nerf_standalone/nerf_standalone
+.pytest_cache
