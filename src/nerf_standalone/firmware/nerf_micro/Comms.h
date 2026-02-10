@@ -71,10 +71,14 @@ public:
       return;
 
     // Loopback Protection
+    // Only ignore already-formatted firmware output (e.g. "OK:", "ERR:", "STATUS:")
+    // Previously this ignored bare "STATUS" which prevented the STATUS command
+    // from being processed. Match the colon-suffixed forms to avoid swallowing
+    // incoming commands.
     String check = line;
     check.toUpperCase();
     if (check.startsWith(">") || check.startsWith("ERR") ||
-        check.startsWith("OK") || check.startsWith("STATUS") ||
+        check.startsWith("OK") || check.startsWith("STATUS:") ||
         check.startsWith("NERF") || check.startsWith("---") ||
         check.startsWith("SHOT ZERO") || check.startsWith("TILT ZERO")) {
       return;
