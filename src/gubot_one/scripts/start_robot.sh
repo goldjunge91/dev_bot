@@ -1,10 +1,25 @@
 #!/bin/bash
 
+# Define workspace path
+WORKSPACE_DIR=~/dev_bot
+
+# Check if workspace exists
+if [ ! -d "$WORKSPACE_DIR" ]; then
+    echo "Error: Workspace directory $WORKSPACE_DIR does not exist."
+    exit 1
+fi
+
 # Ensure we are in the workspace
-cd ~/dev_bot
+cd "$WORKSPACE_DIR"
 
 # Source the workspace
-source install/setup.bash
+if [ -f "install/setup.bash" ]; then
+    source install/setup.bash
+else
+    echo "Error: install/setup.bash not found in $WORKSPACE_DIR."
+    echo "Did you build the workspace?"
+    exit 1
+fi
 
 # Ensure DDS Config is set
 # If CYCLONEDDS_URI is NOT set, default to the file setup by setup_dds_config.sh
@@ -17,4 +32,5 @@ fi
 
 # Launch the robot
 echo "Starting Robot..."
-ros2 launch gubot_one launch_all_real.launch.py
+# Use exec to replace the shell process with ros2 launch
+exec ros2 launch gubot_one launch_all_real.launch.py launch_camera:=true

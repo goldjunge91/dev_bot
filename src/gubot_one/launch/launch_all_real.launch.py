@@ -38,7 +38,10 @@ def generate_launch_description():
                     "launch_robot.launch.py",
                 )
             ]
-        )
+        ),
+        launch_arguments={
+            "use_nerf_hardware": "true",
+        }.items(),
     )
 
     # Launch the RPLidar
