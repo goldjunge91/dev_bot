@@ -33,11 +33,11 @@ private:
   void applyFlywheelPower(int powerPercent) {
     int powerLimit = constrain(powerPercent, 0, 100);
     int usL = Config::INV_L
-      ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
-      : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
+                  ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
+                  : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
     int usR = Config::INV_R
-      ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
-      : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
+                  ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
+                  : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
     _escL.writeMicroseconds(usL);
     _escR.writeMicroseconds(usR);
   }
@@ -56,11 +56,11 @@ public:
   }
 
   // --- HELPER OUTPUT ---
-  void debugPrint(const __FlashStringHelper* msg) {
+  void debugPrint(const __FlashStringHelper *msg) {
     Serial.println(msg);
     Serial1.println(msg);
   }
-  void debugPrintf(const char* format, int value) {
+  void debugPrintf(const char *format, int value) {
     char buf[64];
     sprintf(buf, format, value);
     Serial.println(buf);
@@ -221,6 +221,10 @@ public:
   }
 
   void setRawPWM(int us) {
+    if (!_isArmed) {
+      debugPrint(F("ERR: Arm first!"));
+      return;
+    }
     if (!_escL.attached())
       _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
     if (!_escR.attached())
@@ -231,6 +235,10 @@ public:
   }
 
   void startCalibration() {
+    if (!_isArmed) {
+      debugPrint(F("ERR: Arm first!"));
+      return;
+    }
     if (!_escL.attached())
       _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
     if (!_escR.attached())
