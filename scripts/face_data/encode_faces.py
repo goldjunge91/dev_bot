@@ -39,8 +39,18 @@ for person_name in sorted(os.listdir(INPUT_DIR)):
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Gesicht finden und Encoding berechnen
-        # 'hog' ist schneller auf CPUs (Pi), 'cnn' ist genauer (braucht GPU)
-        boxes = face_recognition.face_locations(rgb_image, model="hog")
+        # Versuche zuerst CNN (genauer), Fallback auf HOG + Upsampling
+        try:
+            # Upsample 2x hilft bei kleinen Gesichtern
+            boxes = face_recognition.face_locations(
+                rgb_image, model="cnn", number_of_times_to_upsample=1
+            )
+        except Exception:
+            # Fallback: HOG mit 2x Upsampling (langsamer aber genauer als Standard)
+            boxes = face_recognition.face_locations(
+                rgb_image, model="hog", number_of_times_to_upsample=2
+            )
+
         encodings = face_recognition.face_encodings(rgb_image, boxes)
 
         if not encodings:
