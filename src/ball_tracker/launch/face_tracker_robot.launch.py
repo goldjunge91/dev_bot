@@ -20,20 +20,29 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            # --- Argumente zur Steuerung ---
+            # "detect_only": Wenn true, bewegt sich der Roboter NICHT.
+            # Gut zum Testen der Kamera und Gesichtserkennung, ohne dass der Roboter wegfährt.
             DeclareLaunchArgument(
                 "detect_only",
                 default_value="false",
                 description="Nur Detektion (keine Bewegung des Roboters)",
             ),
+            # "follow_only": Wenn true, startet KEINE Kamera/Erkennung.
+            # Erwartet, dass /face_detections bereits von woanders kommen (z.B. Rosbag oder anderer Node).
             DeclareLaunchArgument(
                 "follow_only",
                 default_value="false",
                 description="Nur Verfolgung (keine Bildverarbeitung - erwartet /face_detections)",
             ),
+            # "target": Filtert auf eine spezifische Person.
+            # - Leer ("") = Reagiert auf ALLE bekannten Gesichter.
+            # - Name (z.B. "marco") = Reagiert NUR, wenn "marco" erkannt wird.
+            #   Alle anderen (z.B. "schatz" oder Unbekannte) werden ignoriert.
             DeclareLaunchArgument(
                 "target",
-                default_value="",
-                description="Name der Zielperson (leer = alle)",
+                default_value="schatz",
+                description='Name der Zielperson (z.B. "schatz", "marco" - leer = alle)',
             ),
             # 1. Kamera-Treiber (v4l2_camera)
             # Auf dem Pi nutzen wir direkt die Hardware.
