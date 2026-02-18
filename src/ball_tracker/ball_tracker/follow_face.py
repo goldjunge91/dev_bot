@@ -119,9 +119,9 @@ class FollowFace(Node):
         if target_det is None:
             return
 
-        # bbox.center.x ist [0,1] → umrechnen auf [-1, 1] für Steuerung
+        # bbox.center.position.x ist [0,1] → umrechnen auf [-1, 1] für Steuerung
         f = self.filter_value
-        raw_x = (target_det.bbox.center.x - 0.5) * 2.0
+        raw_x = (target_det.bbox.center.position.x - 0.5) * 2.0
         raw_size = target_det.bbox.size_x
 
         self.target_val = self.target_val * f + raw_x * (1 - f)
