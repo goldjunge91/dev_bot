@@ -41,7 +41,7 @@ def generate_launch_description():
                         "video_device": "/dev/video0",
                         "image_size": [320, 240],
                         "pixel_format": "YUYV",
-                        "output_encoding": "yuv422",
+                        "output_encoding": "rgb8",
                     }
                 ],
                 condition=UnlessCondition(follow_only),
