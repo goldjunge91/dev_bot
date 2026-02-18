@@ -14,8 +14,7 @@ def generate_launch_description():
         "face_tracker_params.yaml",
     )
 
-    detect_only = LaunchConfiguration("detect_only")
-    follow_only = LaunchConfiguration("follow_only")
+    target_arg = LaunchConfiguration("target")
 
     return LaunchDescription(
         [
@@ -28,6 +27,11 @@ def generate_launch_description():
                 "follow_only",
                 default_value="false",
                 description="Nur Verfolgung (keine Bildverarbeitung - erwartet /face_detections)",
+            ),
+            DeclareLaunchArgument(
+                "target",
+                default_value="",
+                description="Name der Zielperson (leer = alle)",
             ),
             # 1. Kamera-Treiber (v4l2_camera)
             # Auf dem Pi nutzen wir direkt die Hardware.
@@ -60,7 +64,7 @@ def generate_launch_description():
             Node(
                 package="ball_tracker",
                 executable="follow_face",
-                parameters=[params_file],
+                parameters=[params_file, {"target_person": target_arg}],
                 remappings=[("/cmd_vel", "/cmd_vel")],
                 condition=UnlessCondition(detect_only),
             ),
@@ -76,7 +80,7 @@ def generate_launch_description():
             Node(
                 package="ball_tracker",
                 executable="fire_at_face",
-                parameters=[params_file],
+                parameters=[params_file, {"target_person": target_arg}],
                 condition=UnlessCondition(detect_only),
             ),
         ]
