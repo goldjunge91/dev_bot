@@ -64,5 +64,20 @@ def generate_launch_description():
                 remappings=[("/cmd_vel", "/cmd_vel")],
                 condition=UnlessCondition(detect_only),
             ),
+            # 4. Nerf Hardware Control
+            # Steuert Flywheels und Pusher
+            Node(
+                package="nerf_standalone",
+                executable="nerf_control_node",
+                output="screen",
+            ),
+            # 5. Fire At Face
+            # Feuert, wenn Ziel zentriert und nah genug
+            Node(
+                package="ball_tracker",
+                executable="fire_at_face",
+                parameters=[params_file],
+                condition=UnlessCondition(detect_only),
+            ),
         ]
     )

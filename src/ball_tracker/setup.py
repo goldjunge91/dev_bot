@@ -29,6 +29,7 @@ setup(
             # --- Neue Face-Tracker Entry Points ---
             "detect_face = ball_tracker.detect_face:main",
             "follow_face = ball_tracker.follow_face:main",
+            "fire_at_face = ball_tracker.fire_at_face:main",
             "register_face = ball_tracker.register_face:main",
             "udp_cam_receiver = ball_tracker.udp_cam_receiver:main",
         ],
