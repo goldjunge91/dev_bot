@@ -10,10 +10,12 @@
  * This file is the entry point.
  */
 
-#include "Comms.h"
-#include "Config.h"
+#include <Arduino.h>
+#include "../include/Config.h"
 #include "Launcher.h"
-#include "Tilt.h"
+#include "TiltController.h"
+#include "Comms.h"
+
 
 // --- OBJECTS ---
 Launcher nerf;
