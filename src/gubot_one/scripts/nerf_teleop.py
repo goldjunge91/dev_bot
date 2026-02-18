@@ -1,4 +1,34 @@
 #!/usr/bin/env python3
+"""
+Nerf Launcher Keyboard Teleop Node
+===================================
+Tastatur-Steuerung für Gubot One + Nerf Launcher
+
+Funktionen:
+- Roboter-Bewegung (WASD)
+- Nerf Launcher Steuerung
+- Arming/Disarming (1/2)
+- Flywheel Kontrolle (3/4/5)
+- Tilt Servo (T/G)
+- Feuer-Befehl (SPACE)
+
+Tastenbelegung:
+  Bewegung:
+    W - Vorwärts
+    S - Rückwärts
+    A - Links drehen
+    D - Rechts drehen
+    
+  Launcher:
+    1 - Disarm System
+    2 - ARM System
+    3 - Flywheels stoppen
+    4 - Flywheels Normal (50%)
+    5 - Flywheels Turbo (100%)
+    SPACE - Schießen
+    T - Tilt UP (6.28 rad)
+    G - Tilt DOWN (5.23 rad)
+"""
 
 import sys
 import termios
@@ -32,16 +62,21 @@ CTRL-C to quit
 """
 
 moveBindings = {
-    "w": (0.5, 0.0),
-    "s": (-0.5, 0.0),
-    "a": (0.0, 1.0),
-    "d": (0.0, -1.0),
+    "w": (0.5, 0.0),   # Vorwärts: linear_x=0.5, angular_z=0.0
+    "s": (-0.5, 0.0),  # Rückwärts: linear_x=-0.5
+    "a": (0.0, 1.0),   # Links drehen: angular_z=1.0
+    "d": (0.0, -1.0),  # Rechts drehen: angular_z=-1.0
 }
 
+# Terminal-Einstellungen speichern für Wiederherstellung
 settings = termios.tcgetattr(sys.stdin)
 
 
 def getKey():
+    """
+    Liest einzelne Tastatureingabe ohne Enter
+    Timeout: 0.1s (non-blocking)
+    """
     tty.setraw(sys.stdin.fileno())
     rlist, _, _ = select([sys.stdin], [], [], 0.1)
     if rlist:
@@ -56,48 +91,59 @@ class NerfTeleop(Node):
     def __init__(self):
         super().__init__("nerf_teleop")
 
+        # Publisher: Roboter-Bewegung
+        # Queue Size 10 = Puffert max. 10 Bewegungsbefehle
         self.pub_cmd_vel = self.create_publisher(Twist, "/cmd_vel", 10)
+        
+        # Publisher: Nerf Launcher Komponenten
+        # Queue Size 10 = Gut für Echtzeit-Steuerung
         self.pub_arming = self.create_publisher(
-            Float64MultiArray, "/arming_controller/commands", 10
+            Float64MultiArray, "/arming_controller/commands", 10  # Sicherheitssystem
         )
         self.pub_flywheel = self.create_publisher(
-            Float64MultiArray, "/flywheel_controller/commands", 10
+            Float64MultiArray, "/flywheel_controller/commands", 10  # Flywheel Motoren
         )
         self.pub_pusher = self.create_publisher(
-            Float64MultiArray, "/pusher_controller/commands", 10
+            Float64MultiArray, "/pusher_controller/commands", 10  # Dart Pusher
         )
         self.pub_trigger = self.create_publisher(
-            Float64MultiArray, "/trigger_controller/commands", 10
+            Float64MultiArray, "/trigger_controller/commands", 10  # Tilt Servo
         )
 
+        # Timer: Läuft mit 10Hz für kontinuierliche Steuerung
         self.timer = self.create_timer(0.1, self.loop)
 
-        self.speed = 0.0
-        self.turn = 0.0
-        self.armed = False
-        self.flywheel_speed = 0.0
-        self.pusher_active = False
-        self.pusher_timer = 0
-        self.tilt_pos = 6.28  # Start UP
-        self.tilt_step = 0.05
+        # Zustandsvariablen
+        self.speed = 0.0  # Linear-Geschwindigkeit
+        self.turn = 0.0  # Winkel-Geschwindigkeit
+        self.armed = False  # Arming-Status
+        self.flywheel_speed = 0.0  # Aktuelle Flywheel-Geschwindigkeit
+        self.pusher_active = False  # Pusher aktiv während Schuss
+        self.pusher_timer = 0  # Timer für Pusher-Puls
+        self.tilt_pos = 6.28  # Startposition: UP (360°)
+        self.tilt_step = 0.05  # Schrittweite für Tilt
 
-        print(msg)
+        print(msg)  # Zeige Hilfe-Text
 
     def loop(self):
+        """
+        Hauptschleife: Liest Tastatur und steuert Roboter + Launcher
+        Läuft mit 10Hz
+        """
         key = getKey()
 
-        # Movement
+        # Bewegungs-Steuerung
         if key in moveBindings.keys():
             self.speed = moveBindings[key][0]
             self.turn = moveBindings[key][1]
-        elif key == " " or key == "k":
+        elif key == " " or key == "k":  # Space oder K stoppt Bewegung
             self.speed = 0.0
             self.turn = 0.0
         else:
             self.speed = 0.0
             self.turn = 0.0
 
-        # Launcher
+        # Launcher-Steuerung
         if key == "1":
             self.get_logger().info("Disarming...")
             self.publish_arming(0.0)
@@ -112,43 +158,43 @@ class NerfTeleop(Node):
 
         elif key == "4":
             self.get_logger().info("Spinning Up (Normal)")
-            self.flywheel_speed = 50.0  # Adjust based on motor curve
+            self.flywheel_speed = 50.0  # 50% Geschwindigkeit
             self.publish_flywheel(self.flywheel_speed)
 
         elif key == "5":
             self.get_logger().info("Spinning Up (Turbo)")
-            self.flywheel_speed = 100.0
+            self.flywheel_speed = 100.0  # 100% Geschwindigkeit
             self.publish_flywheel(self.flywheel_speed)
 
-        elif key == " ":
+        elif key == " ":  # SPACE = Feuer
             if not self.pusher_active:
                 self.get_logger().info("FIRING!")
                 self.pusher_active = True
-                self.pusher_timer = 5  # 0.5 seconds at 10Hz
+                self.pusher_timer = 5  # 0.5 Sekunden bei 10Hz
                 self.publish_pusher(20.0)
 
-        elif key == "t":
+        elif key == "t":  # Tilt UP
             self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
             self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
             self.publish_trigger(self.tilt_pos)
-        elif key == "g":
+        elif key == "g":  # Tilt DOWN
             self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
             self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
             self.publish_trigger(self.tilt_pos)
 
-        elif key == "\x03":  # CTRL-C
+        elif key == "\x03":  # CTRL-C = Beenden
             self.publish_twist(0.0, 0.0)
             sys.exit()
 
-        # Continuous publishing
+        # Kontinuierliches Publizieren der Bewegung
         self.publish_twist(self.speed, self.turn)
 
-        # Handle Pusher Pulse
+        # Verwalte Pusher-Puls
         if self.pusher_active:
             self.pusher_timer -= 1
             if self.pusher_timer <= 0:
                 self.pusher_active = False
-                self.publish_pusher(0.0)
+                self.publish_pusher(0.0)  # Stoppe Pusher
 
     def publish_twist(self, linear, angular):
         twist = Twist()
@@ -163,7 +209,7 @@ class NerfTeleop(Node):
 
     def publish_flywheel(self, speed):
         msg = Float64MultiArray()
-        # Assuming left is positive, right is negative for counter-rotation
+        # Links positiv, rechts negativ für Gegen-Rotation
         msg.data = [float(speed), float(-speed)]
         self.pub_flywheel.publish(msg)
 
