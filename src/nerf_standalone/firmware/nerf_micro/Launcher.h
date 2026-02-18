@@ -2,56 +2,86 @@
 #define LAUNCHER_H
 
 #include "Config.h"
+#include "FiringFSM.h"
 #include <Arduino.h>
 #include <Servo.h>
 
-enum class FiringState {
-  IDLE,
-  ARMING,
-  SPINNING_UP,
-  PUSHING,
-  BRAKING,
-  COOLDOWN,
-  ESC_TEST,
-  CALIBRATING
-};
-
 class Launcher {
 private:
-  Servo _escL, _escR, _shot;
+  Servo _escLeft, _escRight, _shot;
 
-  FiringState _fState = FiringState::IDLE;
+  // Static instance pointer for callbacks
+  static Launcher *_instance;
 
-  bool _isArmed = false;
-  uint32_t _stateStartTime = 0;
-  uint32_t _lastActivityTime = 0;
+  // FSM Member
+  FiringFSM _fsm;
 
-  // Calibration Values
-  int shotNeutralUs = Config::SHOT_NEUTRAL_DEFAULT;
-  int shotDurationMs = Config::SHOT_DURATION_DEFAULT;
-
-  void applyFlywheelPower(int powerPercent) {
+  // Hardware action methods (called by FSM via callbacks)
+  void setESCPower(int powerPercent) {
     int powerLimit = constrain(powerPercent, 0, 100);
-    int usL = Config::INV_L
-                  ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
-                  : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
-    int usR = Config::INV_R
-                  ? map(powerLimit, 0, 100, Config::ESC_MID, Config::ESC_MIN)
-                  : map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
-    _escL.writeMicroseconds(usL);
-    _escR.writeMicroseconds(usR);
+    // Standard ESCs: 0% = ESC_MIN (1000us), 100% = ESC_MAX (2000us)
+    int us = map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
+    _escLeft.writeMicroseconds(us);
+    _escRight.writeMicroseconds(us);
   }
 
+  void setShotServo(int us) { _shot.writeMicroseconds(us); }
+
+  void attachESCs() {
+    _escLeft.attach(Config::PIN_ESC_LEFT, Config::ESC_MIN, Config::ESC_MAX);
+    _escRight.attach(Config::PIN_ESC_RIGHT, Config::ESC_MIN, Config::ESC_MAX);
+    _escLeft.writeMicroseconds(Config::ESC_ARM);
+    _escRight.writeMicroseconds(Config::ESC_ARM);
+  }
+
+  void detachESCs() {
+    if (_escLeft.attached())
+      _escLeft.detach();
+    if (_escRight.attached())
+      _escRight.detach();
+  }
+
+  void attachShotServo() {
+    _shot.attach(Config::PIN_SHOT, Config::SV_MIN_US, Config::SV_MAX_US);
+  }
+
+  void detachShotServo() { _shot.detach(); }
+
+  static void debugOutput(const char *msg) {
+    Serial.println(msg);
+    Serial1.println(msg);
+  }
+
+  // Static callback wrappers (C++ member → C function pointer)
+  static void callbackESCPower(int pwr) { _instance->setESCPower(pwr); }
+
+  static void callbackShotServo(int us) { _instance->setShotServo(us); }
+
+  static void callbackAttachESCs() { _instance->attachESCs(); }
+
+  static void callbackDetachESCs() { _instance->detachESCs(); }
+
+  static void callbackAttachShot() { _instance->attachShotServo(); }
+
+  static void callbackDetachShot() { _instance->detachShotServo(); }
+
+  static void callbackDebug(const char *msg) { debugOutput(msg); }
+
 public:
-  Launcher() {} // No tilt init
+  // Constructor - Initialize FSM with callbacks
+  Launcher()
+      : _fsm(callbackESCPower, callbackShotServo, callbackAttachESCs,
+             callbackDetachESCs, callbackAttachShot, callbackDetachShot,
+             callbackDebug) {
+    _instance = this;
+  }
 
   void begin() {
-    _lastActivityTime = millis();
     // SAFETY: Ensure everything is detached on boot
-    if (_escL.attached())
-      _escL.detach();
-    if (_escR.attached())
-      _escR.detach();
+    if (_escLeft.attached())
+      _escLeft.detach();
+    if (_escRight.attached())
+      _escRight.detach();
     _shot.detach();
   }
 
@@ -60,6 +90,7 @@ public:
     Serial.println(msg);
     Serial1.println(msg);
   }
+
   void debugPrintf(const char *format, int value) {
     char buf[64];
     sprintf(buf, format, value);
@@ -67,94 +98,45 @@ public:
     Serial1.println(buf);
   }
 
-  bool isArmed() { return _isArmed; }
+  // --- FSM EVENT TRIGGERS ---
+  void arming() { _fsm.triggerArming(); }
 
-  // --- ARMING ---
-  void arm() {
-    // Keep-Alive: If ROS sends "ARM" constantly, we stay armed.
-    _lastActivityTime = millis();
+  void disarming() { _fsm.triggerDisarming(); }
 
-    if (_isArmed || _fState == FiringState::ARMING)
-      return;
+  void startFire(int pwr) { _fsm.triggerFire(pwr > 0 ? pwr : 40); }
 
-    // Attach ESCs ONLY. Pusher stays detached for safety!
-    _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
-    _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
+  void testEsc(int pwr) { _fsm.triggerEscTest(pwr); }
 
-    // SAFETY: Explicitly send the ARM value (usually 1000 or 1500)
-    _escL.writeMicroseconds(Config::ESC_ARM);
-    _escR.writeMicroseconds(Config::ESC_ARM);
+  void startCalibration() { _fsm.triggerCalibration(); }
 
-    _fState = FiringState::ARMING;
-    _stateStartTime = millis();
-    // _lastActivityTime set above
-    debugPrint(F("STATUS: ARMING sequence started (2s)..."));
-  }
+  void recordActivity() { _fsm.recordActivity(); }
 
-  void disarm() {
-    // Special Case: Calibration finishing
-    if (_fState == FiringState::CALIBRATING) {
-      _escL.writeMicroseconds(Config::ESC_MIN);
-      _escR.writeMicroseconds(Config::ESC_MIN);
-      _fState = FiringState::IDLE;
-      debugPrint(F("OK: CALIBRATION FINISH (Sent MIN). Verify ESC beeps."));
-      return; // Stay attached so ESC sees the signal
-    }
-
-    _isArmed = false;
-    _fState = FiringState::IDLE;
-
-    // Detach ESCs to trigger "Signal Lost" beep (Audio feedback)
-    if (_escL.attached())
-      _escL.detach();
-    if (_escR.attached())
-      _escR.detach();
-
-    _shot.detach();
-    // Tilt detach handled by TiltController elsewhere
-    debugPrint(F("OK: SYSTEM DISARMED (Signal Cut)"));
-  }
-
-  // --- MANUAL ACTIONS ---
-
-  void testEsc(int pwr) {
-    if (!_isArmed) {
-      debugPrint(F("ERR: Arm first!"));
-      return;
-    }
-    applyFlywheelPower(pwr);
-    _fState = FiringState::ESC_TEST;
-    debugPrintf("OK: Flywheels spinning at %d%%. Send STOP to end.", pwr);
-    _lastActivityTime = millis();
-  }
+  // --- MANUAL ACTIONS (NOT FSM-CONTROLLED) ---
 
   void testShot(int ms) {
-    int duration = (ms > 0) ? ms : shotDurationMs;
+    int duration = (ms > 0) ? ms : _fsm.getShotDuration();
     debugPrintf("OK: Test shot %d ms", duration);
 
     // Safety: Ensure flywheels are stopped for TEST_SHOT
-    bool escWasAttached = _escL.attached() || _escR.attached();
-    if (_escL.attached() || _escR.attached()) {
-      applyFlywheelPower(0);
+    bool escWasAttached = _escLeft.attached() || _escRight.attached();
+    if (_escLeft.attached() || _escRight.attached()) {
+      setESCPower(0);
       delay(20);
-      if (_escL.attached())
-        _escL.detach();
-      if (_escR.attached())
-        _escR.detach();
+      detachESCs();
     }
     if (escWasAttached) {
       debugPrint(F("WARN: ESCs were attached during TEST_SHOT; forced stop."));
     }
 
     _shot.attach(Config::PIN_SHOT, Config::SV_MIN_US, Config::SV_MAX_US);
-    _shot.writeMicroseconds(shotNeutralUs + Config::TEST_SHOT_OFFSET);
+    _shot.writeMicroseconds(_fsm.getShotNeutral() + Config::TEST_SHOT_OFFSET);
 
     delay(duration);
 
     // Active Brake
-    _shot.writeMicroseconds(shotNeutralUs - Config::BRAKE_OFFSET);
+    _shot.writeMicroseconds(_fsm.getShotNeutral() - Config::BRAKE_OFFSET);
     delay(Config::BRAKE_MS);
-    _shot.writeMicroseconds(shotNeutralUs);
+    _shot.writeMicroseconds(_fsm.getShotNeutral());
     delay(50);
     _shot.detach();
     recordActivity();
@@ -162,22 +144,22 @@ public:
 
   // --- CALIBRATION HELPERS (User Logic) ---
   void calibrateMax() {
-    if (!_escL.attached())
-      _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
-    if (!_escR.attached())
-      _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
-    _escL.writeMicroseconds(Config::ESC_MAX);
-    _escR.writeMicroseconds(Config::ESC_MAX);
+    if (!_escLeft.attached())
+      _escLeft.attach(Config::PIN_ESC_LEFT, Config::ESC_MIN, Config::ESC_MAX);
+    if (!_escRight.attached())
+      _escRight.attach(Config::PIN_ESC_RIGHT, Config::ESC_MIN, Config::ESC_MAX);
+    _escLeft.writeMicroseconds(Config::ESC_MAX);
+    _escRight.writeMicroseconds(Config::ESC_MAX);
     debugPrint(F("Sending maximum throttle"));
   }
 
   void calibrateMin() {
-    if (!_escL.attached())
-      _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
-    if (!_escR.attached())
-      _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
-    _escL.writeMicroseconds(Config::ESC_MIN);
-    _escR.writeMicroseconds(Config::ESC_MIN);
+    if (!_escLeft.attached())
+      _escLeft.attach(Config::PIN_ESC_LEFT, Config::ESC_MIN, Config::ESC_MAX);
+    if (!_escRight.attached())
+      _escRight.attach(Config::PIN_ESC_RIGHT, Config::ESC_MIN, Config::ESC_MAX);
+    _escLeft.writeMicroseconds(Config::ESC_MIN);
+    _escRight.writeMicroseconds(Config::ESC_MIN);
     debugPrint(F("Sending minimum throttle"));
   }
 
@@ -191,24 +173,25 @@ public:
 
     // Ramp UP
     for (uint16_t i = Config::ESC_MIN; i <= Config::ESC_MAX; i += 5) {
-      _escL.writeMicroseconds(i);
-      _escR.writeMicroseconds(i);
+      _escLeft.writeMicroseconds(i);
+      _escRight.writeMicroseconds(i);
       debugPrintf("Pulse length = %d", i);
       delay(200);
     }
 
     debugPrint(F("STOP"));
-    _escL.writeMicroseconds(Config::ESC_MIN);
-    _escR.writeMicroseconds(Config::ESC_MIN);
+    _escLeft.writeMicroseconds(Config::ESC_MIN);
+    _escRight.writeMicroseconds(Config::ESC_MIN);
   }
 
   void nudge(bool forward) {
     debugPrint(F("STATUS: Nudging..."));
     _shot.attach(Config::PIN_SHOT, Config::SV_MIN_US, Config::SV_MAX_US);
-    int s = forward ? (shotNeutralUs + 500) : (shotNeutralUs - 500);
+    int s =
+        forward ? (_fsm.getShotNeutral() + 500) : (_fsm.getShotNeutral() - 500);
     _shot.writeMicroseconds(s);
     delay(200);
-    _shot.writeMicroseconds(shotNeutralUs);
+    _shot.writeMicroseconds(_fsm.getShotNeutral());
     delay(50);
     _shot.detach();
 
@@ -217,73 +200,38 @@ public:
     Serial.println(buf);
     Serial1.println(buf);
 
-    _lastActivityTime = millis();
+    recordActivity();
   }
 
   void setRawPWM(int us) {
-    if (!_isArmed) {
+    if (!_fsm.isArmed()) {
       debugPrint(F("ERR: Arm first!"));
       return;
     }
-    if (!_escL.attached())
-      _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
-    if (!_escR.attached())
-      _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
-    _escL.writeMicroseconds(us);
-    _escR.writeMicroseconds(us);
+    if (!_escLeft.attached())
+      _escLeft.attach(Config::PIN_ESC_LEFT, Config::ESC_MIN, Config::ESC_MAX);
+    if (!_escRight.attached())
+      _escRight.attach(Config::PIN_ESC_RIGHT, Config::ESC_MIN, Config::ESC_MAX);
+    _escLeft.writeMicroseconds(us);
+    _escRight.writeMicroseconds(us);
     debugPrintf("OK: Manual PWM %d us", us);
-  }
-
-  void startCalibration() {
-    if (!_isArmed) {
-      debugPrint(F("ERR: Arm first!"));
-      return;
-    }
-    if (!_escL.attached())
-      _escL.attach(Config::PIN_FLY_L, Config::ESC_MIN, Config::ESC_MAX);
-    if (!_escR.attached())
-      _escR.attach(Config::PIN_FLY_R, Config::ESC_MIN, Config::ESC_MAX);
-    _escL.writeMicroseconds(Config::ESC_MAX);
-    _escR.writeMicroseconds(Config::ESC_MAX);
-
-    _fState = FiringState::CALIBRATING;
-    debugPrint(F("WARNING: CALIBRATION MODE - MAX THROTTLE (2000us)"));
-    debugPrint(F("1. Connect Battery NOW (Wait for Beep-Beep)"));
-    debugPrint(F("2. Type 'STOP' immediately after beeps to finish"));
-  }
-
-  void startFire(int pwr) {
-    if (!_isArmed) {
-      debugPrint(F("ERR: Arm first!"));
-      return;
-    }
-    if (_fState != FiringState::IDLE)
-      return;
-
-    applyFlywheelPower(pwr);
-
-    _fState = FiringState::SPINNING_UP;
-    _stateStartTime = millis();
-    recordActivity();
-    debugPrint(F("STATUS: Spinning up..."));
   }
 
   // --- CONFIG SETTERS ---
   void setZS(int v) {
-    shotNeutralUs = v;
+    _fsm.setShotNeutral(v);
     debugPrintf("OK: Shot Zero set to %d", v);
   }
 
   void setD(int v) {
-    shotDurationMs = v;
+    _fsm.setShotDuration(v);
     debugPrintf("OK: Duration set to %d", v);
   }
 
   void printConfig() {
     debugPrint(F("\n--- CURRENT CONFIG ---"));
-    debugPrintf("Shot Zero:     %d us", shotNeutralUs);
-    // Tilt Zero removed from here
-    debugPrintf("Shot Duration: %d ms", shotDurationMs);
+    debugPrintf("Shot Zero:     %d us", _fsm.getShotNeutral());
+    debugPrintf("Shot Duration: %d ms", _fsm.getShotDuration());
     debugPrint(F("----------------------"));
   }
 
@@ -303,75 +251,20 @@ public:
     debugPrint(F("--------------------"));
   }
 
-  void recordActivity() { _lastActivityTime = millis(); }
-
   // --- UPDATE LOOP ---
   void update() {
-    uint32_t now = millis();
-
-    // Auto-Disarm
-    if (_isArmed && _fState == FiringState::IDLE &&
-        (now - _lastActivityTime > Config::AUTO_DISARM_MS)) {
-      disarm();
-    }
-
-    // Firing State Machine
-    switch (_fState) {
-    case FiringState::IDLE:
-      break;
-
-    case FiringState::ESC_TEST:
-      break;
-
-    case FiringState::CALIBRATING:
-      break;
-
-    case FiringState::ARMING:
-      if (now - _stateStartTime >= Config::ARM_DELAY_MS) {
-        _isArmed = true;
-        _fState = FiringState::IDLE;
-        debugPrint(F("OK: SYSTEM ARMED"));
-      }
-      break;
-
-    case FiringState::SPINNING_UP:
-      if (now - _stateStartTime >= Config::SPINUP_MS) {
-        _shot.attach(Config::PIN_SHOT);
-        _shot.writeMicroseconds(shotNeutralUs + Config::SHOT_SPEED_OFFSET);
-        _fState = FiringState::PUSHING;
-        _stateStartTime = now;
-      }
-      break;
-
-    case FiringState::PUSHING:
-      if (now - _stateStartTime >= (uint32_t)shotDurationMs) {
-        _shot.writeMicroseconds(shotNeutralUs - Config::BRAKE_OFFSET);
-        _fState = FiringState::BRAKING;
-        _stateStartTime = now;
-      }
-      break;
-
-    case FiringState::BRAKING:
-      if (now - _stateStartTime >= Config::BRAKE_MS) {
-        _shot.writeMicroseconds(shotNeutralUs);
-        applyFlywheelPower(0);
-
-        _fState = FiringState::COOLDOWN;
-        _stateStartTime = now;
-      }
-      break;
-
-    case FiringState::COOLDOWN:
-      if (now - _stateStartTime >= 100) {
-        _shot.detach();
-        _fState = FiringState::IDLE;
-        debugPrint(F("OK: SHOT COMPLETE"));
-      }
-      break;
-    }
+    _fsm.evalTransition(); // Prüft Bedingungen, setzt nextState
+    _fsm.evalState();      // Führt State-Aktionen aus
   }
-  int getShotZero() { return shotNeutralUs; }
-  int getShotDur() { return shotDurationMs; }
+
+  // Getter
+  bool isArmed() { return _fsm.isArmed(); }
+  int getShotZero() { return _fsm.getShotNeutral(); }
+  int getShotDur() { return _fsm.getShotDuration(); }
+  FiringFSM &getFSM() { return _fsm; }
 };
+
+// Static member initialization
+Launcher *Launcher::_instance = nullptr;
 
 #endif // LAUNCHER_H

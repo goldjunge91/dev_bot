@@ -93,11 +93,11 @@ public:
 
     // Command Routing
     if (cmd == "ARM")
-      _launcher.arm();
+      _launcher.arming();
     else if (cmd == "DISARM")
-      _launcher.disarm();
+      _launcher.disarming();
     else if (cmd == "STOP")
-      _launcher.disarm();
+      _launcher.disarming();
     else if (cmd == "SHOT")
       _launcher.startFire(val > 0 ? val : 40);
     else if (cmd == "TEST_ESC")
