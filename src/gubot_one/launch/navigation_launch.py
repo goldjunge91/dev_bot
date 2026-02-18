@@ -1,16 +1,15 @@
+# Navigations Launch File für Nav2
+# Startet alle Nav2-Komponenten für autonome Navigation (Planner, Controller, Recovery)
+#
 # Copyright (c) 2018 Intel Corporation
+# Licensed under the Apache License, Version 2.0
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Launch-File Struktur:
+# 1. Imports - Benötigte Python-Module
+# 2. LaunchConfiguration - Variablen für Launch-Argumente
+# 3. DeclareLaunchArgument - Definiere konfigurierbare Parameter
+# 4. Nodes - ROS2-Knoten die gestartet werden
+# 5. LaunchDescription - Rückgabe aller Komponenten
 
 import os
 
@@ -24,32 +23,29 @@ from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
-    # Get the launch directory
+    # Hole Launch-Verzeichnis
     bringup_dir = get_package_share_directory('gubot_one')
 
     namespace = LaunchConfiguration('namespace')
     use_sim_time = LaunchConfiguration('use_sim_time')
     autostart = LaunchConfiguration('autostart')
     params_file = LaunchConfiguration('params_file')
-    default_bt_xml_filename = LaunchConfiguration('default_bt_xml_filename')
+    default_bt_xml_filename = LaunchConfiguration('default_bt_xml_filename')  # Behavior Tree XML
     map_subscribe_transient_local = LaunchConfiguration('map_subscribe_transient_local')
 
-    lifecycle_nodes = ['controller_server',
-                       'planner_server',
-                       'recoveries_server',
-                       'bt_navigator',
-                       'waypoint_follower']
+    # Lifecycle-Knoten für Navigation Stack
+    lifecycle_nodes = ['controller_server',  # Folgt geplanten Pfaden
+                       'planner_server',     # Berechnet globale Pfade
+                       'recoveries_server',  # Führt Recovery-Behaviors aus
+                       'bt_navigator',       # Behavior Tree Navigator (Koordination)
+                       'waypoint_follower']  # Folgt Waypoint-Listen
 
-    # Map fully qualified names to relative ones so the node's namespace can be prepended.
-    # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
-    # https://github.com/ros/geometry2/issues/32
-    # https://github.com/ros/robot_state_publisher/pull/30
-    # TODO(orduno) Substitute with `PushNodeRemapping`
-    #              https://github.com/ros2/launch_ros/issues/56
+    # Mappe vollqualifizierte Namen auf relative Namen (für Namespace-Unterstützung)
+    # TF-Remapping notwendig für korrekte Transform-Verarbeitung
     remappings = [('/tf', 'tf'),
                   ('/tf_static', 'tf_static')]
 
-    # Create our own temporary YAML files that include substitutions
+    # Erstelle temporäre YAML-Dateien mit Substitutionen
     param_substitutions = {
         'use_sim_time': use_sim_time,
         'default_bt_xml_filename': default_bt_xml_filename,
@@ -63,42 +59,42 @@ def generate_launch_description():
             convert_types=True)
 
     return LaunchDescription([
-        # Set env var to print messages to stdout immediately
+        # Setze Umgebungsvariable für sofortige Ausgabe von Log-Nachrichten
         SetEnvironmentVariable('RCUTILS_LOGGING_BUFFERED_STREAM', '1'),
 
         DeclareLaunchArgument(
             'namespace', default_value='',
-            description='Top-level namespace'),
+            description='Top-level namespace'),  # Namespace für alle Knoten
 
         DeclareLaunchArgument(
             'use_sim_time', default_value='false',
-            description='Use simulation (Gazebo) clock if true'),
+            description='Use simulation (Gazebo) clock if true'),  # Simulationszeit oder echte Zeit
 
         DeclareLaunchArgument(
             'autostart', default_value='true',
-            description='Automatically startup the nav2 stack'),
+            description='Automatically startup the nav2 stack'),  # Automatischer Start der Lifecycle-Knoten
 
         DeclareLaunchArgument(
             'params_file',
             default_value=os.path.join(bringup_dir, 'config', 'nav2_params.yaml'),
-            description='Full path to the ROS2 parameters file to use'),
+            description='Full path to the ROS2 parameters file to use'),  # Nav2-Parameter-Datei
 
         DeclareLaunchArgument(
             'default_bt_xml_filename',
             default_value=os.path.join(
                 get_package_share_directory('nav2_bt_navigator'),
                 'behavior_trees', 'navigate_w_replanning_and_recovery.xml'),
-            description='Full path to the behavior tree xml file to use'),
+            description='Full path to the behavior tree xml file to use'),  # Behavior Tree für Navigation
 
         DeclareLaunchArgument(
             'map_subscribe_transient_local', default_value='false',
-            description='Whether to set the map subscriber QoS to transient local'),
+            description='Whether to set the map subscriber QoS to transient local'),  # QoS-Einstellung für Karten-Topic
 
         Node(
             package='nav2_controller',
             executable='controller_server',
             output='screen',
-            parameters=[configured_params],
+            parameters=[configured_params],  # Controller Server - Folgt geplanten Pfaden (z.B. DWB, TEB)
             remappings=remappings),
 
         Node(
@@ -106,7 +102,7 @@ def generate_launch_description():
             executable='planner_server',
             name='planner_server',
             output='screen',
-            parameters=[configured_params],
+            parameters=[configured_params],  # Planner Server - Berechnet globale Pfade (z.B. NavFn, Smac)
             remappings=remappings),
 
         Node(
@@ -114,7 +110,7 @@ def generate_launch_description():
             executable='recoveries_server',
             name='recoveries_server',
             output='screen',
-            parameters=[configured_params],
+            parameters=[configured_params],  # Recovery Server - Führt Recovery-Behaviors aus (Spin, Backup)
             remappings=remappings),
 
         Node(
@@ -122,7 +118,7 @@ def generate_launch_description():
             executable='bt_navigator',
             name='bt_navigator',
             output='screen',
-            parameters=[configured_params],
+            parameters=[configured_params],  # BT Navigator - Koordiniert Navigation mit Behavior Trees
             remappings=remappings),
 
         Node(
@@ -130,7 +126,7 @@ def generate_launch_description():
             executable='waypoint_follower',
             name='waypoint_follower',
             output='screen',
-            parameters=[configured_params],
+            parameters=[configured_params],  # Waypoint Follower - Folgt Liste von Waypoints
             remappings=remappings),
 
         Node(
@@ -140,6 +136,6 @@ def generate_launch_description():
             output='screen',
             parameters=[{'use_sim_time': use_sim_time},
                         {'autostart': autostart},
-                        {'node_names': lifecycle_nodes}]),
+                        {'node_names': lifecycle_nodes}]),  # Verwaltet Lifecycle-States der Navigations-Knoten
 
     ])

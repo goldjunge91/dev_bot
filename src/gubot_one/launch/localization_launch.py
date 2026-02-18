@@ -1,16 +1,15 @@
+# Lokalisierungs Launch File für Nav2 (AMCL)
+# Startet Map Server und AMCL für Roboter-Lokalisierung in bekannter Karte
+#
 # Copyright (c) 2018 Intel Corporation
+# Licensed under the Apache License, Version 2.0
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Launch-File Struktur:
+# 1. Imports - Benötigte Python-Module
+# 2. LaunchConfiguration - Variablen für Launch-Argumente
+# 3. DeclareLaunchArgument - Definiere konfigurierbare Parameter
+# 4. Nodes - ROS2-Knoten die gestartet werden
+# 5. LaunchDescription - Rückgabe aller Komponenten
 
 import os
 
@@ -24,29 +23,25 @@ from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
-    # Get the launch directory
+    # Hole Launch-Verzeichnis
     bringup_dir = get_package_share_directory('gubot_one')
 
     namespace = LaunchConfiguration('namespace')
-    map_yaml_file = LaunchConfiguration('map')
+    map_yaml_file = LaunchConfiguration('map')  # Pfad zur Karten-YAML-Datei
     use_sim_time = LaunchConfiguration('use_sim_time')
     autostart = LaunchConfiguration('autostart')
     params_file = LaunchConfiguration('params_file')
-    lifecycle_nodes = ['map_server', 'amcl']
+    lifecycle_nodes = ['map_server', 'amcl']  # Lifecycle-Knoten für Manager
 
-    # Map fully qualified names to relative ones so the node's namespace can be prepended.
-    # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
-    # https://github.com/ros/geometry2/issues/32
-    # https://github.com/ros/robot_state_publisher/pull/30
-    # TODO(orduno) Substitute with `PushNodeRemapping`
-    #              https://github.com/ros2/launch_ros/issues/56
+    # Mappe vollqualifizierte Namen auf relative Namen (für Namespace-Unterstützung)
+    # TF-Remapping notwendig für korrekte Transform-Verarbeitung
     remappings = [('/tf', 'tf'),
                   ('/tf_static', 'tf_static')]
 
-    # Create our own temporary YAML files that include substitutions
+    # Erstelle temporäre YAML-Dateien mit Substitutionen
     param_substitutions = {
         'use_sim_time': use_sim_time,
-        'yaml_filename': map_yaml_file}
+        'yaml_filename': map_yaml_file}  # Karten-Datei für Map Server
 
     configured_params = RewrittenYaml(
         source_file=params_file,
@@ -55,37 +50,37 @@ def generate_launch_description():
         convert_types=True)
 
     return LaunchDescription([
-        # Set env var to print messages to stdout immediately
+        # Setze Umgebungsvariable für sofortige Ausgabe von Log-Nachrichten
         SetEnvironmentVariable('RCUTILS_LOGGING_BUFFERED_STREAM', '1'),
 
         DeclareLaunchArgument(
             'namespace', default_value='',
-            description='Top-level namespace'),
+            description='Top-level namespace'),  # Namespace für alle Knoten
 
         DeclareLaunchArgument(
             'map',
             default_value=os.path.join(bringup_dir, 'maps', 'turtlebot3_world.yaml'),
-            description='Full path to map yaml file to load'),
+            description='Full path to map yaml file to load'),  # Karten-Datei (YAML mit Bild-Referenz)
 
         DeclareLaunchArgument(
             'use_sim_time', default_value='false',
-            description='Use simulation (Gazebo) clock if true'),
+            description='Use simulation (Gazebo) clock if true'),  # Simulationszeit oder echte Zeit
 
         DeclareLaunchArgument(
             'autostart', default_value='true',
-            description='Automatically startup the nav2 stack'),
+            description='Automatically startup the nav2 stack'),  # Automatischer Start der Lifecycle-Knoten
 
         DeclareLaunchArgument(
             'params_file',
             default_value=os.path.join(bringup_dir, 'config', 'nav2_params.yaml'),
-            description='Full path to the ROS2 parameters file to use'),
+            description='Full path to the ROS2 parameters file to use'),  # Nav2-Parameter-Datei
 
         Node(
             package='nav2_map_server',
             executable='map_server',
             name='map_server',
             output='screen',
-            parameters=[configured_params],
+            parameters=[configured_params],  # Lädt und publiziert Karte auf /map Topic
             remappings=remappings),
 
         Node(
@@ -93,7 +88,7 @@ def generate_launch_description():
             executable='amcl',
             name='amcl',
             output='screen',
-            parameters=[configured_params],
+            parameters=[configured_params],  # AMCL (Adaptive Monte Carlo Localization) für Positionsschätzung
             remappings=remappings),
 
         Node(
@@ -103,5 +98,5 @@ def generate_launch_description():
             output='screen',
             parameters=[{'use_sim_time': use_sim_time},
                         {'autostart': autostart},
-                        {'node_names': lifecycle_nodes}])
+                        {'node_names': lifecycle_nodes}])  # Verwaltet Lifecycle-States der Knoten
     ])

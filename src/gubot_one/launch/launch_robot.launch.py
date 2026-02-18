@@ -1,3 +1,43 @@
+"""
+Launch Robot - Roboter-Basis mit ros2_control
+==============================================
+Startet die Hauptkomponenten des Roboters
+
+Komponenten:
+1. Robot State Publisher (rsp.launch.py)
+   - Publiziert URDF/TF-Transformationen
+
+2. Joystick (joystick.launch.py)
+   - Controller-Eingabe (joy_node läuft extern)
+
+3. Twist Mux
+   - Multiplexer für verschiedene Geschwindigkeitsquellen
+   - Priorität: Joystick > Tracker > Keyboard
+
+4. Controller Manager (ros2_control_node)
+   - Verwaltet alle Hardware-Controller
+   - Startet nach 3 Sekunden Verzögerung
+
+5. Controller Spawner (sequenziell gestartet)
+   - diff_cont: Differential Drive Controller
+   - joint_broad: Joint State Broadcaster
+   - Nerf Controller (nur wenn use_nerf_hardware=true):
+     * trigger_controller: Tilt Servo
+     * flywheel_controller: Flywheel Motoren
+     * pusher_controller: Dart Pusher
+     * arming_controller: Sicherheitssystem
+   - nerf_control_node: High-Level Nerf Control
+
+WICHTIG: Sequenzielles Starten verhindert DDS "Thundering Herd"
+Jeder Controller wartet bis der vorherige erfolgreich geladen ist.
+
+Launch Arguments:
+- use_nerf_hardware: false (Standard)
+
+Verwendung:
+  ros2 launch gubot_one launch_robot.launch.py
+  ros2 launch gubot_one launch_robot.launch.py use_nerf_hardware:=true
+"""
 import os
 
 from ament_index_python.packages import get_package_share_directory
@@ -20,13 +60,13 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
-    # !!! MAKE SURE YOU SET THE PACKAGE NAME CORRECTLY !!!
+    package_name = "gubot_one"
 
-    package_name = "gubot_one"  # <--- CHANGE ME
-
+    # Launch Configuration
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
 
+    # 1. Robot State Publisher
+    # Publiziert URDF und TF-Transformationen
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
@@ -36,13 +76,15 @@ def generate_launch_description():
             ]
         ),
         launch_arguments={
-            "use_sim_time": "false",
-            "use_ros2_control": "true",
-            "integrated_mode": "true",
+            "use_sim_time": "false",  # Echte Hardware, keine Simulation
+            "use_ros2_control": "true",  # ros2_control aktivieren
+            "integrated_mode": "true",  # Integrierter Modus (Nerf + Basis zusammen)
             "use_nerf_hardware": use_nerf_hardware,
         }.items(),
     )
 
+    # 2. Joystick
+    # Controller-Eingabe (joy_node läuft extern auf anderem Gerät)
     joystick = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
@@ -56,6 +98,9 @@ def generate_launch_description():
         launch_arguments={"use_sim_time": "false", "launch_joy_node": "false"}.items(),
     )
 
+    # 3. Twist Mux
+    # Multiplexer für verschiedene Geschwindigkeitsquellen
+    # Priorität: Joystick > Tracker > Keyboard
     twist_mux_params = os.path.join(
         get_package_share_directory(package_name), "config", "twist_mux.yaml"
     )
@@ -66,6 +111,7 @@ def generate_launch_description():
         remappings=[("/cmd_vel_out", "/diff_cont/cmd_vel_unstamped")],
     )
 
+    # Robot Description für Controller Manager
     pkg_path = os.path.join(get_package_share_directory(package_name))
     xacro_file = os.path.join(pkg_path, "description", "robot.urdf.xacro")
     robot_description = Command(
@@ -80,29 +126,35 @@ def generate_launch_description():
         ]
     )
 
+    # Controller Parameter
     controller_params_file = os.path.join(
         get_package_share_directory(package_name), "config", "my_controllers.yaml"
     )
 
+    # 4. Controller Manager
+    # Verwaltet alle Hardware-Controller
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[{"robot_description": robot_description}, controller_params_file],
     )
 
+    # Verzögere Controller Manager Start um 3 Sekunden
+    # Gibt anderen Nodes Zeit zum Starten
     delayed_controller_manager = TimerAction(period=3.0, actions=[controller_manager])
 
-    # --- Spawner daisy-chaining to prevent "thundering herd" on DDS ---
-    # Chain: diff_cont -> joint_broad -> trigger -> flywheel -> pusher -> arming -> control_node
-    # We use OnProcessExit because spawners exit after successful loading.
+    # --- Controller Spawner Sequenz ---
+    # Verhindert "Thundering Herd" auf DDS durch sequenzielles Starten
+    # Kette: diff_cont -> joint_broad -> trigger -> flywheel -> pusher -> arming -> control_node
+    # Verwendet OnProcessExit weil Spawner nach erfolgreichem Laden beenden
 
     from launch.event_handlers import OnProcessExit
 
-    # 1. Diff Drive (starts after controller_manager starts)
+    # 1. Diff Drive Controller (startet nach controller_manager)
     diff_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["diff_cont"],
+        arguments=["diff_cont"],  # Differential Drive Controller
     )
 
     delayed_diff_drive_spawner = RegisterEventHandler(
@@ -112,11 +164,11 @@ def generate_launch_description():
         )
     )
 
-    # 2. Joint Broadcaster (starts after diff_drive exits)
+    # 2. Joint Broadcaster (startet nach diff_drive)
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_broad"],
+        arguments=["joint_broad"],  # Joint State Broadcaster
     )
 
     delayed_joint_broad_spawner = RegisterEventHandler(
@@ -126,11 +178,11 @@ def generate_launch_description():
         )
     )
 
-    # 3. Nerf Trigger (starts after joint_broad exits)
+    # 3. Nerf Trigger Controller (startet nach joint_broad)
     nerf_trigger_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["trigger_controller"],
+        arguments=["trigger_controller"],  # Tilt Servo
         output="screen",
     )
 
@@ -141,11 +193,11 @@ def generate_launch_description():
         )
     )
 
-    # 4. Nerf Flywheel (starts after trigger exits)
+    # 4. Nerf Flywheel Controller (startet nach trigger)
     nerf_flywheel_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["flywheel_controller"],
+        arguments=["flywheel_controller"],  # Flywheel Motoren
         output="screen",
     )
 
@@ -156,11 +208,11 @@ def generate_launch_description():
         )
     )
 
-    # 5. Nerf Pusher (starts after flywheel exits)
+    # 5. Nerf Pusher Controller (startet nach flywheel)
     nerf_pusher_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pusher_controller"],
+        arguments=["pusher_controller"],  # Dart Pusher
         output="screen",
     )
 
@@ -171,11 +223,11 @@ def generate_launch_description():
         )
     )
 
-    # 6. Nerf Arming (starts after pusher exits)
+    # 6. Nerf Arming Controller (startet nach pusher)
     nerf_arming_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["arming_controller"],
+        arguments=["arming_controller"],  # Sicherheitssystem
         output="screen",
     )
 
@@ -186,7 +238,7 @@ def generate_launch_description():
         )
     )
 
-    # 7. Nerf Control Node (starts after arming exits)
+    # 7. Nerf Control Node (startet nach arming)
     nerf_control = Node(
         package="nerf_standalone",
         executable="nerf_control_node",
@@ -200,6 +252,8 @@ def generate_launch_description():
         )
     )
 
+    # Nerf Gruppe: Alle Nerf-Controller zusammengefasst
+    # Wird nur gestartet wenn use_nerf_hardware=true
     nerf_group = GroupAction(
         condition=IfCondition(use_nerf_hardware),
         actions=[
@@ -211,9 +265,9 @@ def generate_launch_description():
         ],
     )
 
-    # Launch them all!
-    # Only need to return the first trigger (delayed_diff_drive_spawner)
-    # The rest triggers automatically via events.
+    # Starte alle Komponenten
+    # Nur der erste Trigger muss zurückgegeben werden
+    # Der Rest startet automatisch über Events
     return LaunchDescription(
         [
             DeclareLaunchArgument(

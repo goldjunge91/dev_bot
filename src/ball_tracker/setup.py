@@ -32,6 +32,7 @@ setup(
             "fire_at_face = ball_tracker.fire_at_face:main",
             "register_face = ball_tracker.register_face:main",
             "udp_cam_receiver = ball_tracker.udp_cam_receiver:main",
+            "udp_cam_sender = ball_tracker.udp_cam_sender:main",
         ],
     },
 )

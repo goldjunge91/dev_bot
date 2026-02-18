@@ -1,3 +1,13 @@
+# Hardware Launch File für Nerf Standalone System
+# Startet ROS2 Control mit echter Hardware (Arduino via Serial)
+#
+# Launch-File Struktur:
+# 1. Imports - Benötigte Python-Module
+# 2. LaunchConfiguration - Variablen für Launch-Argumente
+# 3. DeclareLaunchArgument - Definiere konfigurierbare Parameter
+# 4. Nodes - ROS2-Knoten die gestartet werden
+# 5. LaunchDescription - Rückgabe aller Komponenten
+
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -8,51 +18,53 @@ import xacro
 def generate_launch_description():
     pkg_nerf = get_package_share_directory("nerf_standalone")
 
-    # Process URDF (with hardware flag)
+    # Verarbeite URDF mit Hardware-Flag (use_hardware=true)
     xacro_file = os.path.join(pkg_nerf, "description", "urdf", "launcher.urdf.xacro")
 
-    # Declare Launch Arguments
+    # Deklariere Launch-Argumente
     from launch.actions import DeclareLaunchArgument
     from launch.substitutions import LaunchConfiguration
 
     arg_port = DeclareLaunchArgument(
-        "port", default_value="/dev/ttyACM0", description="Serial port for Nerf Arduino"
+        "port", 
+        default_value="/dev/ttyACM0",  # Standard serieller Port für Arduino
+        description="Serial port for Nerf Arduino"
     )
 
-    # Process xacro with use_hardware=true and port
+    # Verarbeite xacro mit use_hardware=true und port-Parameter
     robot_description_config = xacro.process_file(
         xacro_file,
         mappings={"use_hardware": "true", "port": LaunchConfiguration("port")},
     )
     robot_description = {"robot_description": robot_description_config.toxml()}
 
-    # Robot State Publisher
+    # Robot State Publisher - Publiziert TF-Transformationen basierend auf URDF
     node_robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[robot_description, {"use_sim_time": False}],
+        parameters=[robot_description, {"use_sim_time": False}],  # Echte Zeit verwenden
     )
 
-    # Controller Manager (ros2_control_node)
+    # Controller Manager (ros2_control_node) - Verwaltet alle Hardware-Interfaces und Controller
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[
             robot_description,
-            os.path.join(pkg_nerf, "config", "controllers.yaml"),
-            {"use_sim_time": False},
+            os.path.join(pkg_nerf, "config", "controllers.yaml"),  # Controller-Konfiguration
+            {"use_sim_time": False},  # Echte Zeit verwenden
         ],
         output="screen",
-        emulate_tty=True,  # Improved console output
+        emulate_tty=True,  # Verbesserte Konsolen-Ausgabe
     )
 
-    # Spawners
+    # Spawner - Laden und Aktivieren der Controller
     joint_state_broadcaster = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "joint_state_broadcaster",
+            "joint_state_broadcaster",  # Publiziert Joint-States auf /joint_states
             "--controller-manager",
             "/controller_manager",
         ],
@@ -62,7 +74,7 @@ def generate_launch_description():
     trigger_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["trigger_controller", "--controller-manager", "/controller_manager"],
+        arguments=["trigger_controller", "--controller-manager", "/controller_manager"],  # Nerf Tilt/Trigger Controller
         output="screen",
     )
 
@@ -70,7 +82,7 @@ def generate_launch_description():
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "flywheel_controller",
+            "flywheel_controller",  # Schwungrad-Controller (ESC)
             "--controller-manager",
             "/controller_manager",
         ],
@@ -80,18 +92,18 @@ def generate_launch_description():
     pusher_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pusher_controller", "--controller-manager", "/controller_manager"],
+        arguments=["pusher_controller", "--controller-manager", "/controller_manager"],  # Dart-Pusher Controller
         output="screen",
     )
 
     arming_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["arming_controller", "--controller-manager", "/controller_manager"],
+        arguments=["arming_controller", "--controller-manager", "/controller_manager"],  # System Arming/Disarming
         output="screen",
     )
 
-    # High-level Control Node
+    # High-Level Control Node - Koordiniert Nerf-Aktionen (Schießen, Zielen)
     nerf_control = Node(
         package="nerf_standalone",
         executable="nerf_control_node",
