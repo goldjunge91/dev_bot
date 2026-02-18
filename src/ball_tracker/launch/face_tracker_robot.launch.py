@@ -14,6 +14,8 @@ def generate_launch_description():
         "face_tracker_params.yaml",
     )
 
+    detect_only = LaunchConfiguration("detect_only")
+    follow_only = LaunchConfiguration("follow_only")
     target_arg = LaunchConfiguration("target")
 
     return LaunchDescription(
