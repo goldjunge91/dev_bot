@@ -74,7 +74,7 @@ void setup() {
   while (!Serial && millis() - startWait < 2000)
     ;
 
-  // FLUSH BUFFER: Clear any old commands (e.g. from ROS buffered write)
+  // Eingabepuffer leeren, um alte/ungewollte Befehle zu verwerfen
   while (Serial.available())
     Serial.read();
   while (Serial1.available())
@@ -99,13 +99,14 @@ void setup() {
 /**
  * @brief Main execution loop.
  *
- * 1. Updates Firing FSM (State transitions, Hardware control)
- * 2. Updates Tilt Controller (Timed detach logic)
- * 3. Checks for new commands on USB and UART
+ * Hauptschleife:
+ * 1. Firing FSM aktualisieren (Logik & Hardware)
+ * 2. Tilt Controller aktualisieren (Zeitsteuerung)
+ * 3. Kommunikation prüfen (USB & UART)
  */
 void loop() {
-  nerf.update();
-  tiltCtrl.update();
-  commsUSB.update();
-  commsUART.update();
+  nerf.update();      // Nerf-Logik und Hardware
+  tiltCtrl.update();  // Tilt-Logik
+  commsUSB.update();  // Befehle von USB verarbeiten
+  commsUART.update(); // Befehle von UART verarbeiten
 }
