@@ -14,8 +14,8 @@ void Help::printHelp() {
     SerialOutput::print(F(" > TEST_ESC <pwr>        - Flywheels Only"));
     SerialOutput::print(F(" > PWM <us>              - Manual ESC Signal"));
     SerialOutput::print(F(" > CAL                   - Calibrate ESCs"));
-    SerialOutput::print(F(" > CAL_MAX / CAL_MIN     - Send Max/Min Throttle Setup"));
-    SerialOutput::print(F(" > CAL_TEST              - Run ESC Test Sequence"));
+    //    SerialOutput::print(F(" > CAL_MAX / CAL_MIN     - Send Max/Min Throttle Setup"));
+    //    SerialOutput::print(F(" > CAL_TEST              - Run ESC Test Sequence"));
     SerialOutput::print(F(" > TEST_SHOT <ms>        - Pusher Cycle Only"));
     SerialOutput::print(F(" > NF / NB               - Nudge Pusher"));
     SerialOutput::print(F(" [ TILT ]"));

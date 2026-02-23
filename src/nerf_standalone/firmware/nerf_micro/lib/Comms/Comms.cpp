@@ -119,27 +119,31 @@ void Comms::execute(String line) {
         _launcher.getFSM().triggerCalibration();
 
     // Calibration & Test shortcuts
-    else if (cmd == "CAL_MAX") {
-#ifdef DEBUG_CALIBRATION
-        ESCCalibration calibrator(_launcher.getLeftESC(), _launcher.getRightESC());
-        calibrator.calibrateMax();
-#else
-        _stream.println(F("ERR: Calibration disabled (Define DEBUG_CALIBRATION to enable)"));
-#endif
-    } else if (cmd == "CAL_MIN") {
-#ifdef DEBUG_CALIBRATION
-        ESCCalibration calibrator(_launcher.getLeftESC(), _launcher.getRightESC());
-        calibrator.calibrateMin();
-#else
-        _stream.println(F("ERR: Calibration disabled"));
-#endif
-    } else if (cmd == "CAL_TEST") {
-#ifdef DEBUG_CALIBRATION
-        ESCCalibration calibrator(_launcher.getLeftESC(), _launcher.getRightESC());
-        calibrator.testSequence();
-#else
-        _stream.println(F("ERR: Calibration disabled"));
-#endif
+    //    else if (cmd == "CAL_MAX") {
+    // #ifdef DEBUG_CALIBRATION
+    //        ESCCalibration calibrator(_launcher.getLeftESC(), _launcher.getRightESC());
+    //        calibrator.calibrateMax();
+    // #else
+    //        _stream.println(F("ERR: Calibration disabled (Define DEBUG_CALIBRATION to enable)"));
+    // #endif
+    //    } else if (cmd == "CAL_MIN") {
+    // #ifdef DEBUG_CALIBRATION
+    //        ESCCalibration calibrator(_launcher.getLeftESC(), _launcher.getRightESC());
+    //        calibrator.calibrateMin();
+    // #else
+    //        _stream.println(F("ERR: Calibration disabled"));
+    // #endif
+    //    } else if (cmd == "CAL_TEST") {
+    // #ifdef DEBUG_CALIBRATION
+    //        ESCCalibration calibrator(_launcher.getLeftESC(), _launcher.getRightESC());
+    //        calibrator.testSequence();
+    // #else
+    //        _stream.println(F("ERR: Calibration disabled"));
+    // #endif
+    //    }
+
+    else if (cmd == "CAL_MAX" || cmd == "CAL_MIN" || cmd == "CAL_TEST") {
+        broadcast(F("ERR: Obsolete commands. Use 'CAL' state via FSM instead."));
     } else if (cmd == "NF")
         _launcher.nudge(true);
     else if (cmd == "NB")

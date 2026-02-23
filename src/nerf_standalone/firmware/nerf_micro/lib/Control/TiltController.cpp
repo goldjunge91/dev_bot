@@ -4,9 +4,8 @@
 
 #include "TiltController.h"
 
-TiltController::TiltController(uint8_t pin, int neutral)
-    : _isMoving(false), _endTime(0), _pin(pin), _neutralUs(neutral) {
-}
+TiltController::TiltController(uint8_t pin, int neutral) :
+    _isMoving(false), _endTime(0), _pin(pin), _neutralUs(neutral) {}
 
 /**
  * @brief Updates servo state.
@@ -17,7 +16,7 @@ TiltController::TiltController(uint8_t pin, int neutral)
 void TiltController::update() {
     if (_isMoving && millis() >= _endTime) {
         _tiltServo.writeMicroseconds(_neutralUs);
-        delay(50); // Give time to center
+        delay(50);  // Give time to center
         _tiltServo.detach();
         _isMoving = false;
         SerialOutput::print(F("OK: TILT STOPPED"));
@@ -40,7 +39,7 @@ void TiltController::move(bool up, uint32_t ms) {
     _isMoving = true;
 
     SerialOutput::print(up ? F("OK: Tilt UP") : F("OK: Tilt DOWN"));
-    SerialOutput::printf(" Duration: %ld ms", (long) ms);
+    SerialOutput::printf(" Duration: %ld ms", (long)ms);
 }
 
 void TiltController::nudge(bool up) {
@@ -59,16 +58,15 @@ void TiltController::nudge(bool up) {
 
 void TiltController::setNeutral(int v) {
     _neutralUs = v;
-    char buf[64];
-    sprintf(buf, "OK: Tilt Zero set to %d", v);
-    SerialOutput::printf("%s", (long) buf);
+    //    char buf[64];
+    //    sprintf(buf, "OK: Tilt Zero set to %d", v);
+    //    SerialOutput::printf("%s", (long) buf);
+    SerialOutput::printf("OK: Tilt Zero set to %ld", (long)v);
 }
 
 void TiltController::setPosition(int us) {
-    if (us < (int) Config::SV_MIN_US)
-        us = (int) Config::SV_MIN_US;
-    if (us > (int) Config::SV_MAX_US)
-        us = (int) Config::SV_MAX_US;
+    if (us < (int)Config::SV_MIN_US) us = (int)Config::SV_MIN_US;
+    if (us > (int)Config::SV_MAX_US) us = (int)Config::SV_MAX_US;
 
     _tiltServo.attach(_pin, Config::SV_MIN_US, Config::SV_MAX_US);
     _tiltServo.writeMicroseconds(us);
@@ -76,9 +74,12 @@ void TiltController::setPosition(int us) {
     // reset moving state so update() doesn't detach immediately
     _isMoving = false;
 
-    char buf[64];
-    sprintf(buf, "OK: TILT SET %d", us);
-    SerialOutput::printf("%s", (long) buf);
+    //    char buf[64];
+    //    sprintf(buf, "OK: TILT SET %d", us);
+    //    SerialOutput::printf("%s", (long) buf);
+    SerialOutput::printf("OK: TILT SET %ld", (long)us);
 }
 
-int TiltController::getNeutral() { return _neutralUs; }
+int TiltController::getNeutral() {
+    return _neutralUs;
+}
