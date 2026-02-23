@@ -151,6 +151,8 @@ void Comms::execute(String line) {
         _launcher.nudge(false);
     else if (cmd == "TEST_SHOT")
         _launcher.testShot(val);
+    else if (cmd == "DANGEROUS_SHOT")
+        _launcher.dangerousShot(val);
     else if (cmd == "ZERO_S")
         _launcher.setZS(val);
     else if (cmd == "SET_SHOT")

@@ -32,6 +32,9 @@ private:
         TEST_SHOT_PUSH,
         TEST_SHOT_BRAKE,
         TEST_SHOT_CENTER,
+        DANGEROUS_SHOT_PUSH,
+        DANGEROUS_SHOT_BRAKE,
+        DANGEROUS_SHOT_CENTER,
         NUDGE_OUT,
         NUDGE_CENTER
     };
@@ -88,6 +91,13 @@ public:
      * @param ms Dauer des Pusher-Ausfahrens in Millisekunden.
      */
     void testShot(int ms);
+
+    /**
+     * @brief Löst einen Schuss mit laufenden Flywheels aus. Im Gegensatz zu testShot greift
+     * diese Funktion nicht in den Zustand der ESCs ein.
+     * @param ms Dauer des Pusher-Ausfahrens in Millisekunden.
+     */
+    void dangerousShot(int ms);
 
     /**
      * @brief Bewegt den Pusher-Servo minimal, um Ladehemmungen zu lösen oder zur Justierung.

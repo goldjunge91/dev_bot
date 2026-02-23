@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
-project(nerf_standalone)
 
+if(POLICY CMP0009)
+  cmake_policy(SET CMP0009 NEW)
+endif()
+
+project(nerf_standalone)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()

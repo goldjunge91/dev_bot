@@ -43,6 +43,17 @@ void Launcher::update() {
                    _manualState == ManualState::NUDGE_CENTER) {
             _shot.detach();
             _manualState = ManualState::IDLE;
+        } else if (_manualState == ManualState::DANGEROUS_SHOT_PUSH) {
+            _shot.writeMicroseconds(_fsm.getShotNeutral() - Config::BRAKE_OFFSET);
+            _manualTimer = now + Config::BRAKE_MS;
+            _manualState = ManualState::DANGEROUS_SHOT_BRAKE;
+        } else if (_manualState == ManualState::DANGEROUS_SHOT_BRAKE) {
+            _shot.writeMicroseconds(_fsm.getShotNeutral());
+            _manualTimer = now + 50;
+            _manualState = ManualState::DANGEROUS_SHOT_CENTER;
+        } else if (_manualState == ManualState::DANGEROUS_SHOT_CENTER) {
+            _shot.detach();
+            _manualState = ManualState::IDLE;
         } else if (_manualState == ManualState::NUDGE_OUT) {
             _shot.writeMicroseconds(_fsm.getShotNeutral());
             _manualTimer = now + 50;
@@ -142,6 +153,27 @@ void Launcher::testShot(int ms) {
     _shot.writeMicroseconds(_fsm.getShotNeutral() + Config::TEST_SHOT_OFFSET);
     _manualTimer = millis() + duration;  // non-blocking sequence start
     _manualState = ManualState::TEST_SHOT_PUSH;
+    _fsm.recordActivity();
+}
+
+void Launcher::dangerousShot(int ms) {
+    int safeDur = constrain(ms, 10, 5000);  // bounds check
+    int duration = (ms > 0) ? safeDur : _fsm.getShotDuration();
+    SerialOutput::printf("OK: Dangerous shot %ld ms", (long)duration);
+
+    // ESCs are NOT detached here, allowing them to continue spinning!
+    // bool escWasAttached = _escLeft.attached() || _escRight.attached();
+    // if (_escLeft.attached() || _escRight.attached()) {
+    //     detachESCs();
+    // }
+    // if (escWasAttached) {
+    //     SerialOutput::print(F("WARN: ESCs were attached during TEST_SHOT; forced stop."));
+    // }
+
+    _shot.attach(Config::PIN_SHOT, Config::SV_MIN_US, Config::SV_MAX_US);
+    _shot.writeMicroseconds(_fsm.getShotNeutral() + Config::TEST_SHOT_OFFSET);
+    _manualTimer = millis() + duration;  // non-blocking sequence start
+    _manualState = ManualState::DANGEROUS_SHOT_PUSH;
     _fsm.recordActivity();
 }
 
