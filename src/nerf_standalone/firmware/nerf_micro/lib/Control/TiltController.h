@@ -8,8 +8,10 @@
 #include "../../include/Config.h"
 // #include "../Utils/SerialOutput.h"
 #include "SerialOutput.h"
+
 #include <Arduino.h>
 #include <Servo.h>
+
 
 /**
  * @brief Controls the tilt servo for the launcher.
@@ -21,8 +23,12 @@
 class TiltController {
 private:
     Servo _tiltServo;
-    bool _isMoving;
-    uint32_t _endTime;
+    //    bool _isMoving;
+    //    uint32_t _endTime;
+    enum class State { IDLE, MOVING, CENTERING, NUDGING_OUT, NUDGING_IN };
+    State _state;
+    uint32_t _stateEndTime;
+    bool _nudgeUp;
     uint8_t _pin;
     int _neutralUs;
 
@@ -68,4 +74,4 @@ public:
     int getNeutral();
 };
 
-#endif // TILT_H
+#endif  // TILT_H

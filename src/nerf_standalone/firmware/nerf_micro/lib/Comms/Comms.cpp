@@ -4,7 +4,7 @@
 
 #include "Comms.h"
 
-#include "../Debug/ESCCalibration.h"
+// #include "../Debug/ESCCalibration.h"
 #include "../Utils/Help.h"
 
 // Declare global helpers from main.cpp
@@ -172,18 +172,6 @@ void Comms::execute(String line) {
     else if (cmd == "T_POS")
         _tilt.setPosition(val);
 
-    /*
-        else if (cmd == "STATUS") {
-            _stream.println(_launcher.getFSM().isArmed()
-                                ? F("STATUS: ARMED")
-                                : F("STATUS: DISARMED"));
-        } else {
-            if (cmd.length() > 1) {
-                _stream.print(F("ERR: Unknown "));
-                _stream.println(cmd);
-            }
-        }
-    */
     else if (cmd == "STATUS") {
         _stream.println(_launcher.getFSM().isArmed() ? F("STATUS: ARMED") : F("STATUS: DISARMED"));
     } else if (cmd == "HELP") {

@@ -12,27 +12,9 @@
 
 class SerialOutput {
 public:
-    // 1. Flash-String-Ausgabe (F() Makro) - spart RAM!
-    static void print(const __FlashStringHelper *msg) {
-        Serial.println(msg);
-        Serial1.println(msg);
-    }
-
-    // 2. Formatierte Ausgabe (Text + Zahl)
-    static void printf(const char *format, long value1, long value2 = 0) {
-        char buf[64];
-        snprintf(buf, sizeof(buf), format, value1, value2);
-        Serial.println(buf);
-        Serial1.println(buf);
-    }
-
-    // 3. Sichere String-Überladung für %s (Umgeht Casting-Probleme)
-    static void printf(const char *format, const char *strValue) {
-        char buf[64];
-        snprintf(buf, sizeof(buf), format, strValue);
-        Serial.println(buf);
-        Serial1.println(buf);
-    }
+    static void print(const __FlashStringHelper *msg);
+    static void printf(const char *format, long value1, long value2 = 0);
+    static void printf(const char *format, const char *strValue);
 };
 
 #endif  // SERIALOUTPUT_H

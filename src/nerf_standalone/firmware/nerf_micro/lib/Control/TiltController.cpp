@@ -5,7 +5,7 @@
 #include "TiltController.h"
 
 TiltController::TiltController(uint8_t pin, int neutral) :
-    _isMoving(false), _endTime(0), _pin(pin), _neutralUs(neutral) {}
+    _state(State::IDLE), _stateEndTime(0), _nudgeUp(true), _pin(pin), _neutralUs(neutral) {}
 
 /**
  * @brief Updates servo state.
@@ -14,12 +14,21 @@ TiltController::TiltController(uint8_t pin, int neutral) :
  * PWM signals (detach) to prevent heating/jitter at the proper position.
  */
 void TiltController::update() {
-    if (_isMoving && millis() >= _endTime) {
-        _tiltServo.writeMicroseconds(_neutralUs);
-        delay(50);  // Give time to center
-        _tiltServo.detach();
-        _isMoving = false;
-        SerialOutput::print(F("OK: TILT STOPPED"));
+    uint32_t now = millis();
+    if (_state != State::IDLE && now >= _stateEndTime) {
+        if (_state == State::MOVING) {
+            _tiltServo.writeMicroseconds(_neutralUs);
+            _stateEndTime = now + 50;  // Give time to center
+            _state = State::CENTERING;
+        } else if (_state == State::NUDGING_OUT) {
+            _tiltServo.writeMicroseconds(_neutralUs);
+            _stateEndTime = now + 40;
+            _state = State::NUDGING_IN;
+        } else if (_state == State::CENTERING || _state == State::NUDGING_IN) {
+            _tiltServo.detach();
+            _state = State::IDLE;
+            SerialOutput::print(F("OK: TILT STOPPED"));
+        }
     }
 }
 
@@ -30,38 +39,32 @@ void TiltController::update() {
  * and sets the timer for later detachment.
  */
 void TiltController::move(bool up, uint32_t ms) {
+    uint32_t safeMs = constrain(ms, 10UL, 5000UL);  // bounds check
     _tiltServo.attach(_pin, Config::SV_MIN_US, Config::SV_MAX_US);
 
     int target = up ? Config::SV_MAX_US : Config::SV_MIN_US;
-
     _tiltServo.writeMicroseconds(target);
-    _endTime = millis() + ms;
-    _isMoving = true;
+    _stateEndTime = millis() + safeMs;
+    _state = State::MOVING;
 
     SerialOutput::print(up ? F("OK: Tilt UP") : F("OK: Tilt DOWN"));
-    SerialOutput::printf(" Duration: %ld ms", (long)ms);
+    SerialOutput::printf(" Duration: %ld ms", (long)safeMs);
 }
 
 void TiltController::nudge(bool up) {
     _tiltServo.attach(_pin, Config::SV_MIN_US, Config::SV_MAX_US);
     int s = up ? (_neutralUs + 400) : (_neutralUs - 400);
     _tiltServo.writeMicroseconds(s);
-    delay(80);
-    _tiltServo.writeMicroseconds(_neutralUs);
-    delay(40);
-    _tiltServo.detach();
-    if (up)
-        SerialOutput::print(F("OK: Tilt Nudge UP"));
-    else
-        SerialOutput::print(F("OK: Tilt Nudge DOWN"));
+    _stateEndTime = millis() + 80;
+    _state = State::NUDGING_OUT;
+    _nudgeUp = up;
+    SerialOutput::print(up ? F("OK: Tilt Nudge UP") : F("OK: Tilt Nudge DOWN"));
 }
 
 void TiltController::setNeutral(int v) {
-    _neutralUs = v;
-    //    char buf[64];
-    //    sprintf(buf, "OK: Tilt Zero set to %d", v);
-    //    SerialOutput::printf("%s", (long) buf);
-    SerialOutput::printf("OK: Tilt Zero set to %ld", (long)v);
+    int safeV = constrain(v, Config::SV_MIN_US, Config::SV_MAX_US);
+    _neutralUs = safeV;
+    SerialOutput::printf("OK: Tilt Zero set to %ld", (long)safeV);
 }
 
 void TiltController::setPosition(int us) {
@@ -72,11 +75,8 @@ void TiltController::setPosition(int us) {
     _tiltServo.writeMicroseconds(us);
 
     // reset moving state so update() doesn't detach immediately
-    _isMoving = false;
+    _state = State::IDLE;
 
-    //    char buf[64];
-    //    sprintf(buf, "OK: TILT SET %d", us);
-    //    SerialOutput::printf("%s", (long) buf);
     SerialOutput::printf("OK: TILT SET %ld", (long)us);
 }
 

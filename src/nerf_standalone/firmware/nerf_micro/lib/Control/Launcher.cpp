@@ -27,6 +27,28 @@ void Launcher::begin() {
 void Launcher::update() {
     _fsm.evalTransition();
     _fsm.evalState();
+
+    // === NEW NON-BLOCKING MANUAL LOGIC ===
+    uint32_t now = millis();
+    if (_manualState != ManualState::IDLE && now >= _manualTimer) {
+        if (_manualState == ManualState::TEST_SHOT_PUSH) {
+            _shot.writeMicroseconds(_fsm.getShotNeutral() - Config::BRAKE_OFFSET);
+            _manualTimer = now + Config::BRAKE_MS;
+            _manualState = ManualState::TEST_SHOT_BRAKE;
+        } else if (_manualState == ManualState::TEST_SHOT_BRAKE) {
+            _shot.writeMicroseconds(_fsm.getShotNeutral());
+            _manualTimer = now + 50;
+            _manualState = ManualState::TEST_SHOT_CENTER;
+        } else if (_manualState == ManualState::TEST_SHOT_CENTER ||
+                   _manualState == ManualState::NUDGE_CENTER) {
+            _shot.detach();
+            _manualState = ManualState::IDLE;
+        } else if (_manualState == ManualState::NUDGE_OUT) {
+            _shot.writeMicroseconds(_fsm.getShotNeutral());
+            _manualTimer = now + 50;
+            _manualState = ManualState::NUDGE_CENTER;
+        }
+    }
 }
 
 // --- HARDWARE IMPLEMENTATION ---
@@ -90,19 +112,18 @@ void Launcher::callbackDetachShot() {
 
 void Launcher::callbackDebug(const char *msg) {
     // Workaround for RAM strings: use printf with %s
-    //    SerialOutput::printf("%s", (long) msg);
     SerialOutput::printf("%s", msg);
 }
 
 // --- HARDWARE ACTIONS (not FSM-controlled) ---
 
 void Launcher::testShot(int ms) {
-    int duration = (ms > 0) ? ms : _fsm.getShotDuration();
+    int safeDur = constrain(ms, 10, 5000);  // bounds check
+    int duration = (ms > 0) ? safeDur : _fsm.getShotDuration();
     SerialOutput::printf("OK: Test shot %ld ms", (long)duration);
 
     bool escWasAttached = _escLeft.attached() || _escRight.attached();
     if (_escLeft.attached() || _escRight.attached()) {
-        // Safety detach
         detachESCs();
     }
     if (escWasAttached) {
@@ -111,13 +132,8 @@ void Launcher::testShot(int ms) {
 
     _shot.attach(Config::PIN_SHOT, Config::SV_MIN_US, Config::SV_MAX_US);
     _shot.writeMicroseconds(_fsm.getShotNeutral() + Config::TEST_SHOT_OFFSET);
-    delay(duration);
-
-    _shot.writeMicroseconds(_fsm.getShotNeutral() - Config::BRAKE_OFFSET);
-    delay(Config::BRAKE_MS);
-    _shot.writeMicroseconds(_fsm.getShotNeutral());
-    delay(50);
-    _shot.detach();
+    _manualTimer = millis() + duration;  // non-blocking sequence start
+    _manualState = ManualState::TEST_SHOT_PUSH;
     _fsm.recordActivity();
 }
 
@@ -129,13 +145,12 @@ void Launcher::nudge(bool forward) {
     _shot.attach(Config::PIN_SHOT, Config::SV_MIN_US, Config::SV_MAX_US);
     int s = forward ? (_fsm.getShotNeutral() + 500) : (_fsm.getShotNeutral() - 500);
     _shot.writeMicroseconds(s);
-    delay(200);
-    _shot.writeMicroseconds(_fsm.getShotNeutral());
-    delay(50);
-    _shot.detach();
+
+    _manualTimer = millis() + 200;  // non-blocking sequence start
+    _manualState = ManualState::NUDGE_OUT;
 
     char buf[64];
-    sprintf(buf, "OK: Nudge %s (Signal: %d)", forward ? "Fwd" : "Back", s);
+    snprintf(buf, sizeof(buf), "OK: Nudge %s (Signal: %d)", forward ? "Fwd" : "Back", s);
     Serial.println(buf);
     Serial1.println(buf);
     _fsm.recordActivity();
@@ -150,10 +165,6 @@ void Launcher::setRawPWM(int us) {
         _escLeft.attach(Config::PIN_ESC_LEFT, Config::ESC_MIN, Config::ESC_MAX);
     if (!_escRight.attached())
         _escRight.attach(Config::PIN_ESC_RIGHT, Config::ESC_MIN, Config::ESC_MAX);
-
-    //    _escLeft.writeMicroseconds(us);
-    //    _escRight.writeMicroseconds(us);
-    //    SerialOutput::printf("OK: Manual PWM %d us", (long) us);
     int safeUs = constrain(us, Config::ESC_MIN, Config::ESC_MAX);
     _escLeft.writeMicroseconds(safeUs);
     _escRight.writeMicroseconds(safeUs);
@@ -161,11 +172,13 @@ void Launcher::setRawPWM(int us) {
 }
 
 void Launcher::setZS(int v) {
-    _fsm.setShotNeutral(v);
-    SerialOutput::printf("OK: Shot Zero set to %d", v);
+    int safeV = constrain(v, Config::SV_MIN_US, Config::SV_MAX_US);
+    _fsm.setShotNeutral(safeV);
+    SerialOutput::printf("OK: Shot Zero set to %ld", (long)safeV);
 }
 
 void Launcher::setD(int v) {
-    _fsm.setShotDuration(v);
-    SerialOutput::printf("OK: Duration set to %d", v);
+    int safeV = constrain(v, 10, 5000);
+    _fsm.setShotDuration(safeV);
+    SerialOutput::printf("OK: Duration set to %ld", (long)safeV);
 }

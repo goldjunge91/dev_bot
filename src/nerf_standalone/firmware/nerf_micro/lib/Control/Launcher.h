@@ -8,8 +8,10 @@
 #include "../../include/Config.h"
 #include "../Utils/SerialOutput.h"
 #include "FiringFSM.h"
+
 #include <Arduino.h>
 #include <Servo.h>
+
 
 /**
  * @brief Main Hardware Interface for the Nerf Launcher.
@@ -25,6 +27,17 @@ private:
 
     // Static pointer for callbacks
     static Launcher *_instance;
+
+    enum class ManualState {
+        IDLE,
+        TEST_SHOT_PUSH,
+        TEST_SHOT_BRAKE,
+        TEST_SHOT_CENTER,
+        NUDGE_OUT,
+        NUDGE_CENTER
+    };
+    ManualState _manualState;
+    uint32_t _manualTimer;
 
     // Interne Hardware-Methoden (genutzt von FSM)
     void setESCPower(int powerPercent);
@@ -96,15 +109,25 @@ public:
     void setD(int v);
 
     // Getters
-    int getShotZero() { return _fsm.getShotNeutral(); }
-    int getShotDur() { return _fsm.getShotDuration(); }
+    int getShotZero() {
+        return _fsm.getShotNeutral();
+    }
+    int getShotDur() {
+        return _fsm.getShotDuration();
+    }
 
     // FSM Access
-    FiringFSM &getFSM() { return _fsm; }
+    FiringFSM &getFSM() {
+        return _fsm;
+    }
 
     // ESC Access for Debug
-    Servo &getLeftESC() { return _escLeft; }
-    Servo &getRightESC() { return _escRight; }
+    Servo &getLeftESC() {
+        return _escLeft;
+    }
+    Servo &getRightESC() {
+        return _escRight;
+    }
 };
 
-#endif // LAUNCHER_H
+#endif  // LAUNCHER_H
