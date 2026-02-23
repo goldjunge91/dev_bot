@@ -35,16 +35,16 @@ venv/
 env/
 
 # IDE / Editors
+*.swp
+*.swo
+*~
+# IDE / Editors
 .vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/c_cpp_properties.json
-*.swp
-*.swo
-*~
-
 # C/C++
 compile_commands.json
 .cache/

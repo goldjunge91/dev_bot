@@ -1,0 +1,17 @@
+---
+# Configuration for ament_xmllint
+exclude_patterns:
+  - "build/**"
+  - "install/**" 
+  - "log/**"
+  - "lib/**"
+  - ".devcontainer/**"
+  - "firmware/lib/**"
+  - "src/*/build/**"
+  - "src/*/install/**"
+  - "src/*/log/**"
+
+# Allow some common XML formatting issues
+ignore_errors:
+  - "parser error : xmlParseEntityRef: no name"
+  - "parser error : Entity 'nbsp' not defined"

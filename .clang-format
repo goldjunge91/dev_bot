@@ -1,0 +1,40 @@
+---
+BasedOnStyle: Google
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 100
+AccessModifierOffset: -4
+PointerAlignment: Right
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: Empty
+NamespaceIndentation: None
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^"'
+    Priority: 1
+  - Regex: '^<'
+    Priority: 2
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+SpaceBeforeParens: ControlStatements
+BreakConstructorInitializers: AfterColon
+ConstructorInitializerIndentWidth: 4
+BinPackParameters: false
+BinPackArguments: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakTemplateDeclarations: Yes
+PenaltyReturnTypeOnItsOwnLine: 200
+ReflowComments: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+PenaltyBreakComment: 300
+PenaltyBreakString: 1000
+IndentExternBlock: Indent
+CompactNamespaces: false
+FixNamespaceComments: true
+SpacesInSquareBrackets: false
+SpaceBeforeAssignmentOperators: true
+SpaceAroundPointerQualifiers: Both
+SpaceBeforeCpp11BracedList: false
