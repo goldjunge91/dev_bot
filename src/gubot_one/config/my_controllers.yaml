@@ -21,6 +21,9 @@ controller_manager:
     arming_controller:
       type: forward_command_controller/ForwardCommandController
 
+    imu_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
 diff_cont:
   ros__parameters:
 
@@ -100,3 +103,8 @@ arming_controller:
     joints:
       - system_arming_joint
     interface_name: position
+
+imu_broadcaster:
+  ros__parameters:
+    sensor_name: imu_sensor
+    frame_id: imu_link

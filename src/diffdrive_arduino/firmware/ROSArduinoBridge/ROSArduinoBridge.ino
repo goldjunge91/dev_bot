@@ -45,7 +45,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#define USE_BASE // Enable the base controller code
+#define USE_BASE  // Enable the base controller code
 // #undef USE_BASE     // Disable the base controller code
 
 /* Define the motor controller and encoder library you are using */
@@ -70,10 +70,11 @@
 #endif
 
 // #define USE_SERVOS  // Enable use of PWM servos as defined in servos.h
-#undef USE_SERVOS // Disable use of PWM servos
+#undef USE_SERVOS  // Disable use of PWM servos
 
 /* Serial port baud rate */
-#define BAUDRATE 57600
+// #define BAUDRATE 57600  // Alte Baudrate
+#define BAUDRATE 115200  // Erhöht für schnellere IMU-Übertragung
 
 /* Maximum PWM signal */
 #define MAX_PWM 255
@@ -90,9 +91,15 @@
 /* Sensor functions */
 #include "sensors.h"
 
+/* IMU driver (ICM-20948 via SPI1, nur Pico) */
+#if defined(ARDUINO_ARCH_RP2040)
+#include "imu_driver.h"
+#endif
+
 /* Include servo support if required */
 #ifdef USE_SERVOS
 #include "servos.h"
+
 #include <Servo.h>
 #endif
 
@@ -107,7 +114,7 @@
 #include "diff_controller.h"
 
 /* Run the PID loop at 30 times per second */
-#define PID_RATE 30 // Hz
+#define PID_RATE 30  // Hz
 
 /* Convert the rate into an interval */
 const int PID_INTERVAL = 1000 / PID_RATE;
@@ -143,160 +150,189 @@ long arg2;
 
 /* Clear the current command parameters */
 void resetCommand() {
-  cmd = '\0';
-  memset(argv1, 0, sizeof(argv1));
-  memset(argv2, 0, sizeof(argv2));
-  arg1 = 0;
-  arg2 = 0;
-  arg = 0;
-  idx = 0;
+    cmd = '\0';
+    memset(argv1, 0, sizeof(argv1));
+    memset(argv2, 0, sizeof(argv2));
+    arg1 = 0;
+    arg2 = 0;
+    arg = 0;
+    idx = 0;
 }
 
 /* Run a command.  Commands are defined in commands.h */
 int runCommand() {
-  int i = 0;
-  char *p = argv1;
-  char *str;
-  int pid_args[4];
-  arg1 = atoi(argv1);
-  arg2 = atoi(argv2);
+    int i = 0;
+    char *p = argv1;
+    char *str;
+    int pid_args[4];
+    arg1 = atoi(argv1);
+    arg2 = atoi(argv2);
 
-  switch (cmd) {
-  case GET_BAUDRATE:
-    Serial.println(BAUDRATE);
-    break;
-  case ANALOG_READ:
-    Serial.println(analogRead(arg1));
-    break;
-  case DIGITAL_READ:
-    Serial.println(digitalRead(arg1));
-    break;
-  case ANALOG_WRITE:
-    analogWrite(arg1, arg2);
-    Serial.println("OK");
-    break;
-  case DIGITAL_WRITE:
-    if (arg2 == 0)
-      digitalWrite(arg1, LOW);
-    else if (arg2 == 1)
-      digitalWrite(arg1, HIGH);
-    Serial.println("OK");
-    break;
-  case PIN_MODE:
-    if (arg2 == 0)
-      pinMode(arg1, INPUT);
-    else if (arg2 == 1)
-      pinMode(arg1, OUTPUT);
-    Serial.println("OK");
-    break;
-  case PING:
-    Serial.println(Ping(arg1));
-    break;
+    switch (cmd) {
+        case GET_BAUDRATE:
+            Serial.println(BAUDRATE);
+            break;
+        case ANALOG_READ:
+            Serial.println(analogRead(arg1));
+            break;
+        case DIGITAL_READ:
+            Serial.println(digitalRead(arg1));
+            break;
+        case ANALOG_WRITE:
+            analogWrite(arg1, arg2);
+            Serial.println("OK");
+            break;
+        case DIGITAL_WRITE:
+            if (arg2 == 0)
+                digitalWrite(arg1, LOW);
+            else if (arg2 == 1)
+                digitalWrite(arg1, HIGH);
+            Serial.println("OK");
+            break;
+        case PIN_MODE:
+            if (arg2 == 0)
+                pinMode(arg1, INPUT);
+            else if (arg2 == 1)
+                pinMode(arg1, OUTPUT);
+            Serial.println("OK");
+            break;
+        case PING:
+            Serial.println(Ping(arg1));
+            break;
 #ifdef USE_SERVOS
-  case SERVO_WRITE:
-    servos[arg1].setTargetPosition(arg2);
-    Serial.println("OK");
-    break;
-  case SERVO_READ:
-    Serial.println(servos[arg1].getServo().read());
-    break;
+        case SERVO_WRITE:
+            servos[arg1].setTargetPosition(arg2);
+            Serial.println("OK");
+            break;
+        case SERVO_READ:
+            Serial.println(servos[arg1].getServo().read());
+            break;
 #endif
 
 #ifdef USE_BASE
-  case READ_ENCODERS:
-    Serial.print(readEncoder(LEFT));
-    Serial.print(" ");
-    Serial.println(readEncoder(RIGHT));
-    break;
-  case RESET_ENCODERS:
-    resetEncoders();
-    resetPID();
-    Serial.println("OK");
-    break;
-  case MOTOR_SPEEDS:
-    /* Reset the auto stop timer */
-    lastMotorCommand = millis();
-    if (arg1 == 0 && arg2 == 0) {
-      setMotorSpeeds(0, 0);
-      resetPID();
-      moving = 0;
-    } else
-      moving = 1;
-    leftPID.TargetTicksPerFrame = arg1;
-    rightPID.TargetTicksPerFrame = arg2;
-    Serial.println("OK");
-    break;
-  case MOTOR_RAW_PWM:
-    /* Reset the auto stop timer */
-    lastMotorCommand = millis();
-    resetPID();
-    moving = 0; // Sneaky way to temporarily disable the PID
-    setMotorSpeeds(arg1, arg2);
-    Serial.println("OK");
-    break;
-  case UPDATE_PID:
-    while ((str = strtok_r(p, ":", &p)) != NULL) {
-      pid_args[i] = atoi(str);
-      i++;
-    }
-    Kp = pid_args[0];
-    Kd = pid_args[1];
-    Ki = pid_args[2];
-    Ko = pid_args[3];
-    Serial.println("OK");
-    break;
+        case READ_ENCODERS:
+            Serial.print(readEncoder(LEFT));
+            Serial.print(" ");
+            Serial.println(readEncoder(RIGHT));
+            break;
+        case READ_IMU:
+#if defined(ARDUINO_ARCH_RP2040)
+        {
+            ImuData imu;
+            if (imuRead(imu)) {
+                Serial.print(imu.ax, 4);
+                Serial.print(" ");
+                Serial.print(imu.ay, 4);
+                Serial.print(" ");
+                Serial.print(imu.az, 4);
+                Serial.print(" ");
+                Serial.print(imu.gx, 4);
+                Serial.print(" ");
+                Serial.print(imu.gy, 4);
+                Serial.print(" ");
+                Serial.println(imu.gz, 4);
+            } else {
+                Serial.println("IMU_ERROR");
+            }
+        }
+#else
+            Serial.println("IMU_NOT_SUPPORTED");
 #endif
-  default:
-    Serial.println("Invalid Command");
-    break;
-  }
-  return 0;
+        break;
+        case RESET_ENCODERS:
+            resetEncoders();
+            resetPID();
+            Serial.println("OK");
+            break;
+        case MOTOR_SPEEDS:
+            /* Reset the auto stop timer */
+            lastMotorCommand = millis();
+            if (arg1 == 0 && arg2 == 0) {
+                setMotorSpeeds(0, 0);
+                resetPID();
+                moving = 0;
+            } else
+                moving = 1;
+            leftPID.TargetTicksPerFrame = arg1;
+            rightPID.TargetTicksPerFrame = arg2;
+            Serial.println("OK");
+            break;
+        case MOTOR_RAW_PWM:
+            /* Reset the auto stop timer */
+            lastMotorCommand = millis();
+            resetPID();
+            moving = 0;  // Sneaky way to temporarily disable the PID
+            setMotorSpeeds(arg1, arg2);
+            Serial.println("OK");
+            break;
+        case UPDATE_PID:
+            while ((str = strtok_r(p, ":", &p)) != NULL) {
+                pid_args[i] = atoi(str);
+                i++;
+            }
+            Kp = pid_args[0];
+            Kd = pid_args[1];
+            Ki = pid_args[2];
+            Ko = pid_args[3];
+            Serial.println("OK");
+            break;
+#endif
+        default:
+            Serial.println("Invalid Command");
+            break;
+    }
+    return 0;
 }
 
 /* Setup function--runs once at startup. */
 void setup() {
-  Serial.begin(BAUDRATE);
+    Serial.begin(BAUDRATE);
 
 // Initialize the motor controller if used */
 #ifdef USE_BASE
 #ifdef ARDUINO_ENC_COUNTER
 // Platform-specific encoder initialization
 #if defined(__AVR__)
-  // AVR (Arduino Nano/Uno) - use direct port manipulation
-  // set as inputs
-  DDRD &= ~(1 << LEFT_ENC_PIN_A);
-  DDRD &= ~(1 << LEFT_ENC_PIN_B);
-  DDRC &= ~(1 << RIGHT_ENC_PIN_A);
-  DDRC &= ~(1 << RIGHT_ENC_PIN_B);
+    // AVR (Arduino Nano/Uno) - use direct port manipulation
+    // set as inputs
+    DDRD &= ~(1 << LEFT_ENC_PIN_A);
+    DDRD &= ~(1 << LEFT_ENC_PIN_B);
+    DDRC &= ~(1 << RIGHT_ENC_PIN_A);
+    DDRC &= ~(1 << RIGHT_ENC_PIN_B);
 
-  // enable pull up resistors
-  PORTD |= (1 << LEFT_ENC_PIN_A);
-  PORTD |= (1 << LEFT_ENC_PIN_B);
-  PORTC |= (1 << RIGHT_ENC_PIN_A);
-  PORTC |= (1 << RIGHT_ENC_PIN_B);
+    // enable pull up resistors
+    PORTD |= (1 << LEFT_ENC_PIN_A);
+    PORTD |= (1 << LEFT_ENC_PIN_B);
+    PORTC |= (1 << RIGHT_ENC_PIN_A);
+    PORTC |= (1 << RIGHT_ENC_PIN_B);
 
-  // tell pin change mask to listen to left encoder pins
-  PCMSK2 |= (1 << LEFT_ENC_PIN_A) | (1 << LEFT_ENC_PIN_B);
-  // tell pin change mask to listen to right encoder pins
-  PCMSK1 |= (1 << RIGHT_ENC_PIN_A) | (1 << RIGHT_ENC_PIN_B);
+    // tell pin change mask to listen to left encoder pins
+    PCMSK2 |= (1 << LEFT_ENC_PIN_A) | (1 << LEFT_ENC_PIN_B);
+    // tell pin change mask to listen to right encoder pins
+    PCMSK1 |= (1 << RIGHT_ENC_PIN_A) | (1 << RIGHT_ENC_PIN_B);
 
-  // enable PCINT1 and PCINT2 interrupt in the general interrupt mask
-  PCICR |= (1 << PCIE1) | (1 << PCIE2);
+    // enable PCINT1 and PCINT2 interrupt in the general interrupt mask
+    PCICR |= (1 << PCIE1) | (1 << PCIE2);
 #elif defined(ARDUINO_ARCH_RP2040)
-  // Pi Pico - use initEncoders() function from encoder_driver.ino
-  initEncoders();
+    // Pi Pico - use initEncoders() function from encoder_driver.ino
+    initEncoders();
 #endif
 #endif
-  initMotorController();
-  resetPID();
+    initMotorController();
+    resetPID();
 #endif
 
-  /* Attach servos if used */
+    /* IMU initialisieren (nur Pico) */
+#if defined(ARDUINO_ARCH_RP2040)
+    imuSetup();
+#endif
+
+    /* Attach servos if used */
 #ifdef USE_SERVOS
-  int i;
-  for (i = 0; i < N_SERVOS; i++) {
-    servos[i].initServo(servoPins[i], stepDelay[i], servoInitPosition[i]);
-  }
+    int i;
+    for (i = 0; i < N_SERVOS; i++) {
+        servos[i].initServo(servoPins[i], stepDelay[i], servoInitPosition[i]);
+    }
 #endif
 }
 
@@ -305,67 +341,66 @@ void setup() {
    interval and check for auto-stop conditions.
 */
 void loop() {
-  while (Serial.available() > 0) {
+    while (Serial.available() > 0) {
+        // Read the next character
+        chr = Serial.read();
 
-    // Read the next character
-    chr = Serial.read();
-
-    // Terminate a command with a CR
-    if (chr == 13) {
-      if (arg == 1)
-        argv1[idx] = '\0';
-      else if (arg == 2)
-        argv2[idx] = '\0';
-      runCommand();
-      resetCommand();
+        // Terminate a command with a CR
+        if (chr == 13) {
+            if (arg == 1)
+                argv1[idx] = '\0';
+            else if (arg == 2)
+                argv2[idx] = '\0';
+            runCommand();
+            resetCommand();
+        }
+        // Use spaces to delimit parts of the command
+        else if (chr == ' ') {
+            // Step through the arguments
+            if (arg == 0)
+                arg = 1;
+            else if (arg == 1) {
+                argv1[idx] = '\0';
+                arg = 2;
+                idx = 0;
+            }
+            continue;
+        } else {
+            if (arg == 0) {
+                // The first arg is the single-letter command
+                cmd = chr;
+            } else if (arg == 1) {
+                // Subsequent arguments can be more than one character
+                argv1[idx] = chr;
+                idx++;
+            } else if (arg == 2) {
+                argv2[idx] = chr;
+                idx++;
+            }
+        }
     }
-    // Use spaces to delimit parts of the command
-    else if (chr == ' ') {
-      // Step through the arguments
-      if (arg == 0)
-        arg = 1;
-      else if (arg == 1) {
-        argv1[idx] = '\0';
-        arg = 2;
-        idx = 0;
-      }
-      continue;
-    } else {
-      if (arg == 0) {
-        // The first arg is the single-letter command
-        cmd = chr;
-      } else if (arg == 1) {
-        // Subsequent arguments can be more than one character
-        argv1[idx] = chr;
-        idx++;
-      } else if (arg == 2) {
-        argv2[idx] = chr;
-        idx++;
-      }
-    }
-  }
 
 // If we are using base control, run a PID calculation at the appropriate
 // intervals
 #ifdef USE_BASE
-  if (millis() > nextPID) {
-    updatePID();
-    nextPID += PID_INTERVAL;
-  }
+    if (millis() > nextPID) {
+        updatePID();
+        nextPID += PID_INTERVAL;
+    }
 
-  // Check to see if we have exceeded the auto-stop interval
-  if ((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL) {
-    ;
-    setMotorSpeeds(0, 0);
-    moving = 0;
-  }
+    // Check to see if we have exceeded the auto-stop interval
+    if ((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL) {
+        ;
+        setMotorSpeeds(0, 0);
+        moving = 0;
+    }
 #endif
 
 // Sweep servos
 #ifdef USE_SERVOS
-  int i;
-  for (i = 0; i < N_SERVOS; i++) {
-    servos[i].doSweep();
-  }
+    int i;
+    for (i = 0; i < N_SERVOS; i++) {
+        servos[i].doSweep();
+    }
 #endif
 }

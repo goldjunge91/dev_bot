@@ -1,87 +1,80 @@
-# ROSArduinoBridge - TB6612 Version
+# ROSArduinoBridge - TB6612 Version (Pi Pico)
 
-Arduino Firmware für `diffdrive_arduino` ROS 2 Hardware Interface.
+Raspberry Pi Pico Firmware für `diffdrive_arduino` ROS 2 Hardware Interface.
 
 > Basiert auf [ros_arduino_bridge von Josh Newans](https://github.com/joshnewans/ros_arduino_bridge)
 
 ## Änderungen für TB6612
 
-Diese Version wurde für den **TB6612FNG** Motor Driver angepasst (statt L298N).
+Diese Version wurde für den **TB6612FNG** Motor Driver angepasst (statt L298N) und läuft auf dem **Raspberry Pi Pico** (statt Arduino Nano).
 
 ## Verkabelung
 
-### TB6612 → Arduino Nano
+### TB6612 → Pi Pico
 
 ```
-TB6612          Arduino Nano
-──────          ────────────
-VCC      ────►  5V
+TB6612          Pi Pico
+──────          ───────
+VCC      ────►  3.3V
 GND      ────►  GND
-STBY     ────►  5V (immer aktiv)
-PWMA     ────►  D3 (PWM)
-AIN1     ────►  D4
-AIN2     ────►  D5
-PWMB     ────►  D9 (PWM)
-BIN1     ────►  D7
-BIN2     ────►  D8
+STBY     ────►  3.3V (immer aktiv)
+PWMA     ────►  GP3 (PWM)
+AIN1     ────►  GP4
+AIN2     ────►  GP5
+PWMB     ────►  GP6 (PWM)
+BIN1     ────►  GP7
+BIN2     ────►  GP8
 VM       ────►  Motor-Akku (6-12V)
 AO1/AO2  ────►  Motor Links
 BO1/BO2  ────►  Motor Rechts
 ```
 
-### Encoder → Arduino Nano
+### Encoder → Pi Pico
 
 ```
-Encoder Links           Arduino Nano
-─────────────           ────────────
-A        ────►          D2 (PORTD2)
-B        ────►          D3 (PORTD3)
-VCC      ────►          5V
+Encoder Links           Pi Pico
+─────────────           ───────
+A        ────►          GP22
+B        ────►          GP21
+VCC      ────►          3.3V
 GND      ────►          GND
 
-Encoder Rechts          Arduino Nano
-──────────────          ────────────
-A        ────►          A4 (PORTC4)
-B        ────►          A5 (PORTC5)
-VCC      ────►          5V
+Encoder Rechts          Pi Pico
+──────────────          ───────
+A        ────►          GP11
+B        ────►          GP10
+VCC      ────►          3.3V
 GND      ────►          GND
 ```
 ### TB6612 Motor Driver
 
-| TB6612 | Arduino Nano | Pi Pico |
-|--------|--------------|---------|
-| VCC | 5V | 3.3V |
-| GND | GND | GND |
-| STBY | 5V | 3.3V |
-| PWMA | D3 | GP3 |
-| AIN1 | D4 | GP4 |
-| AIN2 | D5 | GP5 |
-| PWMB | D9 | GP9 |
-| BIN1 | D7 | GP7 |
-| BIN2 | D8 | GP8 |
-| VM | Motor-Akku | Motor-Akku |
+| TB6612 | Pi Pico    |
+| ------ | ---------- |
+| VCC    | 3.3V       |
+| GND    | GND        |
+| STBY   | 3.3V       |
+| PWMA   | GP3        |
+| AIN1   | GP4        |
+| AIN2   | GP5        |
+| PWMB   | GP9        |
+| BIN1   | GP7        |
+| BIN2   | GP8        |
+| VM     | Motor-Akku |
 
 ### Encoder
 
-| Encoder | Arduino Nano | Pi Pico |
-|---------|--------------|---------|
-| Links A | D2 | GP2 |
-| Links B | D3 | GP3 |
-| Rechts A | A4 | GP4 |
-| Rechts B | A5 | GP5 |
+| Encoder  | Pi Pico |
+| -------- | ------- |
+| Links A  | GP22    |
+| Links B  | GP21    |
+| Rechts A | GP11    |
+| Rechts B | GP10    |
 
-> ⚠️ **Achtung Pi Pico:** Pins können in `encoder_driver.h` angepasst werden!
+> ⚠️ **Pins können in `encoder_driver.h` und `motor_driver.h` angepasst werden!**
 
 ---
 
 ## Installation
-
-### Arduino Nano
-
-1. Arduino IDE öffnen
-2. Board: **Arduino Nano**
-3. Prozessor: **ATmega328P** (oder Old Bootloader)
-4. `ROSArduinoBridge.ino` öffnen und hochladen
 
 ### Raspberry Pi Pico
 
@@ -96,12 +89,12 @@ GND      ────►          GND
 
 ## Serial Befehle (57600 Baud)
 
-| Befehl | Beschreibung |
-|--------|--------------|
-| `e` | Encoder-Werte lesen |
-| `r` | Encoder zurücksetzen |
-| `o 100 100` | Motoren mit PWM steuern (roh) |
-| `m 10 10` | Geschwindigkeitsregelung (PID) |
+| Befehl      | Beschreibung                   |
+| ----------- | ------------------------------ |
+| `e`         | Encoder-Werte lesen            |
+| `r`         | Encoder zurücksetzen           |
+| `o 100 100` | Motoren mit PWM steuern (roh)  |
+| `m 10 10`   | Geschwindigkeitsregelung (PID) |
 
 ## ROS 2 Parameter
 
@@ -137,15 +130,15 @@ Bearbeite `encoder_driver.h`:
 
 <!-- Ab hier nichts ändern  -->
 
-# Arduino Motor Controller
+# Pi Pico Motor Controller
 
-This code turns an Arduino into a motor controller!
+This code turns a Raspberry Pi Pico into a motor controller!
 It provides a simple serial interface to communicate with a high-level computer (e.g. running ROS), and generates the appropriate PWM signals for a motor driver, to drive two motors.
 
 This is a fork of the original code, with some changes, and removal of the ROS nodes (see [this repo](https://github.com/joshnewans/serial_motor_demo) for an alternative). Check out `README-orig.md` for the original README.
 
 As I only have need for a subset of the functionality, I have no idea what does and doesn't work, beyond what is detailed below.
-Feedback/improvements are welcome (though no promises on how quickly I'll respond). I currently only use the L298N driver, and the Arduino encoder mode.
+Feedback/improvements are welcome (though no promises on how quickly I'll respond). This version uses the TB6612FNG driver running on a Raspberry Pi Pico.
 
 
 

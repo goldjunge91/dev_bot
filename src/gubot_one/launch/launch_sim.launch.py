@@ -130,6 +130,7 @@ def generate_launch_description():
             "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
             "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
             "/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+            "/imu_sensor/imu_data@sensor_msgs/msg/Imu[gz.msgs.IMU",
         ],
         output="screen",
     )
@@ -148,6 +149,12 @@ def generate_launch_description():
         arguments=["joint_broad"],
     )
 
+    imu_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["imu_broadcaster"],
+    )
+
     delayed_diff_drive_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_entity,
@@ -159,6 +166,13 @@ def generate_launch_description():
         event_handler=OnProcessExit(
             target_action=spawn_entity,
             on_exit=[joint_broad_spawner],
+        )
+    )
+
+    delayed_imu_broadcaster_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawn_entity,
+            on_exit=[imu_broadcaster_spawner],
         )
     )
 
@@ -256,6 +270,7 @@ def generate_launch_description():
             bridge,
             delayed_diff_drive_spawner,
             delayed_joint_broad_spawner,
+            delayed_imu_broadcaster_spawner,
             delayed_nerf_flywheel,
             delayed_nerf_trigger,
             delayed_nerf_pusher,
