@@ -12,13 +12,13 @@
 #include <Arduino.h>
 #include <Servo.h>
 
-
 /**
- * @brief Controls the tilt servo for the launcher.
+ * @brief Steuert den Neigungs-Servo (Pitch) für den Launcher.
  *
- * Handles moving the tilt servo to Up/Down positions, nudging,
- * and setting specific angles. Uses non-blocking logic to detach
- * the servo after movement to save power and prevent jitter.
+ * Behandelt das Bewegen des Tilt-Servos in Aufwärts-/Abwärts-Richtungen,
+ * das minimale Stupsen (Nudge) und das Setzen spezifischer Winkel.
+ * Nutzt nicht-blockierende Logik, um den Servo nach der Bewegung
+ * abzuschalten (detach), um Strom zu sparen und Servozittern (Jitter) zu vermeiden.
  */
 class TiltController {
 private:
@@ -34,40 +34,40 @@ private:
 
 public:
     /**
-     * @brief Constructor
-     * @param pin The GPIO pin for the servo.
-     * @param neutral The neutral (center) pulse width in microseconds.
+     * @brief Konstruktor
+     * @param pin Der GPIO-Pin für den Servo.
+     * @param neutral Die neutrale (Mittel-) Pulsbreite in Mikrosekunden.
      */
     TiltController(uint8_t pin, int neutral);
 
     /**
-     * @brief Polled in the main loop to handle timed detach.
+     * @brief Wird in der Hauptschleife aufgerufen, um zeitgesteuerte Detachs zu handhaben.
      */
     void update();
 
     /**
-     * @brief Moves the tilt mechanism up or down.
+     * @brief Bewegt den Neigungsmechanismus nach oben oder unten.
      *
-     * @param up True for UP, False for DOWN.
-     * @param ms Duration to apply power (determines travel distance).
+     * @param up Wahr (True) für AUFWÄRTS, Falsch (False) für ABWÄRTS.
+     * @param ms Dauer der Stromzufuhr (bestimmt die bewältigte Distanz).
      */
     void move(bool up, uint32_t ms);
 
     /**
-     * @brief Small incremental movement (debugging/tuning).
-     * @param up Direction.
+     * @brief Kleine inkrementelle Bewegung (Nudge) zum Debuggen/Tuning.
+     * @param up Richtung (wahr = nach oben).
      */
     void nudge(bool up);
 
     /**
-     * @brief Sets the internal "Neutral" reference value.
-     * @param v Pulse width in microseconds.
+     * @brief Setzt den internen "Neutral"-Referenzwert.
+     * @param v Pulsbreite in Mikrosekunden.
      */
     void setNeutral(int v);
 
     /**
-     * @brief Moves to a specific absolute position.
-     * @param us Pulse width in microseconds (approx 1000-2000).
+     * @brief Bewegt den Servo auf eine spezifische absolute Position.
+     * @param us Pulsbreite in Mikrosekunden (ca. 1000-2000).
      */
     void setPosition(int us);
 

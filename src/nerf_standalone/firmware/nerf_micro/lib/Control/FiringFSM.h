@@ -5,41 +5,49 @@
 #ifndef FIRINGFSM_H
 #define FIRINGFSM_H
 
-#include <Arduino.h>
-
 #include "../../include/Config.h"
 
+#include <Arduino.h>
+
 /**
- * @brief States of the firing sequence.
+ * @brief Zustände der Schusssequenz (Finite State Machine).
  */
 enum class FiringState {
-    IDLE, ///< System ready, motor off
-    ARMING, ///< Safety delay before arming
-    ARMED, ///< System active, ready to fire
-    DISARMING, ///< Safety delay/action before idle
-    DISARMED, ///< Safe state, inputs ignored
-    SPINNING_UP, ///< Flywheels accelerating
-    PUSHING, ///< Pusher servo extending to feed dart
-    BRAKING, ///< Pusher servo retracting/braking
-    COOLDOWN, ///< Brief pause after shot
-    ESC_TEST, ///< Manual flywheel speed test
-    CALIBRATING ///< ESC calibration mode
+    IDLE,         ///< System bereit, Motoren aus
+    ARMING,       ///< Sicherheitsverzögerung vor der Aktivierung
+    ARMED,        ///< System aktiv, bereit zum Schießen
+    DISARMING,    ///< Sicherheitsverzögerung/Aktion vor Inaktivität
+    DISARMED,     ///< Sicherer Zustand, Befehle werden ignoriert
+    SPINNING_UP,  ///< Schwungräder (Flywheels) beschleunigen
+    PUSHING,      ///< Pusher-Servo fährt aus, um den Dart zuzuführen
+    BRAKING,      ///< Pusher-Servo fährt zurück/bremst
+    COOLDOWN,     ///< Kurze Pause nach dem Schuss
+    ESC_TEST,     ///< Manueller Test der Flywheel-Geschwindigkeit
+    CALIBRATING   ///< ESC-Kalibrierungsmodus
 };
 
-// Callback-Typen (Function Pointers)
+// Callback-Typen (Funktionszeiger)
+// Diese Typen definieren die "Form" der Funktionen, die die FSM aufrufen kann,
+// ohne die genauen Hardware-Details zu kennen (Trennung von Logik und Hardware).
+
+/** @brief Callback ohne Parameter (z.B. für einfache Aktionen wie Attach/Detach). */
 typedef void (*SimpleCallback)();
 
+/** @brief Callback zur Steuerung der Motorleistung (Eingabe: 0 bis 100%). */
 typedef void (*EscCallback)(int powerPercent);
 
+/** @brief Callback zur Steuerung eines Servos über ein PWM-Signal (Eingabe: Mikrosekunden). */
 typedef void (*ServoCallback)(int microseconds);
 
+/** @brief Callback zur Ausgabe von System-/Debug-Textnachrichten. */
 typedef void (*DebugCallback)(const char *msg);
 
 /**
- * @brief Finite State Machine for the Nerf Launcher.
+ * @brief Zustandsautomat (FSM) für den Nerf-Launcher.
  *
- * Manages the complex timing and state transitions for firing darts safely.
- * Decouples logic from hardware implementation via callbacks.
+ * Verwaltet das komplexe Timing und die Zustandsübergänge für ein sicheres
+ * Abfeuern von Darts. Entkoppelt die reine Logik von der Arduino-Hardware-Implementierung
+ * (Servos/Pins) über Callback-Funktionen.
  */
 class FiringFSM {
 private:
@@ -66,30 +74,33 @@ private:
 
 public:
     /**
-     * @brief Constructor
+     * @brief Konstruktor
      *
-     * @param onFlywheelPower Callback to set ESC power (0-100).
-     * @param onShotServo Callback to set pusher servo position (us).
-     * @param onAttachESCs Callback to attach ESC pins.
-     * @param onDetachESCs Callback to detach ESC pins.
-     * @param onAttachShot Callback to attach pusher servo.
-     * @param onDetachShot Callback to detach pusher servo.
-     * @param onDebug Callback for debug strings.
+     * @param onFlywheelPower Callback zum Setzen der ESC-Leistung (0-100).
+     * @param onShotServo Callback zum Setzen der Pusher-Servo-Position (µs).
+     * @param onAttachESCs Callback zum Anhängen (attach) der ESC-Pins.
+     * @param onDetachESCs Callback zum Lösen (detach) der ESC-Pins.
+     * @param onAttachShot Callback zum Anhängen des Pusher-Servos.
+     * @param onDetachShot Callback zum Lösen des Pusher-Servos.
+     * @param onDebug Callback für Debug-Textausgaben.
      */
-    FiringFSM(EscCallback onFlywheelPower, ServoCallback onShotServo,
-              SimpleCallback onAttachESCs, SimpleCallback onDetachESCs,
-              SimpleCallback onAttachShot, SimpleCallback onDetachShot,
+    FiringFSM(EscCallback onFlywheelPower,
+              ServoCallback onShotServo,
+              SimpleCallback onAttachESCs,
+              SimpleCallback onDetachESCs,
+              SimpleCallback onAttachShot,
+              SimpleCallback onDetachShot,
               DebugCallback onDebug);
 
     /**
-     * @brief Evaluates time-based or logic-based state transitions.
-     * Call this in the main loop.
+     * @brief Wertet zeit- oder logikbasierte Zustandsübergänge aus.
+     * Muss in der Hauptschleife (loop) aufgerufen werden.
      */
     void evalTransition();
 
     /**
-     * @brief Executes actions based on the current state.
-     * Call this in the main loop after evalTransition().
+     * @brief Führt Hardware-Aktionen basierend auf dem aktuellen Zustand aus.
+     * Muss in der Hauptschleife nach `evalTransition()` aufgerufen werden.
      */
     void evalState();
 
@@ -123,4 +134,4 @@ public:
     int getShotNeutral() const;
 };
 
-#endif // FIRINGFSM_H
+#endif  // FIRINGFSM_H

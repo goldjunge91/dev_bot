@@ -8,10 +8,10 @@ TiltController::TiltController(uint8_t pin, int neutral) :
     _state(State::IDLE), _stateEndTime(0), _nudgeUp(true), _pin(pin), _neutralUs(neutral) {}
 
 /**
- * @brief Updates servo state.
+ * @brief Aktualisiert den Servo-Zustand.
  *
- * Checks if the movement duration has elapsed. If so, stops sending
- * PWM signals (detach) to prevent heating/jitter at the proper position.
+ * Prüft, ob die Bewegungsdauer abgelaufen ist. Falls ja, wird das Senden
+ * von PWM-Signalen gestoppt (detach), um Erhitzen/Zittern in der Halteposition zu verhindern.
  */
 void TiltController::update() {
     uint32_t now = millis();
@@ -33,10 +33,10 @@ void TiltController::update() {
 }
 
 /**
- * @brief Initiates a timed movement.
+ * @brief Initiiert eine zeitgesteuerte Bewegung.
  *
- * Attaches the servo, writes the target position (MIN or MAX),
- * and sets the timer for later detachment.
+ * Hängt den Servo ein (attach), schreibt die Zielposition (MIN oder MAX)
+ * und setzt den Timer für ein späteres Ablösen (detach).
  */
 void TiltController::move(bool up, uint32_t ms) {
     uint32_t safeMs = constrain(ms, 10UL, 5000UL);  // bounds check

@@ -7,14 +7,15 @@
 
 #include "Launcher.h"
 #include "TiltController.h"
+
 #include <Arduino.h>
 
 /**
- * @brief Handles serial communication and command dispatching.
+ * @brief Behandelt die serielle Kommunikation und das Verteilen von Befehlen.
  *
- * The Comms class listens to the provided Stream (usually Serial)
- * for incoming commands, parses them, and routes them to the
- * appropriate controller (Launcher or TiltController).
+ * Die Comms-Klasse "lauscht" auf dem übergebenen Stream (meistens `Serial` über USB
+ * oder `Serial1` über die Raspberry Pi GPIO-Pins) auf eingehende Textbefehle, analysiert diese
+ * und leitet sie an den entsprechenden Controller (Launcher oder TiltController) weiter.
  */
 class Comms {
 private:
@@ -24,12 +25,13 @@ private:
     String _buffer;
 
     /**
-     * @brief Broadcasts a message to all connected serial ports.
+     * @brief Sendet eine Nachricht an alle verbundenen seriellen Ports.
      *
-     * Sends the message to the main stream and optionally to a secondary
-     * serial port if applicable (e.g. Serial and Serial1).
+     * Gibt die Nachricht auf dem Haupt-Stream (z.B. USB) aus und zusätzlich
+     * auf dem sekundären seriellen Port (`Serial1`), falls verfügbar, sodass
+     * Debugging und Raspberry Pi-Steuerung gleichzeitig Status-Updates erhalten.
      *
-     * @param msg The C-string message to send.
+     * @param msg Die C-String (Text) Nachricht.
      */
     void broadcast(const char *msg);
 
@@ -37,28 +39,29 @@ private:
 
 public:
     /**
-     * @brief Constructed the Comms object.
+     * @brief Konstruktor für das Comms-Objekt.
      *
-     * @param l Reference to the Launcher controller.
-     * @param t Reference to the TiltController.
-     * @param s Reference to the Serial stream to listen to.
+     * @param launcher Referenz auf den Haupt-Launcher (Schuss/Motoren).
+     * @param tiltController Referenz auf den TiltController (Neigungsservo).
+     * @param serialStream Referenz auf den seriellen Stream (z.B. Serial oder Serial1), auf den
+     * gelauscht werden soll.
      */
-    Comms(Launcher &l, TiltController &t, Stream &s);
+    Comms(Launcher &launcher, TiltController &tiltController, Stream &serialStream);
 
     /**
-     * @brief Reads available serial data and constructs commands.
+     * @brief Liest verfügbare serielle Daten und baut daraus Befehlszeilen zusammen.
      *
-     * Should be called in the main loop. Accumulates characters until
-     * a newline is received, then triggers execution.
+     * Muss andauernd in der Hauptschleife (loop) aufgerufen werden. Sammelt einzelne
+     * Zeichen, bis ein Zeilenumbruch (Enter) empfangen wird, und löst dann den Befehl aus.
      */
     void update();
 
     /**
-     * @brief Parses and executes a single command line.
+     * @brief Analysiert und führt eine einzelne vollständige Befehlszeile aus.
      *
-     * @param line The command string to execute.
+     * @param line Der als Text (String) empfangene Befehl (z. B. "SHOT 60").
      */
     void execute(String line);
 };
 
-#endif // COMMS_H
+#endif  // COMMS_H

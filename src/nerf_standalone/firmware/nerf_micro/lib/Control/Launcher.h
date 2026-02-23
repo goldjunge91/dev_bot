@@ -12,13 +12,12 @@
 #include <Arduino.h>
 #include <Servo.h>
 
-
 /**
- * @brief Main Hardware Interface for the Nerf Launcher.
+ * @brief Zentrale Hardware-Schnittstelle für den Nerf-Launcher.
  *
- * Aggregates the FiringFSM, Servos (ESCs and Pusher), and provides
- * high-level methods to control the launcher. Bridges the gap between
- * abstract FSM logic and concrete Arduino/Servo calls.
+ * Bündelt die Logik der FiringFSM sowie die Hardware (ESCs und Pusher-Servo)
+ * und bietet aufgeräumte Methoden zur Steuerung. Schlägt die Brücke zwischen
+ * abstrakter Zustandsmaschine und physischen Arduino-Funktionen.
  */
 class Launcher {
 private:
@@ -71,35 +70,35 @@ public:
     Launcher();
 
     /**
-     * @brief Initializes hardware (SAFE state).
-     * Detaches all servos to prevent startup movement.
+     * @brief Initialisiert die Hardware in einem sicheren (SAFE) Zustand.
+     * Löst alle Servos (detach), um unkontrollierte Bewegungen beim Start zu verhindern.
      */
     void begin();
 
     /**
-     * @brief Main loop update.
-     * Drives the FSM (Entry/Transition/Exit logic).
+     * @brief Hauptschleifen-Update.
+     * Treibt die FSM (Übergangs- und Aktionslogik) sowie manuelle nicht-blockierende Aktionen an.
      */
     void update();
 
     // Manual Hardware Actions (not FSM-controlled)
 
     /**
-     * @brief Fires a shot without FSM (Debug/Test only).
-     * @param ms Duration of the pusher extension in ms.
+     * @brief Löst einen Testschuss ohne Einmischung der FSM aus (nur zu Debug-Zwecken).
+     * @param ms Dauer des Pusher-Ausfahrens in Millisekunden.
      */
     void testShot(int ms);
 
     /**
-     * @brief Jiggles the pusher servo to unjam or test.
-     * @param forward Direction to nudge.
+     * @brief Bewegt den Pusher-Servo minimal, um Ladehemmungen zu lösen oder zur Justierung.
+     * @param forward Richtung des Stupsens (wahr = vorwärts).
      */
     void nudge(bool forward);
 
     /**
-     * @brief Sets raw PWM for ESCs (Dangerous!).
-     * Only works if system is ARMED.
-     * @param us Pulse width in microseconds.
+     * @brief Sendet rohe PWM-Signale an die ESCs (Achtung: Gefährlich!).
+     * Dies funktioniert aus Sicherheitsgründen nur im Zustand ARMED.
+     * @param us Pulsbreite in Mikrosekunden.
      */
     void setRawPWM(int us);
 

@@ -1,9 +1,9 @@
 #include "Help.h"
 
-#include "SerialOutput.h"
-
-#include <Arduino.h>
-
+/**
+ * Zeigt das Hauptmenü und alle gültigen Konsolenbefehle an.
+ * Wird standardmäßig aufgerufen, wenn der Benutzer "HELP" oder ein ungültiges Kommando sendet.
+ */
 void Help::printHelp() {
     SerialOutput::print(F("\n--- COMMAND LIST ---"));
     SerialOutput::print(F(" [ SYSTEM ]"));
@@ -24,11 +24,14 @@ void Help::printHelp() {
     SerialOutput::print(F("--------------------\n"));
 }
 
+/**
+ * Fragt die aktuellen Variablen aus den Controllern ab (z.B. Servo-Neutralpositionen)
+ * und gibt sie formatiert zusammen mit Hardware-Konstanten aus.
+ */
 void Help::printConfig() {
     SerialOutput::print(F("\n--- CONFIGURATION ---"));
-    SerialOutput::print(F(" > BAUD_RATE: %d\n", Config::BAUD_RATE));
-    SerialOutput::print(F(" > PIN_TILT: %d\n", Config::PIN_TILT));
-    SerialOutput::print(F(" > TILT_NEUTRAL_DEFAULT: %d\n", Config::TILT_NEUTRAL_DEFAULT));
+    SerialOutput::printf(" > PIN_TILT: %d", Config::PIN_TILT);
+    SerialOutput::printf(" > TILT_NEUTRAL_DEFAULT: %d", Config::TILT_NEUTRAL_DEFAULT);
     SerialOutput::print(F("--------------------\n"));
     SerialOutput::print(F("\n--- CURRENT CONFIG ---"));
     SerialOutput::printf("Shot Zero:     %ld us", (long)nerf.getShotZero());
@@ -38,6 +41,9 @@ void Help::printConfig() {
     SerialOutput::print(F("--------------------\n"));
 }
 
+/**
+ * Druckt den Startbildschirm des NERF OS PRO. Wird einmalig in `setup()` aufgerufen.
+ */
 void Help::printStartup() {
     SerialOutput::print(F("================================"));
     SerialOutput::print(F("      NERF OS PRO ONLINE        "));
@@ -45,5 +51,5 @@ void Help::printStartup() {
     SerialOutput::printf("Baudrate:      %ld", (long)Config::BAUD_RATE);
     printConfig();
     SerialOutput::print(F("Type 'HELP' for commands."));
-    SerialOutput::print(F("================================\n"));
+    SerialOutput::print(F("================================"));
 }

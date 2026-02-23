@@ -54,7 +54,7 @@ void Launcher::update() {
 // --- HARDWARE IMPLEMENTATION ---
 
 /**
- * @brief Sets ESC power via mapping 0-100% to PWM.
+ * @brief Setzt die ESC-Leistung durch Mapping von 0-100% auf die PWM-Signalbreite (us).
  */
 void Launcher::setESCPower(int powerPercent) {
     int powerLimit = constrain(powerPercent, 0, 100);

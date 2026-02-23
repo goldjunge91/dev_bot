@@ -5,10 +5,7 @@
 #include "Comms.h"
 
 // #include "../Debug/ESCCalibration.h"
-#include "../Utils/Help.h"
-
-// Declare global helpers from main.cpp
-extern void printConfig();
+#include "Help.h"
 
 /*
 extern void runCalibrateMax();
@@ -18,7 +15,8 @@ extern void runCalibrateMin();
 extern void runTestSequence();
 */
 
-Comms::Comms(Launcher &l, TiltController &t, Stream &s) : _launcher(l), _tilt(t), _stream(s) {
+Comms::Comms(Launcher &launcher, TiltController &tiltController, Stream &serialStream) :
+    _launcher(launcher), _tilt(tiltController), _stream(serialStream) {
     _buffer.reserve(32);
 }
 
@@ -44,11 +42,11 @@ void Comms::broadcast(const __FlashStringHelper *msg) {
 // -------------------------------------------------------------------------
 
 /**
- * @brief Checks for new serial data and processes complete lines.
+ * @brief Prüft auf neue serielle Daten und verarbeitet vollständige Textzeilen.
  *
- * Reads characters from the stream one by one. Warning: This blocks
- * slightly if many characters are available, but usually returns quickly.
- * Handles both \n and \r as line terminators.
+ * Liest ankommende Buchstaben einzeln aus dem seriellen Puffer.
+ * Ein Befehl gilt als vollständig, wenn ein Zeilenumbruchzeichen (\n oder \r) erkannt wird.
+ * Verhindert das Blockieren des gesamten Roboters, da immer nur kurz gelesen wird.
  */
 void Comms::update() {
     while (_stream.available()) {
@@ -65,25 +63,27 @@ void Comms::update() {
 }
 
 /**
- * @brief Main Command Dispatcher
+ * @brief Der zentrale Befehls-Verteiler (Dispatcher).
  *
- * Parses the command string (CMD VALUE) and calls the corresponding
- * methods in Launcher or TiltController.
+ * Zerlegt die empfangene Textzeile nach dem Leerzeichen in den
+ * eigentlichen BEFEHL (cmd) und seinen WERT (argStr/val) und ruft dann
+ * die passenden Methoden im Launcher oder TiltController auf.
  *
- * Commands:
- * - ARM/DISARM: Safety control
- * - SHOT <ms>: Fire a shot
- * - UP/DN <ms>: Tilt control
- * - CAL: Enter calibration mode
- * - STATUS: Report system state
+ * Befehle z.B.:
+ * - ARM/DISARM: Sicherheit/Scharfstellen
+ * - SHOT <ms>: Dart abfeuern
+ * - UP/DN <ms>: Neigung verstellen
+ * - CAL: ESCs im FSM-Modus kalibrieren
+ * - STATUS: Aktuellen Status ausgeben
  */
 void Comms::execute(String line) {
     line.trim();
     if (line.length() == 0) return;
 
-    // Loopback Protection
-    // Prevent the system from interpreting its own log output as commands
-    // if TX is shorted to RX or during echo.
+    // Schutz vor Endlos-Schleifen (Loopback Protection).
+    // Verhindert, dass das System seine EIGENEN System-Ausgaben ("OK: ", "ERR: ")
+    // wieder als Befehl interpretiert, falls Sende-(TX) und Empfangs-(RX) Pins
+    // am Raspberry versehentlich kurzgeschlossen sind oder ein Echo geschickt wird.
     String check = line;
     check.toUpperCase();
     if (check.startsWith(">") || check.startsWith("ERR") || check.startsWith("OK") ||
@@ -99,8 +99,8 @@ void Comms::execute(String line) {
     cmd.toUpperCase();
     int val = argStr.toInt();
 
-    // --- Command Routing ---
-    // Map command strings to controller actions
+    // --- Befehls-Zuweisung (Routing) ---
+    // Ordnet die empfangenen Text-Befehle den echten C++ Funktionen der Controller zu
 
     if (cmd == "ARM")
         _launcher.getFSM().triggerArming();
@@ -165,7 +165,7 @@ void Comms::execute(String line) {
         _tilt.nudge(false);
 
     else if (cmd == "SAVE" || cmd == "SAVE_OLD")
-        ::printConfig();
+        Help::printConfig();
 
     else if (cmd == "ZERO_T")
         _tilt.setNeutral(val);
