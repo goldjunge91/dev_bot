@@ -35,7 +35,8 @@ FiringFSM::FiringFSM(EscCallback onFlywheelPower,
  * Sicherheits-Timeouts (z.B. automatisches Disarm bei Inaktivität).
  */
 void FiringFSM::evalTransition() {
-    uint32_t now = millis();
+    uint32_t now = millis();  // millis() aus der Arduino-Bibliothek: Gibt die Zeit in Millisekunden
+                              // seit Systemstart zurück
     _nextState = _currentState;  // Default: kein Wechsel
 
     // === 1. Automatisches Entschärfen (Auto-Disarm) ===

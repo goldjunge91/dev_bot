@@ -14,7 +14,7 @@ TiltController::TiltController(uint8_t pin, int neutral) :
  * von PWM-Signalen gestoppt (detach), um Erhitzen/Zittern in der Halteposition zu verhindern.
  */
 void TiltController::update() {
-    uint32_t now = millis();
+    uint32_t now = millis();  // millis() aus der Arduino-Bibliothek
     if (_state != State::IDLE && now >= _stateEndTime) {
         if (_state == State::MOVING) {
             _tiltServo.writeMicroseconds(_neutralUs);
@@ -39,7 +39,8 @@ void TiltController::update() {
  * und setzt den Timer für ein späteres Ablösen (detach).
  */
 void TiltController::move(bool up, uint32_t ms) {
-    uint32_t safeMs = constrain(ms, 10UL, 5000UL);  // bounds check
+    uint32_t safeMs =
+        constrain(ms, 10UL, 5000UL);  // constrain() aus der Arduino-Bibliothek: bounds check
     _tiltServo.attach(_pin, Config::SV_MIN_US, Config::SV_MAX_US);
 
     int target = up ? Config::SV_MAX_US : Config::SV_MIN_US;
@@ -62,7 +63,7 @@ void TiltController::nudge(bool up) {
 }
 
 void TiltController::setNeutral(int v) {
-    int safeV = constrain(v, Config::SV_MIN_US, Config::SV_MAX_US);
+    int safeV = constrain(v, (int)Config::SV_MIN_US, (int)Config::SV_MAX_US);
     _neutralUs = safeV;
     SerialOutput::printf("OK: Tilt Zero set to %ld", (long)safeV);
 }

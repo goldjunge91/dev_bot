@@ -21,7 +21,7 @@ class Comms {
 private:
     Launcher &_launcher;
     TiltController &_tilt;
-    Stream &_stream;
+    Stream &_stream;  // 'Stream' aus der Arduino-Bibliothek (Datenstrom, z.B. Serial)
     String _buffer;
 
     /**

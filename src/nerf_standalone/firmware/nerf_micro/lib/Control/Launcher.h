@@ -9,8 +9,8 @@
 #include "../Utils/SerialOutput.h"
 #include "FiringFSM.h"
 
-#include <Arduino.h>
-#include <Servo.h>
+#include <Arduino.h>  // Basis-Header der Arduino-Bibliothek
+#include <Servo.h>    // Arduino-Bibliothek zur Ansteuerung von Servomotoren
 
 /**
  * @brief Zentrale Hardware-Schnittstelle für den Nerf-Launcher.

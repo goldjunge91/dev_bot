@@ -15,6 +15,7 @@ extern void runCalibrateMin();
 extern void runTestSequence();
 */
 
+// 'Stream' aus der Arduino-Bibliothek (Datenstrom, z.B. Serial)
 Comms::Comms(Launcher &launcher, TiltController &tiltController, Stream &serialStream) :
     _launcher(launcher), _tilt(tiltController), _stream(serialStream) {
     _buffer.reserve(32);

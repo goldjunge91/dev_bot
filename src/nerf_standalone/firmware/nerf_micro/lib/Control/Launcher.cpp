@@ -29,7 +29,7 @@ void Launcher::update() {
     _fsm.evalState();
 
     // === NEW NON-BLOCKING MANUAL LOGIC ===
-    uint32_t now = millis();
+    uint32_t now = millis();  // millis() aus der Arduino-Bibliothek: Millisekunden seit Systemstart
     if (_manualState != ManualState::IDLE && now >= _manualTimer) {
         if (_manualState == ManualState::TEST_SHOT_PUSH) {
             _shot.writeMicroseconds(_fsm.getShotNeutral() - Config::BRAKE_OFFSET);
@@ -57,8 +57,15 @@ void Launcher::update() {
  * @brief Setzt die ESC-Leistung durch Mapping von 0-100% auf die PWM-Signalbreite (us).
  */
 void Launcher::setESCPower(int powerPercent) {
-    int powerLimit = constrain(powerPercent, 0, 100);
-    int us = map(powerLimit, 0, 100, Config::ESC_MIN, Config::ESC_MAX);
+    int powerLimit =
+        constrain(powerPercent,
+                  0,
+                  100);  // constrain() aus der Arduino-Bibliothek: Begrenzt den Wert auf Min/Max
+    int us = map(powerLimit,
+                 0,
+                 100,
+                 Config::ESC_MIN,
+                 Config::ESC_MAX);  // map() aus der Arduino-Bibliothek: Rechnet den Wert linear um
     _escLeft.writeMicroseconds(us);
     _escRight.writeMicroseconds(us);
 }
@@ -127,6 +134,7 @@ void Launcher::testShot(int ms) {
         detachESCs();
     }
     if (escWasAttached) {
+        // F() Makro aus der Arduino-Bibliothek: Speichert Strings im Flash-Speicher (spart RAM)
         SerialOutput::print(F("WARN: ESCs were attached during TEST_SHOT; forced stop."));
     }
 
@@ -165,14 +173,14 @@ void Launcher::setRawPWM(int us) {
         _escLeft.attach(Config::PIN_ESC_LEFT, Config::ESC_MIN, Config::ESC_MAX);
     if (!_escRight.attached())
         _escRight.attach(Config::PIN_ESC_RIGHT, Config::ESC_MIN, Config::ESC_MAX);
-    int safeUs = constrain(us, Config::ESC_MIN, Config::ESC_MAX);
+    int safeUs = constrain(us, (int)Config::ESC_MIN, (int)Config::ESC_MAX);
     _escLeft.writeMicroseconds(safeUs);
     _escRight.writeMicroseconds(safeUs);
     SerialOutput::printf("OK: Manual PWM %ld us", (long)safeUs);
 }
 
 void Launcher::setZS(int v) {
-    int safeV = constrain(v, Config::SV_MIN_US, Config::SV_MAX_US);
+    int safeV = constrain(v, (int)Config::SV_MIN_US, (int)Config::SV_MAX_US);
     _fsm.setShotNeutral(safeV);
     SerialOutput::printf("OK: Shot Zero set to %ld", (long)safeV);
 }

@@ -6,7 +6,7 @@
 #ifndef SERIALOUTPUT_H
 #define SERIALOUTPUT_H
 
-#include <Arduino.h>
+#include <Arduino.h>  // Basis-Header der Arduino-Bibliothek
 #include <stdio.h>
 #include <string.h>
 
@@ -24,8 +24,8 @@ public:
      * @brief Gibt einen Flash-String (PROGMEM) auf den seriellen Schnittstellen aus.
      * @param msg Der Text-String im Flash-Speicher (muss das F() Makro verwenden).
      */
-    static void print(const __FlashStringHelper *msg);  // __ kennzeichnet system/compiler-interne
-                                                        // Typen (hier Arduino PROGMEM)
+    static void print(const __FlashStringHelper *msg);  // __FlashStringHelper aus der
+                                                        // Arduino-Bibliothek (hilft, RAM zu sparen)
     /**
      * @brief Gibt einen formatierten String mit bis zu zwei Zahlen (long) aus.
      * @param format Das prinft-ähnliche Format (z.B. "Wert: %ld").

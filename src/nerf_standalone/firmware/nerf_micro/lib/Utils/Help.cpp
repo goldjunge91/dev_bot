@@ -5,6 +5,7 @@
  * Wird standardmäßig aufgerufen, wenn der Benutzer "HELP" oder ein ungültiges Kommando sendet.
  */
 void Help::printHelp() {
+    // F() Makro aus der Arduino-Bibliothek: Legt den Textstring in den Read-Only Flash-Speicher
     SerialOutput::print(F("\n--- COMMAND LIST ---"));
     SerialOutput::print(F(" [ SYSTEM ]"));
     SerialOutput::print(F(" > ARM / STOP / STATUS   - Flywheel & Safety"));

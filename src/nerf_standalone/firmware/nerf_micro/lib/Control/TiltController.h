@@ -9,8 +9,8 @@
 // #include "../Utils/SerialOutput.h"
 #include "SerialOutput.h"
 
-#include <Arduino.h>
-#include <Servo.h>
+#include <Arduino.h>  // Basis-Header der Arduino-Bibliothek
+#include <Servo.h>    // Arduino-Bibliothek zur Ansteuerung von Servomotoren
 
 /**
  * @brief Steuert den Neigungs-Servo (Pitch) für den Launcher.
@@ -22,7 +22,7 @@
  */
 class TiltController {
 private:
-    Servo _tiltServo;
+    Servo _tiltServo;  // Servo-Klasse aus der Arduino-Bibliothek
     //    bool _isMoving;
     //    uint32_t _endTime;
     enum class State { IDLE, MOVING, CENTERING, NUDGING_OUT, NUDGING_IN };

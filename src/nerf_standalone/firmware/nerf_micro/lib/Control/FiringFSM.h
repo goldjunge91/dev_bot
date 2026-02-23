@@ -54,7 +54,7 @@ private:
     FiringState _currentState;
     FiringState _nextState;
 
-    uint32_t _stateStartTime;
+    uint32_t _stateStartTime;  // uint32_t: Vorzeichenlose 32-Bit-Ganzzahl (Standard in Arduino)
     uint32_t _lastActivityTime;
 
     // Transition-Parameter
