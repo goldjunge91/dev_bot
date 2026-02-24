@@ -79,7 +79,7 @@
                 <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
             </geometry>
         </collision>
-        <xacro:inertial_box mass="0.5" x="${chassis_length}" y="${chassis_width}" z="${chassis_height}">
+        <xacro:inertial_box mass="${chassis_mass}" x="${chassis_length}" y="${chassis_width}" z="${chassis_height}">
             <origin xyz="${chassis_length/2} 0 ${chassis_height/2}" rpy="0 0 0"/>
         </xacro:inertial_box>
     </link>
@@ -122,7 +122,6 @@
             <always_on>true</always_on>
             <update_rate>50</update_rate>
             <visualize>false</visualize>
-            <topic>imu_sensor/imu_data</topic>
             <imu>
                 <angular_velocity>
                     <x>
@@ -177,6 +176,17 @@
                     </z>
                 </linear_acceleration>
             </imu>
+            <xacro:if value="$(arg use_gazebo_classic)">
+                <plugin name="imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+                    <ros>
+                        <remapping>~/out:=imu/data</remapping>
+                    </ros>
+                    <initial_orientation_as_reference>false</initial_orientation_as_reference>
+                </plugin>
+            </xacro:if>
+            <xacro:unless value="$(arg use_gazebo_classic)">
+                <topic>imu_sensor/imu_data</topic>
+            </xacro:unless>
         </sensor>
     </gazebo>
 
@@ -208,6 +218,12 @@
 
     <gazebo reference="left_wheel">
         <material>Gazebo/Blue</material>
+        <mu1 value="1.0"/>
+        <mu2 value="1.0"/>
+        <kp value="1000000.0" />
+        <kd value="10.0" />
+        <fdir1 value="1 0 0"/>
+        <minDepth>0.001</minDepth>
     </gazebo>
 
 
@@ -241,6 +257,12 @@
 
     <gazebo reference="right_wheel">
         <material>Gazebo/Blue</material>
+        <mu1 value="1.0"/>
+        <mu2 value="1.0"/>
+        <kp value="1000000.0" />
+        <kd value="10.0" />
+        <fdir1 value="1 0 0"/>
+        <minDepth>0.001</minDepth>
     </gazebo>
 
 

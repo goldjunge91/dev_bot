@@ -4,8 +4,8 @@
     <link name="bottom_plate">
         <inertial>
             <origin xyz="0.07506008367977571 0.06788755296524361 -0.015949194976296238" rpy="0.0 0.0 0.0" />
-            <mass value="0.04" />
-            <inertia ixx="0.00037557930532003186" iyy="5.362127850969058e-05" izz="0.00041640489807794057" ixy="-1.2945646322185759e-06" iyz="-1.5574886339585816e-05" ixz="9.440243990688213e-08" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="bottom_plate_visual">
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
@@ -14,17 +14,17 @@
             </geometry>
         </visual>
         <collision name="bottom_plate_collision">
-            <origin xyz="0.08 0.05 -0.01" rpy="0.0 0.0 0.0" />
+            <origin xyz="0.08 0.05 0.05" rpy="0.0 0.0 0.0" />
             <geometry>
-                 <box size="0.2 0.15 0.02"/>
+                 <box size="0.25 0.20 0.20"/>
             </geometry>
         </collision>
     </link>
     <link name="motor_bracket">
         <inertial>
             <origin xyz="0.06 0 0" rpy="0 0 0" />
-            <mass value="0.03" />
-            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="motor_bracket_visual">
             <origin xyz="0.09803428669398517 -4.3732793080548534e-05 -0.013700000763976723" rpy="1.5703501879750486 -1.5707963267948937 0" />
@@ -32,18 +32,13 @@
                 <mesh filename="file://$(find nerf_standalone)/description/meshes/motor_bracket.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
-        <collision name="motor_bracket_collision">
-            <origin xyz="0.05 0.08 -0.02" rpy="0 0 0" />
-            <geometry>
-                <box size="0.15 0.12 0.08" />
-            </geometry>
-        </collision>
+
     </link>
     <link name="magazin">
         <inertial>
             <origin xyz="0 -0.02 0.05" rpy="0 0 0" />
-            <mass value="0.03" />
-            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="magazin_visual">
             <origin xyz="0.009991696360929777 -0.1260585761325394 0.08876880466816899" rpy="-3.141146514736195 1.079162159671481e-15 3.1415267664655997" />
@@ -55,8 +50,8 @@
     <link name="motor_right">
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="0.01" />
-            <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="motor_right_visual">
             <origin xyz="-1.73567760164417e-09 3.029328534687181e-09 -1.3556827271887785e-09" rpy="-1.5707188555909968 0.00043936100150414944 1.7453951561374372" />
@@ -68,8 +63,8 @@
     <link name="motor_left">
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="0.01" />
-            <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="motor_left_visual">
             <origin xyz="-1.8333526696778791e-09 -2.050084864091417e-09 -1.355682762715915e-09" rpy="-1.5711117946140916 0.00031546780349864484 0.7854640007616747" />
@@ -81,8 +76,8 @@
     <link name="Servo_dart_pusher">
         <inertial>
             <origin xyz="0 0.02 -0.01" rpy="0 0 0" />
-            <mass value="0.02" />
-            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="Servo_dart_pusher_visual">
             <origin xyz="0.004998394584003245 0.024345667304006825 -0.010460860261822842" rpy="1.570796326794895 -0.0004461388535984491 -1.5707304396707022" />
@@ -94,8 +89,8 @@
     <link name="flywheel_left">
         <inertial>
             <origin xyz="0 0.003 0" rpy="0 0 0" />
-            <mass value="0.01" />
-            <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="flywheel_left_visual">
             <origin xyz="-0.0631325544432252 0.01313155884148008 -0.0631300993428637" rpy="-1.570165432787083 0.7853321767598774 -3.1411465441724866" />
@@ -107,8 +102,8 @@
     <link name="flywheel_right">
         <inertial>
             <origin xyz="0 0.003 0" rpy="0 0 0" />
-            <mass value="0.01" />
-            <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="flywheel_right_visual">
             <origin xyz="-0.01550858803514851 0.013120498025483157 -0.08792554788989197" rpy="-1.568228080674074 1.3961969502773832 -3.139063424976714" />
@@ -120,8 +115,8 @@
     <link name="pusher_servo_part">
         <inertial>
             <origin xyz="-0.002 -0.002 0" rpy="0 0 0" />
-            <mass value="0.01" />
-            <inertia ixx="0.000001" iyy="0.000001" izz="0.000001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="pusher_servo_part_visual">
             <origin xyz="5.0358234648939514e-09 -0.0031999983978120905 1.4265863324780527e-06" rpy="-1.5712424656484945 6.588712419531712e-05 9.66531786022265e-16" />
@@ -133,8 +128,8 @@
     <link name="Turret">
         <inertial>
             <origin xyz="0 -0.02 0.01" rpy="0 0 0" />
-            <mass value="0.01" />
-            <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="Turret_visual">
             <origin xyz="0.0089380699537615 -0.0803571481976858 -0.002142981347950717" rpy="-0.000446138853596889 -1.0791087584284575e-15 -6.58871241935617e-05" />
@@ -146,8 +141,8 @@
     <link name="Servoarm-v1">
         <inertial>
             <origin xyz="0.003 0.004 0" rpy="0 0 0" />
-            <mass value="0.01" />
-            <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="Servoarm-v1_visual">
             <origin xyz="0.004000004389203955 -0.08928319312789187 0.01647600710867764" rpy="0.029400113955168578 -8.659366307345483e-14 -3.141592653583827" />
@@ -159,8 +154,8 @@
     <link name="Nerf-Dart-Launcher_Servo-MG-v1">
         <inertial>
             <origin xyz="0.01 0 -0.01" rpy="0 0 0" />
-            <mass value="0.01" />
-            <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" iyz="0" ixz="0" />
+            <mass value="0.1" />
+            <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
         </inertial>
         <visual name="Nerf-Dart-Launcher_Servo-MG-v1_visual">
             <origin xyz="0.032232880187464355 0.10890697936911703 -0.024499995611303272" rpy="-8.077935669498046e-28 7.226432496549954e-26 1.570796326794921" />
@@ -258,8 +253,8 @@
     <xacro:unless value="$(arg use_hardware)">
         <link name="arming_switch_link">
             <inertial>
-                <mass value="0.01" />
-                <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001" />
+                <mass value="0.1" />
+                <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
             </inertial>
         </link>
     <joint name="system_arming_joint" type="revolute">
@@ -271,7 +266,13 @@
     </joint>
 
     <xacro:unless value="$(arg integrated_mode)">
-        <xacro:include filename="ros2_control.xacro" />
+        <xacro:arg name="use_gazebo_classic" default="false"/>
+        <xacro:if value="$(arg use_gazebo_classic)">
+            <xacro:include filename="gz_classic_ros2_control.xacro" />
+        </xacro:if>
+        <xacro:unless value="$(arg use_gazebo_classic)">
+            <xacro:include filename="ros2_control.xacro" />
+        </xacro:unless>
         <xacro:nerf_ros2_control />
     </xacro:unless>
     </xacro:unless>

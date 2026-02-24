@@ -6,21 +6,26 @@
     <xacro:arg name="integrated_mode" default="true"/>
     <xacro:arg name="use_nerf_hardware" default="true"/>
     <xacro:arg name="nerf_port" default="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00"/>
+    <xacro:arg name="use_gazebo_classic" default="false"/>
 
     <xacro:include filename="robot_core.xacro" />
 
     <xacro:if value="$(arg use_ros2_control)">
-        <xacro:include filename="ros2_control.xacro" />
+        <xacro:if value="$(arg use_gazebo_classic)">
+            <xacro:include filename="gz_classic_ros2_control.xacro" />
+        </xacro:if>
+        <xacro:unless value="$(arg use_gazebo_classic)">
+            <xacro:include filename="ros2_control.xacro" />
+        </xacro:unless>
     </xacro:if>
     <xacro:unless value="$(arg use_ros2_control)">
         <xacro:include filename="gazebo_control.xacro" />
     </xacro:unless>
+
     <xacro:include filename="lidar.xacro" />
     <xacro:include filename="camera.xacro" />
     <!-- include filename="depth_camera.xacro" -->
     <xacro:include filename="face.xacro" />
     <xacro:include filename="nerf_launcher.xacro" />
 
-
-    
 </robot>

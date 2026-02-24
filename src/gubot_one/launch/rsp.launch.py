@@ -29,6 +29,7 @@ Aufbau einer Launch-Datei:
 5. Nodes - ROS2 Nodes die gestartet werden
 6. return LaunchDescription([...]) - Liste aller Komponenten
 """
+
 import os
 
 from ament_index_python.packages import get_package_share_directory
@@ -48,12 +49,13 @@ def generate_launch_description():
     use_ros2_control = LaunchConfiguration("use_ros2_control")
     integrated_mode = LaunchConfiguration("integrated_mode")
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
+    use_gazebo_classic = LaunchConfiguration("use_gazebo_classic")
 
     # URDF Datei verarbeiten
     # Xacro wird zu URDF konvertiert mit den angegebenen Parametern
     pkg_path = os.path.join(get_package_share_directory("gubot_one"))
     xacro_file = os.path.join(pkg_path, "description", "robot.urdf.xacro")
-    
+
     # Command() führt xacro zur Laufzeit aus
     robot_description_config = Command(
         [
@@ -67,6 +69,8 @@ def generate_launch_description():
             integrated_mode,
             " use_nerf_hardware:=",
             use_nerf_hardware,
+            " use_gazebo_classic:=",
+            use_gazebo_classic,
         ]
     )
 
@@ -107,6 +111,11 @@ def generate_launch_description():
                 "use_nerf_hardware",
                 default_value="true",
                 description="Enable Nerf hardware if true",
+            ),
+            DeclareLaunchArgument(
+                "use_gazebo_classic",
+                default_value="false",
+                description="Use Gazebo Classic if true",
             ),
             # Nodes
             node_robot_state_publisher,
