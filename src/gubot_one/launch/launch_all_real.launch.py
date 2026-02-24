@@ -36,7 +36,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition
 
 
@@ -59,6 +59,13 @@ def generate_launch_description():
         "launch_camera",
         default_value="false",  # Standard: false
         description="Whether to launch the USB Camera",
+    )
+
+    camera_type = LaunchConfiguration("camera_type")
+    camera_type_arg = DeclareLaunchArgument(
+        "camera_type",
+        default_value="v4l2",
+        description="Type of camera driver to use (v4l2 or usb_cam)",
     )
 
     # Roboter-Basis starten
@@ -115,8 +122,27 @@ def generate_launch_description():
 
     launch_face_tracker = LaunchConfiguration("launch_face_tracker")
 
-    # USB Kamera starten (nur wenn launch_camera=true)
-    camera_launch = IncludeLaunchDescription(
+    # Kamera-Treiber Auswahl
+    # 1. v4l2_camera (Standard)
+    v4l2_camera_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    get_package_share_directory(package_name),
+                    "launch",
+                    "camera.launch.py",
+                )
+            ]
+        ),
+        condition=IfCondition(
+            PythonExpression(
+                ["'", launch_camera, "' == 'true' and '", camera_type, "' == 'v4l2'"]
+            )
+        ),
+    )
+
+    # 2. usb_cam (Alternative, optimiert auf MJPEG)
+    usb_cam_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
                 os.path.join(
@@ -126,7 +152,11 @@ def generate_launch_description():
                 )
             ]
         ),
-        condition=IfCondition(launch_camera),  # Nur starten wenn aktiviert
+        condition=IfCondition(
+            PythonExpression(
+                ["'", launch_camera, "' == 'true' and '", camera_type, "' == 'usb_cam'"]
+            )
+        ),
     )
 
     # Gesichtserkennung modular einbinden
@@ -161,9 +191,11 @@ def generate_launch_description():
             launch_face_tracker_arg,
             target_person_arg,
             allow_search_arg,
+            camera_type_arg,
             base_launch,
             lidar_launch,
-            camera_launch,
+            v4l2_camera_launch,
+            usb_cam_launch,
             delayed_face_tracker_launch,
         ]
     )
