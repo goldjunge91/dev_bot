@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Define workspace path
-WORKSPACE_DIR=~/dev_bot
+# Dynamisches Finden des Workspace-Verzeichnisses
+# Wir gehen davon aus, dass dieses Skript in src/gubot_one/scripts/ liegt
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+WORKSPACE_DIR="$( cd "$SCRIPT_DIR/../../.." && pwd )"
+
+echo "Gefundener Workspace: $WORKSPACE_DIR"
 
 # Check if workspace exists
 if [ ! -d "$WORKSPACE_DIR" ]; then
@@ -17,20 +21,40 @@ if [ -f "install/setup.bash" ]; then
     source install/setup.bash
 else
     echo "Error: install/setup.bash not found in $WORKSPACE_DIR."
-    echo "Did you build the workspace?"
+    echo "Wurde der Workspace mit 'colcon build' gebaut?"
     exit 1
 fi
 
+# Standard-Argumente
+LAUNCH_FACE="false"
+CAMERA_TYPE="v4l2" # Standard für Pi: v4l2 (stabiler)
+
+# Parse Argumente (optional)
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --face)
+      LAUNCH_FACE="true"
+      shift
+      ;;
+    --usb-cam)
+      CAMERA_TYPE="usb_cam"
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
 # Ensure DDS Config is set
-# If CYCLONEDDS_URI is NOT set, default to the file setup by setup_dds_config.sh
 if [ -z "$CYCLONEDDS_URI" ]; then
     export CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
-    echo "Using default DDS config: $CYCLONEDDS_URI"
-else
-    echo "Using existing DDS config: $CYCLONEDDS_URI"
+    echo "Nutze Standard DDS-Konfiguration: $CYCLONEDDS_URI"
 fi
 
 # Launch the robot
-echo "Starting Robot..."
-# Use exec to replace the shell process with ros2 launch
-exec ros2 launch gubot_one launch_all_real.launch.py launch_camera:=true
+echo "Starte Roboter (FaceTracking=$LAUNCH_FACE, Camera=$CAMERA_TYPE)..."
+exec ros2 launch gubot_one launch_all_real.launch.py \
+    launch_camera:=true \
+    launch_face_tracker:=$LAUNCH_FACE \
+    camera_type:=$CAMERA_TYPE

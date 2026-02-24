@@ -33,6 +33,7 @@ setup(
             "register_face = ball_tracker.register_face:main",
             "udp_cam_receiver = ball_tracker.udp_cam_receiver:main",
             "udp_cam_sender = ball_tracker.udp_cam_sender:main",
+            # "fake_face_publisher = ball_tracker.fake_face_publisher:main",
         ],
     },
 )

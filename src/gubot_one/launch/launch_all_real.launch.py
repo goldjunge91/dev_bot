@@ -28,6 +28,7 @@ Verwendung:
   ros2 launch gubot_one launch_all_real.launch.py launch_camera:=true
   ros2 launch gubot_one launch_all_real.launch.py launch_camera:=true launch_lidar:=true
 """
+
 import os
 
 from ament_index_python.packages import get_package_share_directory
@@ -56,7 +57,7 @@ def generate_launch_description():
     # Argument: Kamera starten?
     launch_camera_arg = DeclareLaunchArgument(
         "launch_camera",
-        default_value="false",  # Standard: false (Kamera defekt)
+        default_value="false",  # Standard: false
         description="Whether to launch the USB Camera",
     )
 

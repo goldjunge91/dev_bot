@@ -35,38 +35,38 @@ from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 
+
 def generate_launch_description():
-    
+
     # Launch Configuration Variable
-    camera_namespace = LaunchConfiguration('camera_namespace')
-    
+    camera_namespace = LaunchConfiguration("camera_namespace")
+
     # Argument: Namespace für Kamera-Topics
     camera_namespace_arg = DeclareLaunchArgument(
-        'camera_namespace',
-        default_value='real_camera',
-        description='Namespace for the real USB camera topics'
+        "camera_namespace",
+        default_value="real_camera",
+        description="Namespace for the real USB camera topics",
     )
-    
+
     # USB Kamera Node
     usb_cam_node = Node(
-        package='usb_cam',
-        executable='usb_cam_node_exe',
-        name='usb_cam',
-        # namespace='real_camera',  # Temporär deaktiviert - kann Crash verursachen
-        output='screen',
-        parameters=[{
-            'video_device': '/dev/video0',  # USB Kamera Device
-            'pixel_format': 'yuyv',  # YUYV Format (Standard für USB Kameras)
-            'output_encoding': 'bgr8',  # Konvertiere zu BGR8 für ROS
-            'image_width': 640,  # Breite in Pixel
-            'image_height': 480,  # Höhe in Pixel
-            'framerate': 15.0,  # 15 Bilder pro Sekunde
-            'camera_name': 'real_cam',  # Name für Kalibrierung
-            'frame_id': 'camera_link_optical',  # TF Frame
-        }]
+        package="usb_cam",
+        executable="usb_cam_node_exe",
+        name="usb_cam",
+        namespace="camera",  # Alle Topics unter /camera/*
+        output="screen",
+        parameters=[
+            {
+                "video_device": "/dev/video0",  # USB Kamera Device
+                "pixel_format": "yuyv",  # YUYV Format (Standard für USB Kameras)
+                "output_encoding": "bgr8",  # Konvertiere zu BGR8 für ROS
+                "image_width": 640,  # Breite in Pixel
+                "image_height": 480,  # Höhe in Pixel
+                "framerate": 15.0,  # 15 Bilder pro Sekunde
+                "camera_name": "real_cam",  # Name für Kalibrierung
+                "frame_id": "camera_link_optical",  # TF Frame
+            }
+        ],
     )
-    
-    return LaunchDescription([
-        camera_namespace_arg,
-        usb_cam_node
-    ])
+
+    return LaunchDescription([camera_namespace_arg, usb_cam_node])

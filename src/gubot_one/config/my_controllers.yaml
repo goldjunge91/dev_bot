@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 50
+    update_rate: 100
     # use_sim_time: true
 
     diff_cont:
@@ -27,7 +27,7 @@ controller_manager:
 diff_cont:
   ros__parameters:
 
-    publish_rate: 50.0
+    publish_rate: 100.0
 
     base_frame_id: base_link
 
