@@ -1,13 +1,13 @@
 /***************************************************************
-   IMU driver – ICM-20948 via SPI1 (Pico RP2040)
+   IMU driver – ICM-20948 via SPI0 (Pico RP2040)
    Adapter für ROSArduinoBridge Serial-Protokoll.
    Befehl 'i' liefert: "ax ay az gx gy gz\r\n"
 
-   SPI1-Pins:
-     SCK  = GP14
-     MOSI = GP15
-     MISO = GP12
-     CS   = GP13
+   SPI0-Pins (Standard):
+     SCLK = GP18 (SCLK am Chip)
+     SDI  = GP19 (MOSI am Chip)
+     ADA  = GP16 (MISO am Chip)
+     NCS  = GP17 (CS am Chip)
  ***************************************************************/
 
 #ifndef IMU_DRIVER_H

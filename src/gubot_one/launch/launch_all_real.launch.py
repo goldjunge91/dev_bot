@@ -92,6 +92,15 @@ def generate_launch_description():
         condition=IfCondition(launch_lidar),  # Nur starten wenn aktiviert
     )
 
+    # Argument: Gesichtserkennung starten?
+    launch_face_tracker_arg = DeclareLaunchArgument(
+        "launch_face_tracker",
+        default_value="false",
+        description="Whether to launch the face tracker",
+    )
+
+    launch_face_tracker = LaunchConfiguration("launch_face_tracker")
+
     # USB Kamera starten (nur wenn launch_camera=true)
     camera_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -106,6 +115,34 @@ def generate_launch_description():
         condition=IfCondition(launch_camera),  # Nur starten wenn aktiviert
     )
 
+    # Gesichtserkennung modular einbinden
+    # Wir übergeben launch_driver:=false, damit der ball_tracker nicht versucht
+    # die Kamera selbst zu öffnen (Hardware-Konflikt), sondern das Bild von real_camera nutzt.
+    face_tracker_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    get_package_share_directory("ball_tracker"),
+                    "launch",
+                    "face_tracker_robot.launch.py",
+                )
+            ]
+        ),
+        launch_arguments={
+            "launch_driver": "false",  # Kein eigener Treiber (verhindert Crash)
+            "image_topic": "/camera/image_raw",  # Nutzt das Bild von real_camera.launch.py
+        }.items(),
+        condition=IfCondition(launch_face_tracker),
+    )
+
     return LaunchDescription(
-        [launch_lidar_arg, launch_camera_arg, base_launch, lidar_launch, camera_launch]
+        [
+            launch_lidar_arg,
+            launch_camera_arg,
+            launch_face_tracker_arg,
+            base_launch,
+            lidar_launch,
+            camera_launch,
+            face_tracker_launch,
+        ]
     )

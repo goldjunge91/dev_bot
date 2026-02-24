@@ -6,14 +6,11 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=ros
-# Adjust this path if your workspace is different
-WorkingDirectory=/home/ros/dev_bot
-# Source the ROS 2 environment and run the start script
-# We start a bash shell to handle environment sourcing easily
-ExecStart=/bin/bash /home/ros/dev_bot/src/gubot_one/scripts/start_robot.sh
+WorkingDirectory={{WORKSPACE_DIR}}
+# Startet den Roboter mit Gesichtserkennung als Standard
+ExecStart=/bin/bash {{START_SCRIPT_PATH}} --face
 Restart=on-failure
 RestartSec=5
-# Set necessary environment variables if they aren't picked up by the script sourcing
 Environment="ROS_DOMAIN_ID=0"
 Environment="CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml"
 

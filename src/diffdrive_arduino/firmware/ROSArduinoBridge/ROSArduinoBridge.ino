@@ -288,6 +288,15 @@ int runCommand() {
 void setup() {
     Serial.begin(BAUDRATE);
 
+    // Warte bis zu 2 Sekunden auf USB-Verbindung (nur für Komfort am PC)
+    while (!Serial && millis() < 2000);
+
+    Serial.println("========================================");
+    Serial.println("ROSArduinoBridge Pico Ready");
+    Serial.print("Baudrate: ");
+    Serial.println(BAUDRATE);
+    Serial.println("========================================");
+
 // Initialize the motor controller if used */
 #ifdef USE_BASE
 #ifdef ARDUINO_ENC_COUNTER

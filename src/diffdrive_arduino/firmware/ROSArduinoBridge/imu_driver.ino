@@ -5,18 +5,18 @@
 
 #if defined(ARDUINO_ARCH_RP2040)
 
-#include "ICM-20948/icm20948_spi.hpp"
+#include "icm20948_spi.hpp"
 #include "imu_driver.h"
 
-// SPI1-Konfiguration
-// SCK=GP14, MOSI=GP15, MISO=GP12, CS=GP13
+// SPI0-Konfiguration
+// SCLK=GP18, SDI=GP19 (MOSI), ADA=GP16 (MISO), NCS=GP17 (CS)
 static hal::hardware::Icm20948Simple::Config imuConfig = {
-    .bus = spi1,
+    .bus = spi0,
     .baudrate_hz = 4000000,  // 4 MHz – sicher für ICM-20948
-    .cs_pin = 13,
-    .sck_pin = 14,
-    .mosi_pin = 15,
-    .miso_pin = 12};
+    .cs_pin = 17,
+    .sck_pin = 18,
+    .mosi_pin = 19,
+    .miso_pin = 16};
 
 static hal::hardware::Icm20948Simple imuSensor(imuConfig);
 static bool imuInitialized = false;
@@ -24,7 +24,7 @@ static bool imuInitialized = false;
 void imuSetup() {
     imuInitialized = imuSensor.initialize();
     if (imuInitialized) {
-        Serial.println("[IMU] ICM-20948 initialisiert (SPI1)");
+        Serial.println("[IMU] ICM-20948 initialisiert (SPI0)");
     } else {
         Serial.println("[IMU] FEHLER: ICM-20948 initialisierung fehlgeschlagen!");
     }

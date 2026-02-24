@@ -3,7 +3,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-from launch.conditions import UnlessCondition
+from launch.conditions import UnlessCondition, IfCondition
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -17,6 +17,8 @@ def generate_launch_description():
     detect_only = LaunchConfiguration("detect_only")
     follow_only = LaunchConfiguration("follow_only")
     target_arg = LaunchConfiguration("target")
+    launch_driver = LaunchConfiguration("launch_driver")
+    image_topic = LaunchConfiguration("image_topic")
 
     return LaunchDescription(
         [
@@ -44,6 +46,19 @@ def generate_launch_description():
                 default_value="schatz",
                 description='Name der Zielperson (z.B. "schatz", "marco" - leer = alle)',
             ),
+            # "launch_driver": Wenn false, wird KEIN Kamera-Treiber gestartet.
+            # Nützlich, wenn die Kamera bereits von einem anderen Launch-File (z.B. gubot_one) gestartet wurde.
+            DeclareLaunchArgument(
+                "launch_driver",
+                default_value="true",
+                description="Kamera-Treiber starten?",
+            ),
+            # "image_topic": Der Topic-Name für die Kamera-Bilder.
+            DeclareLaunchArgument(
+                "image_topic",
+                default_value="/image_raw",
+                description="Topic für Kamera-Bilder",
+            ),
             # 1. Kamera-Treiber (v4l2_camera)
             # Auf dem Pi nutzen wir direkt die Hardware.
             # MJPG 320x240 ist effizient und spart CPU/USB-Last.
@@ -59,7 +74,7 @@ def generate_launch_description():
                         "output_encoding": "rgb8",
                     }
                 ],
-                condition=UnlessCondition(follow_only),
+                condition=IfCondition(launch_driver),
             ),
             # 2. Face Detector
             # Abonniert /image_raw (vom Treiber) und publiziert /face_detections
@@ -67,7 +82,7 @@ def generate_launch_description():
                 package="ball_tracker",
                 executable="detect_face",
                 parameters=[params_file],
-                remappings=[("/image_in", "/image_raw"), ("/image_out", "/image_out")],
+                remappings=[("/image_in", image_topic), ("/image_out", "/image_out")],
                 condition=UnlessCondition(follow_only),
             ),
             # 3. Face Follower

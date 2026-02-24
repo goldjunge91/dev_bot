@@ -2,6 +2,7 @@
 
 #include "pico/stdlib.h"
 
+#include <Arduino.h>
 #include <cstdio>
 
 namespace {
@@ -23,7 +24,6 @@ constexpr uint8_t WHO_AM_I_RESPONSE = 0xEA;
 // Skalierungsfaktoren
 constexpr float ACC_SENS_2G = 16384.0f;
 constexpr float GYRO_SENS_250DPS = 131.0f;
-
 }  // namespace
 
 namespace hal::hardware {
@@ -32,7 +32,7 @@ Icm20948Simple::Icm20948Simple(const Config &config) : config_(config), initiali
 
 bool Icm20948Simple::initialize() {
     if (config_.bus == nullptr) {
-        printf("[ICM20948-SPI] Invalid SPI bus\n");
+        Serial.println("[ICM20948-SPI] Invalid SPI bus");
         return false;
     }
 
@@ -47,15 +47,20 @@ bool Icm20948Simple::initialize() {
     gpio_set_dir(config_.cs_pin, GPIO_OUT);
     gpio_put(config_.cs_pin, 1);  // Deselektieren
 
-    sleep_ms(100);
+    delay(100);
 
     // SPI pin diagnostics
-    printf("[ICM20948-SPI] Pin configuration: CS=%u, SCK=%u, MOSI=%u, MISO=%u\n",
-           config_.cs_pin,
-           config_.sck_pin,
-           config_.mosi_pin,
-           config_.miso_pin);
-    printf("[ICM20948-SPI] SPI baudrate: %u Hz\n", config_.baudrate_hz);
+    Serial.print("[ICM20948-SPI] Pin config: CS=");
+    Serial.print(config_.cs_pin);
+    Serial.print(", SCK=");
+    Serial.print(config_.sck_pin);
+    Serial.print(", SDI=");
+    Serial.print(config_.mosi_pin);
+    Serial.print(", ADA=");
+    Serial.println(config_.miso_pin);
+    Serial.print("[ICM20948-SPI] SPI baudrate: ");
+    Serial.print(config_.baudrate_hz);
+    Serial.println(" Hz");
 
     // WHO_AM_I-Register prüfen (try multiple times)
     uint8_t whoami = 0;
@@ -64,31 +69,39 @@ bool Icm20948Simple::initialize() {
 
     for (int attempt = 1; attempt <= max_attempts && !success; attempt++) {
         readRegisters(REG_WHO_AM_I, &whoami, 1);
-        printf("[ICM20948-SPI] WHO_AM_I attempt %d: read 0x%02X (expected 0x%02X)\n",
-               attempt,
-               whoami,
-               WHO_AM_I_RESPONSE);
+        Serial.print("[ICM20948-SPI] WHO_AM_I attempt ");
+        Serial.print(attempt);
+        Serial.print(": read 0x");
+        Serial.print(whoami, HEX);
+        Serial.print(" (expected 0x");
+        Serial.print(WHO_AM_I_RESPONSE, HEX);
+        Serial.println(")");
 
         if (whoami == WHO_AM_I_RESPONSE) {
             success = true;
         } else if (attempt < max_attempts) {
-            sleep_ms(50);
+            delay(50);
         }
     }
 
     if (!success) {
-        printf("[ICM20948-SPI] ❌ WHO_AM_I verification FAILED after %d attempts\n", max_attempts);
-        printf("[ICM20948-SPI] Possible causes:\n");
-        printf("  - Loose MISO connection (GPIO %u)\n", config_.miso_pin);
-        printf("  - Wrong CS pin or not connected (GPIO %u)\n", config_.cs_pin);
-        printf("  - Sensor not powered or defective\n");
-        printf("  - Wrong SPI bus (using spi%d)\n", spi_get_index(config_.bus));
+        Serial.print("[ICM20948-SPI] ❌ WHO_AM_I verification FAILED after ");
+        Serial.print(max_attempts);
+        Serial.println(" attempts");
+        Serial.println("[ICM20948-SPI] Mögliche Ursachen:");
+        Serial.print("  - Kabelsalat am ADA (MISO) Pin? (GPIO ");
+        Serial.print(config_.miso_pin);
+        Serial.println(")");
+        Serial.print("  - CS Pin falsch oder nicht verbunden? (GPIO ");
+        Serial.print(config_.cs_pin);
+        Serial.println(")");
+        Serial.println("  - Sensor hat keinen Strom oder ist defekt");
         return false;
     }
 
     // Sensor aufwecken
     if (!writeRegister(REG_PWR_MGMT_1, 0x01)) return false;
-    sleep_ms(50);
+    delay(50);
     // Alle Achsen aktivieren
     if (!writeRegister(REG_PWR_MGMT_2, 0x00)) return false;
 
@@ -99,7 +112,9 @@ bool Icm20948Simple::initialize() {
     if (!selectRegisterBank(0)) return false;
 
     initialized_ = true;
-    printf("[ICM20948-SPI] Sensor initialised (CS=%u)\n", config_.cs_pin);
+    Serial.print("[ICM20948-SPI] Sensor initialised (CS=");
+    Serial.print(config_.cs_pin);
+    Serial.println(")");
     return true;
 }
 
@@ -111,7 +126,7 @@ bool Icm20948Simple::readRegisters(uint8_t reg, uint8_t *buffer, size_t length) 
     int read_count = spi_read_blocking(config_.bus, 0x00, buffer, length);
     gpio_put(config_.cs_pin, 1);  // Deselektieren
 
-    return read_count == length;
+    return static_cast<size_t>(read_count) == length;
 }
 
 bool Icm20948Simple::writeRegister(uint8_t reg, uint8_t value) {
