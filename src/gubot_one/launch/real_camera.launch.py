@@ -58,9 +58,9 @@ def generate_launch_description():
                 "video_device": "/dev/video0",  # USB Kamera Device
                 "pixel_format": "mjpeg2rgb",  # WICHTIG: v4l2_camera nutzt 'mjpeg', usb_cam braucht 'mjpeg2rgb'
                 "output_encoding": "bgr8",
-                "image_width": 640,  # Breite in Pixel
-                "image_height": 480,  # Höhe in Pixel
-                "framerate": 15.0,  # 15 Bilder pro Sekunde
+                "image_width": 320,  # Reduzierte Auflösung für Tailscale/WLAN
+                "image_height": 240,
+                "framerate": 10.0,  # 10 Bilder pro Sekunde
                 "camera_name": "real_cam",  # Name für Kalibrierung
                 "frame_id": "camera_link_optical",  # TF Frame
             }

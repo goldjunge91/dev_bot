@@ -15,8 +15,6 @@ Verwendung:
   ros2 launch gubot_one camera.launch.py
 """
 
-import os
-
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
@@ -33,8 +31,12 @@ def generate_launch_description():
                 parameters=[
                     {
                         "video_device": "/dev/video0",  # USB Kamera Device
-                        "image_size": [640, 480],  # Auflösung: 640x480 Pixel
-                        "time_per_frame": [1, 6],  # FPS: 6 Bilder/Sekunde (1/6)
+                        "pixel_format": "mjpg",  # MJPEG Format nutzen
+                        "image_size": [
+                            320,
+                            240,
+                        ],  # Reduzierte Auflösung für Tailscale/WLAN
+                        "time_per_frame": [1, 10],  # 10 FPS
                         "camera_frame_id": "camera_link_optical",  # TF Frame für Kamera
                     }
                 ],
