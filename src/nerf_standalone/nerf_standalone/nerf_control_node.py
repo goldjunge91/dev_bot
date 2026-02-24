@@ -24,6 +24,7 @@ Schuss-Sequenz:
 3. Pusher stoppen
 4. Flywheels stoppen
 """
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
@@ -38,13 +39,19 @@ class NerfControlNode(Node):
         # Publishers: Steuern Hardware-Controller
         # Queue Size 10 = Puffert max. 10 Befehle, alte werden verworfen
         self.trigger_pub = self.create_publisher(
-            Float64MultiArray, "/trigger_controller/commands", 10  # Tilt Servo
+            Float64MultiArray,
+            "/trigger_controller/commands",
+            10,  # Tilt Servo
         )
         self.flywheel_pub = self.create_publisher(
-            Float64MultiArray, "/flywheel_controller/commands", 10  # Flywheel Motoren
+            Float64MultiArray,
+            "/flywheel_controller/commands",
+            10,  # Flywheel Motoren
         )
         self.pusher_pub = self.create_publisher(
-            Float64MultiArray, "/pusher_controller/commands", 10  # Pusher Servo
+            Float64MultiArray,
+            "/pusher_controller/commands",
+            10,  # Pusher Servo
         )
 
         # Subscribers: Empfängt Tilt-Befehle
@@ -61,7 +68,7 @@ class NerfControlNode(Node):
         self.tilt_max = 6.28  # ~360° (Oben)
 
         self.get_logger().info("Nerf Control Node Started")
-        
+
         # Initialisierungs-Timer (einmalig nach 1s)
         # HINWEIS: Kann gelöscht werden wenn nicht benötigt
         self.init_timer = self.create_timer(1.0, self.init_callback)
@@ -83,12 +90,12 @@ class NerfControlNode(Node):
     def tilt_callback(self, msg):
         """
         Akzeptiert normalisierte Tilt-Werte [0.0 - 1.0]
-        
+
         Mapping:
         0.0 = Unten (5.23 rad ≈ 300°)
         0.5 = Horizontal (5.75 rad)
         1.0 = Oben (6.28 rad ≈ 360°)
-        
+
         Beispiel:
         - msg.data = [0.0] → Launcher zeigt nach unten
         - msg.data = [1.0] → Launcher zeigt nach oben
@@ -109,14 +116,14 @@ class NerfControlNode(Node):
             cmd = Float64MultiArray()
             cmd.data = [target_phys]
             self.trigger_pub.publish(cmd)
-            self.get_logger().info(
+            self.get_logger().debug(
                 f"Tilt Command: {target_norm} -> Physical: {target_phys:.2f}"
             )
 
     def fire_callback(self, request, response):
         """
         Service Callback: Führt komplette Schuss-Sequenz aus
-        
+
         Sequenz:
         1. Flywheels auf 100% hochfahren
         2. 1 Sekunde warten für Spin-Up
@@ -124,7 +131,7 @@ class NerfControlNode(Node):
         4. 0.5 Sekunden warten
         5. Pusher stoppen (0.0)
         6. Flywheels stoppen
-        
+
         HINWEIS: time.sleep() blockiert Node!
         Für Produktion: Verwende Timer oder Action Server
         """

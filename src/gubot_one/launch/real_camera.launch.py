@@ -32,14 +32,12 @@ Aufbau:
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 
 
 def generate_launch_description():
 
     # Launch Configuration Variable
-    camera_namespace = LaunchConfiguration("camera_namespace")
 
     # Argument: Namespace für Kamera-Topics
     camera_namespace_arg = DeclareLaunchArgument(
@@ -54,7 +52,7 @@ def generate_launch_description():
         executable="usb_cam_node_exe",
         name="usb_cam",
         namespace="camera",  # Alle Topics unter /camera/*
-        output="screen",
+        output="log",
         parameters=[
             {
                 "video_device": "/dev/video0",  # USB Kamera Device

@@ -38,6 +38,7 @@ Verwendung:
   ros2 launch gubot_one launch_robot.launch.py
   ros2 launch gubot_one launch_robot.launch.py use_nerf_hardware:=true
 """
+
 import os
 
 from ament_index_python.packages import get_package_share_directory

@@ -26,9 +26,9 @@ def generate_launch_description():
     from launch.substitutions import LaunchConfiguration
 
     arg_port = DeclareLaunchArgument(
-        "port", 
+        "port",
         default_value="/dev/ttyACM0",  # Standard serieller Port für Arduino
-        description="Serial port for Nerf Arduino"
+        description="Serial port for Nerf Arduino",
     )
 
     # Verarbeite xacro mit use_hardware=true und port-Parameter
@@ -52,7 +52,9 @@ def generate_launch_description():
         executable="ros2_control_node",
         parameters=[
             robot_description,
-            os.path.join(pkg_nerf, "config", "controllers.yaml"),  # Controller-Konfiguration
+            os.path.join(
+                pkg_nerf, "config", "controllers.yaml"
+            ),  # Controller-Konfiguration
             {"use_sim_time": False},  # Echte Zeit verwenden
         ],
         output="screen",
@@ -74,7 +76,11 @@ def generate_launch_description():
     trigger_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["trigger_controller", "--controller-manager", "/controller_manager"],  # Nerf Tilt/Trigger Controller
+        arguments=[
+            "trigger_controller",
+            "--controller-manager",
+            "/controller_manager",
+        ],  # Nerf Tilt/Trigger Controller
         output="screen",
     )
 
@@ -92,14 +98,22 @@ def generate_launch_description():
     pusher_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["pusher_controller", "--controller-manager", "/controller_manager"],  # Dart-Pusher Controller
+        arguments=[
+            "pusher_controller",
+            "--controller-manager",
+            "/controller_manager",
+        ],  # Dart-Pusher Controller
         output="screen",
     )
 
     arming_controller = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["arming_controller", "--controller-manager", "/controller_manager"],  # System Arming/Disarming
+        arguments=[
+            "arming_controller",
+            "--controller-manager",
+            "/controller_manager",
+        ],  # System Arming/Disarming
         output="screen",
     )
 

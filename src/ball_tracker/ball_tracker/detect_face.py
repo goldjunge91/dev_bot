@@ -119,7 +119,7 @@ class DetectFace(Node):
 
                 det_array.detections.append(det)
 
-                self.get_logger().info(
+                self.get_logger().debug(
                     f"Gesicht erkannt: {name} @ ({cx:.0f}, {cy:.0f})"
                 )
 

@@ -110,7 +110,7 @@ class FollowFace(Node):
         tilt_msg = Float64MultiArray()
 
         if time.time() - self.lastrcvtime < self.rcv_timeout_secs:
-            self.get_logger().info(
+            self.get_logger().debug(
                 f"Verfolge: x={self.target_val:.3f}, y={self.target_y:.3f}, size={self.target_dist:.3f}"
             )
             if self.target_dist < self.max_size_thresh:
@@ -134,9 +134,9 @@ class FollowFace(Node):
             tilt_msg.data = [self.current_tilt]
             self.tilt_publisher_.publish(tilt_msg)
         else:
-            self.get_logger().info("Kein Gesicht – halte...")
+            self.get_logger().debug("Kein Gesicht – halte...")
             if self.allow_search:
-                self.get_logger().info("Suche (Rotation)...")
+                self.get_logger().debug("Suche (Rotation)...")
                 msg.angular.z = self.search_angular_speed
             else:
                 msg.angular.z = 0.0

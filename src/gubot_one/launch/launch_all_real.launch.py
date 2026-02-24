@@ -34,7 +34,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
@@ -116,8 +116,7 @@ def generate_launch_description():
     )
 
     # Gesichtserkennung modular einbinden
-    # Wir übergeben launch_driver:=false, damit der ball_tracker nicht versucht
-    # die Kamera selbst zu öffnen (Hardware-Konflikt), sondern das Bild von real_camera nutzt.
+    # Das Bild wird von real_camera.launch.py bereitgestellt.
     face_tracker_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
@@ -134,6 +133,11 @@ def generate_launch_description():
         condition=IfCondition(launch_face_tracker),
     )
 
+    # Verzögere den Start der Gesichtserkennung, damit die Hardware sicher bereit ist
+    delayed_face_tracker_launch = TimerAction(
+        period=12.0, actions=[face_tracker_launch]
+    )
+
     return LaunchDescription(
         [
             launch_lidar_arg,
@@ -142,6 +146,6 @@ def generate_launch_description():
             base_launch,
             lidar_launch,
             camera_launch,
-            face_tracker_launch,
+            delayed_face_tracker_launch,
         ]
     )
