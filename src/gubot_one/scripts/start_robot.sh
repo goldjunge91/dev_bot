@@ -63,7 +63,7 @@ fi
 
 # Launch the robot
 echo "Starte Roboter (FaceTracking=$LAUNCH_FACE, Camera=$CAMERA_TYPE)..."
-exec ros2 launch gubot_one launch_all_real.launch.py \
+ros2 launch gubot_one launch_all_real.launch.py \
     launch_camera:=true \
     launch_face_tracker:=$LAUNCH_FACE \
     camera_type:=$CAMERA_TYPE \

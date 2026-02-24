@@ -56,7 +56,7 @@ def generate_launch_description():
         parameters=[
             {
                 "video_device": "/dev/video0",  # USB Kamera Device
-                "pixel_format": "mjpeg",  # MJPEG Format (spart Bandbreite)
+                "pixel_format": "mjpeg2rgb",  # Korrektes Format für mjpeg in diesem Treiber
                 "output_encoding": "bgr8",  # Konvertiere zu BGR8 für ROS
                 "image_width": 640,  # Breite in Pixel
                 "image_height": 480,  # Höhe in Pixel

@@ -136,7 +136,13 @@ def generate_launch_description():
         ),
         condition=IfCondition(
             PythonExpression(
-                ["'", launch_camera, "' == 'true' and '", camera_type, "' == 'v4l2'"]
+                [
+                    "('",
+                    launch_camera,
+                    "' == 'true') and ('",
+                    camera_type,
+                    "' == 'v4l2')",
+                ]
             )
         ),
     )
@@ -154,7 +160,13 @@ def generate_launch_description():
         ),
         condition=IfCondition(
             PythonExpression(
-                ["'", launch_camera, "' == 'true' and '", camera_type, "' == 'usb_cam'"]
+                [
+                    "('",
+                    launch_camera,
+                    "' == 'true') and ('",
+                    camera_type,
+                    "' == 'usb_cam')",
+                ]
             )
         ),
     )
