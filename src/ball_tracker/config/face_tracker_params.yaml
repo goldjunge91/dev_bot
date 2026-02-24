@@ -20,7 +20,7 @@ follow_face:
 
 fire_at_face:
   ros__parameters:
-    target_person: ""
+    target_person: "schatz"
     fire_threshold_x: 0.1
     fire_threshold_y: 0.15
     min_size_thresh: 0.15
