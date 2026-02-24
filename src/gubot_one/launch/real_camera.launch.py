@@ -56,8 +56,8 @@ def generate_launch_description():
         parameters=[
             {
                 "video_device": "/dev/video0",  # USB Kamera Device
-                "pixel_format": "mjpeg2rgb",  # Korrektes Format für mjpeg in diesem Treiber
-                "output_encoding": "bgr8",  # Konvertiere zu BGR8 für ROS
+                "pixel_format": "mjpeg2rgb",  # WICHTIG: v4l2_camera nutzt 'mjpeg', usb_cam braucht 'mjpeg2rgb'
+                "output_encoding": "bgr8",
                 "image_width": 640,  # Breite in Pixel
                 "image_height": 480,  # Höhe in Pixel
                 "framerate": 15.0,  # 15 Bilder pro Sekunde

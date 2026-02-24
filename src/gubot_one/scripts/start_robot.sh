@@ -55,6 +55,19 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Prepare ROS launch arguments
+ROS_ARGS="launch_camera:=true \
+          launch_face_tracker:=$LAUNCH_FACE \
+          camera_type:=$CAMERA_TYPE"
+
+# Only add target_person if not empty to prevent ROS launch "malformed argument" error
+if [ -n "$TARGET_PERSON" ]; then
+    ROS_ARGS="$ROS_ARGS target_person:=$TARGET_PERSON"
+fi
+
+# Always pass allow_search as it has a valid default
+ROS_ARGS="$ROS_ARGS allow_search:=$ALLOW_SEARCH"
+
 # Ensure DDS Config is set
 if [ -z "$CYCLONEDDS_URI" ]; then
     export CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
@@ -62,10 +75,5 @@ if [ -z "$CYCLONEDDS_URI" ]; then
 fi
 
 # Launch the robot
-echo "Starte Roboter (FaceTracking=$LAUNCH_FACE, Camera=$CAMERA_TYPE)..."
-ros2 launch gubot_one launch_all_real.launch.py \
-    launch_camera:=true \
-    launch_face_tracker:=$LAUNCH_FACE \
-    camera_type:=$CAMERA_TYPE \
-    target_person:="$TARGET_PERSON" \
-    allow_search:=$ALLOW_SEARCH
+echo "Starte Roboter (FaceTracking=$LAUNCH_FACE, Camera=$CAMERA_TYPE, Target=${TARGET_PERSON:-'any'})..."
+ros2 launch gubot_one launch_all_real.launch.py $ROS_ARGS
