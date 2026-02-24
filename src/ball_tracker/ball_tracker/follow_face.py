@@ -42,6 +42,9 @@ class FollowFace(Node):
         self.declare_parameter("max_size_thresh", 0.3)
         self.declare_parameter("filter_value", 0.9)
         self.declare_parameter("target_person", "")  # leer = erstes gefundenes Gesicht
+        self.declare_parameter(
+            "allow_search", True
+        )  # Ob der Roboter bei "kein Gesicht" rotieren soll
 
         self.rcv_timeout_secs = (
             self.get_parameter("rcv_timeout_secs").get_parameter_value().double_value
@@ -67,6 +70,9 @@ class FollowFace(Node):
         )
         self.target_person = (
             self.get_parameter("target_person").get_parameter_value().string_value
+        )
+        self.allow_search = (
+            self.get_parameter("allow_search").get_parameter_value().bool_value
         )
         self.declare_parameter("camera_offset_x", 0.0)
         self.declare_parameter("camera_offset_y", 0.0)
@@ -128,8 +134,12 @@ class FollowFace(Node):
             tilt_msg.data = [self.current_tilt]
             self.tilt_publisher_.publish(tilt_msg)
         else:
-            self.get_logger().info("Kein Gesicht – suche...")
-            msg.angular.z = self.search_angular_speed
+            self.get_logger().info("Kein Gesicht – halte...")
+            if self.allow_search:
+                self.get_logger().info("Suche (Rotation)...")
+                msg.angular.z = self.search_angular_speed
+            else:
+                msg.angular.z = 0.0
             # Behalte letzten gültigen Tilt bei
             tilt_msg.data = [self.current_tilt]
             self.tilt_publisher_.publish(tilt_msg)

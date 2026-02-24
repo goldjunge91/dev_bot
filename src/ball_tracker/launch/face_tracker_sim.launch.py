@@ -16,6 +16,7 @@ def generate_launch_description():
 
     detect_only = LaunchConfiguration("detect_only")
     target_arg = LaunchConfiguration("target")
+    allow_search = LaunchConfiguration("allow_search")
 
     return LaunchDescription(
         [
@@ -28,6 +29,11 @@ def generate_launch_description():
                 "target",
                 default_value="",
                 description='Name der Zielperson (z.B. "schatz" - leer = alle)',
+            ),
+            DeclareLaunchArgument(
+                "allow_search",
+                default_value="false",
+                description="Ob der Roboter rotieren soll, wenn kein Gesicht gefunden wird",
             ),
             # --- SIMULATION ONLY ---
             # Hinweis: Der v4l2_camera_node wird absichtlich NICHT gestartet!
@@ -50,7 +56,10 @@ def generate_launch_description():
             Node(
                 package="ball_tracker",
                 executable="follow_face",
-                parameters=[params_file, {"target_person": target_arg}],
+                parameters=[
+                    params_file,
+                    {"target_person": target_arg, "allow_search": allow_search},
+                ],
                 remappings=[("/cmd_vel", "/cmd_vel")],
                 condition=UnlessCondition(detect_only),
             ),
