@@ -50,7 +50,7 @@ def generate_launch_description():
     cmd_vel_topic = LaunchConfiguration("cmd_vel_topic")
     cmd_vel_topic_dec = DeclareLaunchArgument(
         "cmd_vel_topic",
-        default_value="/cmd_vel",
+        default_value="/cmd_vel_tracker",
         description="Ausgabe-Topic für Fahrbefehle.",
     )
 
