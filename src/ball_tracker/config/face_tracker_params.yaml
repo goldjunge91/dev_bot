@@ -13,3 +13,15 @@ follow_face:
     max_size_thresh: 0.3    # Normalisierte Gesichtsgröße ab der nicht mehr vorgefahren wird
     filter_value: 0.9       # Tiefpassfilter für Bewegungsglättung
     target_person: ""       # Leer = erstes bekannte Gesicht; z.B. "marco" für bestimmte Person
+    camera_offset_x: 0.0    # Verschiebung des Ziels in X (0.0 = Bildmitte)
+    camera_offset_y: 0.0    # Verschiebung des Ziels in Y (0.0 = Bildmitte)
+
+fire_at_face:
+  ros__parameters:
+    target_person: ""
+    fire_threshold_x: 0.1
+    fire_threshold_y: 0.15
+    min_size_thresh: 0.15
+    cooldown_secs: 5.0
+    camera_offset_x: 0.0
+    camera_offset_y: 0.0

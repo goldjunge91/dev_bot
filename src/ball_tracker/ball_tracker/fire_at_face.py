@@ -28,6 +28,19 @@ class FireAtFace(Node):
         self.threshold_x = (
             self.get_parameter("fire_threshold_x").get_parameter_value().double_value
         )
+        self.declare_parameter("fire_threshold_y", 0.15)
+        self.declare_parameter("camera_offset_x", 0.0)
+        self.declare_parameter("camera_offset_y", 0.0)
+
+        self.threshold_y = (
+            self.get_parameter("fire_threshold_y").get_parameter_value().double_value
+        )
+        self.camera_offset_x = (
+            self.get_parameter("camera_offset_x").get_parameter_value().double_value
+        )
+        self.camera_offset_y = (
+            self.get_parameter("camera_offset_y").get_parameter_value().double_value
+        )
         self.min_size_thresh = (
             self.get_parameter("min_size_thresh").get_parameter_value().double_value
         )
@@ -75,18 +88,25 @@ class FireAtFace(Node):
         if target_det is None:
             return
 
-        # Check conditions
-        # bbox.center.position.x is 0.0 (left) to 1.0 (right). Center is 0.5.
+        # bbox.center.position.x/y is 0.0 to 1.0.
+        # Mit Camera Offset vergleichen (Zentrum der Kamera ist 0.5)
+        target_center_x = 0.5 + self.camera_offset_x
+        target_center_y = 0.5 + self.camera_offset_y
+
         center_x = target_det.bbox.center.position.x
-        offset_x = abs(center_x - 0.5)
+        center_y = target_det.bbox.center.position.y
+
+        offset_x = abs(center_x - target_center_x)
+        offset_y = abs(center_y - target_center_y)
+
         size_x = target_det.bbox.size_x
 
         # Logic:
-        # 1. Subject is centered ?
+        # 1. Subject is centered in X AND Y ?
         # 2. Subject is close enough ?
         # 3. Cooldown expired ?
 
-        is_centered = offset_x < self.threshold_x
+        is_centered = (offset_x < self.threshold_x) and (offset_y < self.threshold_y)
         is_close_enough = size_x > self.min_size_thresh
         is_cooldown_ready = (time.time() - self.last_fire_time) > self.cooldown_secs
 
