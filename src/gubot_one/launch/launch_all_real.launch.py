@@ -99,6 +99,20 @@ def generate_launch_description():
         description="Whether to launch the face tracker",
     )
 
+    target_person = LaunchConfiguration("target_person")
+    target_person_arg = DeclareLaunchArgument(
+        "target_person",
+        default_value="",
+        description="Target person for face tracking",
+    )
+
+    allow_search = LaunchConfiguration("allow_search")
+    allow_search_arg = DeclareLaunchArgument(
+        "allow_search",
+        default_value="false",
+        description="Allow robot to search (rotate) if no face is found",
+    )
+
     launch_face_tracker = LaunchConfiguration("launch_face_tracker")
 
     # USB Kamera starten (nur wenn launch_camera=true)
@@ -129,6 +143,8 @@ def generate_launch_description():
         ),
         launch_arguments={
             "image_topic": "/camera/image_raw",  # Nutzt das Bild von real_camera.launch.py
+            "target_person": target_person,
+            "allow_search": allow_search,
         }.items(),
         condition=IfCondition(launch_face_tracker),
     )
@@ -143,6 +159,8 @@ def generate_launch_description():
             launch_lidar_arg,
             launch_camera_arg,
             launch_face_tracker_arg,
+            target_person_arg,
+            allow_search_arg,
             base_launch,
             lidar_launch,
             camera_launch,

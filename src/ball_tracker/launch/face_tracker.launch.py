@@ -54,11 +54,25 @@ def generate_launch_description():
         description="Ausgabe-Topic für Fahrbefehle.",
     )
 
+    target_person = LaunchConfiguration("target_person")
+    target_person_dec = DeclareLaunchArgument(
+        "target_person",
+        default_value="",
+        description="Name der zu verfolgenden Person (leer = beliebig).",
+    )
+
+    allow_search = LaunchConfiguration("allow_search")
+    allow_search_dec = DeclareLaunchArgument(
+        "allow_search",
+        default_value="false",
+        description="Ob der Roboter rotieren soll, wenn kein Gesicht gefunden wird.",
+    )
+
     # --- Nodes ---
     detect_node = Node(
         package="ball_tracker",
         executable="detect_face",
-        parameters=[params_file],
+        parameters=[params_file, {"target_person": target_person}],
         remappings=[("/image_in", image_topic)],
         condition=UnlessCondition(follow_only),
     )
@@ -66,7 +80,14 @@ def generate_launch_description():
     follow_node = Node(
         package="ball_tracker",
         executable="follow_face",
-        parameters=[params_file, {"use_sim_time": use_sim_time}],
+        parameters=[
+            params_file,
+            {
+                "use_sim_time": use_sim_time,
+                "target_person": target_person,
+                "allow_search": allow_search,
+            },
+        ],
         remappings=[("/cmd_vel", cmd_vel_topic)],
         condition=UnlessCondition(detect_only),
     )
@@ -74,7 +95,7 @@ def generate_launch_description():
     fire_node = Node(
         package="ball_tracker",
         executable="fire_at_face",
-        parameters=[params_file],
+        parameters=[params_file, {"target_person": target_person}],
         condition=UnlessCondition(detect_only),
     )
 
@@ -86,6 +107,8 @@ def generate_launch_description():
             use_sim_time_dec,
             image_topic_dec,
             cmd_vel_topic_dec,
+            target_person_dec,
+            allow_search_dec,
             detect_node,
             follow_node,
             fire_node,

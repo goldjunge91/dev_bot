@@ -26,8 +26,9 @@ else
 fi
 
 # Standard-Argumente
-LAUNCH_FACE="false"
 CAMERA_TYPE="v4l2" # Standard für Pi: v4l2 (stabiler)
+TARGET_PERSON=""
+ALLOW_SEARCH="false"
 
 # Parse Argumente (optional)
 while [[ $# -gt 0 ]]; do
@@ -38,6 +39,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --usb-cam)
       CAMERA_TYPE="usb_cam"
+      shift
+      ;;
+    --target)
+      TARGET_PERSON="$2"
+      shift 2
+      ;;
+    --search)
+      ALLOW_SEARCH="true"
       shift
       ;;
     *)
@@ -57,4 +66,6 @@ echo "Starte Roboter (FaceTracking=$LAUNCH_FACE, Camera=$CAMERA_TYPE)..."
 exec ros2 launch gubot_one launch_all_real.launch.py \
     launch_camera:=true \
     launch_face_tracker:=$LAUNCH_FACE \
-    camera_type:=$CAMERA_TYPE
+    camera_type:=$CAMERA_TYPE \
+    target_person:="$TARGET_PERSON" \
+    allow_search:=$ALLOW_SEARCH
