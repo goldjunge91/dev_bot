@@ -43,7 +43,7 @@ def generate_launch_description():
     image_topic = LaunchConfiguration("image_topic")
     image_topic_dec = DeclareLaunchArgument(
         "image_topic",
-        default_value="/image_raw",
+        default_value="/camera/image_raw",
         description="Eingangs-Bildtopic (z.B. /image_raw von v4l2_camera).",
     )
 
@@ -71,6 +71,13 @@ def generate_launch_description():
         condition=UnlessCondition(detect_only),
     )
 
+    fire_node = Node(
+        package="ball_tracker",
+        executable="fire_at_face",
+        parameters=[params_file],
+        condition=UnlessCondition(detect_only),
+    )
+
     return LaunchDescription(
         [
             params_file_dec,
@@ -81,5 +88,6 @@ def generate_launch_description():
             cmd_vel_topic_dec,
             detect_node,
             follow_node,
+            fire_node,
         ]
     )

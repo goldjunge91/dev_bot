@@ -1,9 +1,9 @@
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch.conditions import UnlessCondition
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -26,22 +26,21 @@ def generate_launch_description():
         remappings=[("/image_raw", "/image_raw")],
     )
 
-    # Face Detector (Code bleibt gleich!)
-    detect_node = Node(
-        package="ball_tracker",
-        executable="detect_face",
-        parameters=[params_file],
-        remappings=[("/image_in", "/image_raw")],  # Input kommt vom UDP Receiver
-        condition=UnlessCondition(follow_only),
-    )
-
-    # Face Follower
-    follow_node = Node(
-        package="ball_tracker",
-        executable="follow_face",
-        parameters=[params_file],
-        remappings=[("/cmd_vel", "/cmd_vel")],
-        condition=UnlessCondition(detect_only),
+    # Face Tracker (Module!)
+    face_tracker_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory("ball_tracker"),
+                "launch",
+                "face_tracker.launch.py",
+            )
+        ),
+        launch_arguments={
+            "image_topic": "/image_raw",
+            "detect_only": detect_only,
+            "follow_only": follow_only,
+            "params_file": params_file,
+        }.items(),
     )
 
     return LaunchDescription(
@@ -57,7 +56,6 @@ def generate_launch_description():
                 description="Nur Verfolgung laufen lassen",
             ),
             udp_receiver_node,
-            detect_node,
-            follow_node,
+            face_tracker_launch,
         ]
     )

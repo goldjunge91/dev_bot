@@ -124,12 +124,11 @@ def generate_launch_description():
                 os.path.join(
                     get_package_share_directory("ball_tracker"),
                     "launch",
-                    "face_tracker_robot.launch.py",
+                    "face_tracker.launch.py",
                 )
             ]
         ),
         launch_arguments={
-            "launch_driver": "false",  # Kein eigener Treiber (verhindert Crash)
             "image_topic": "/camera/image_raw",  # Nutzt das Bild von real_camera.launch.py
         }.items(),
         condition=IfCondition(launch_face_tracker),
