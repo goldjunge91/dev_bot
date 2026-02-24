@@ -102,7 +102,7 @@ class FollowFace(Node):
         self.lastrcvtime = time.time() - 10000
 
         self.get_logger().info(
-            f'FollowFace gestartet. Ziel-Person: "{self.target_person or "beliebig"}"'
+            f'FollowFace gestartet. Ziel-Person: "{self.target_person or "beliebig"}", allow_search: {self.allow_search}'
         )
 
     def timer_callback(self):
@@ -134,9 +134,13 @@ class FollowFace(Node):
             tilt_msg.data = [self.current_tilt]
             self.tilt_publisher_.publish(tilt_msg)
         else:
-            self.get_logger().debug("Kein Gesicht – halte...")
+            self.get_logger().debug(
+                f"Kein Gesicht – halte... (allow_search={self.allow_search})"
+            )
             if self.allow_search:
-                self.get_logger().debug("Suche (Rotation)...")
+                self.get_logger().debug(
+                    f"Suche (Rotation)... (speed={self.search_angular_speed})"
+                )
                 msg.angular.z = self.search_angular_speed
             else:
                 msg.angular.z = 0.0
