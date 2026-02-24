@@ -43,7 +43,7 @@ class FollowFace(Node):
         self.declare_parameter("filter_value", 0.9)
         self.declare_parameter("target_person", "")  # leer = erstes gefundenes Gesicht
         self.declare_parameter(
-            "allow_search", True
+            "allow_search", False
         )  # Ob der Roboter bei "kein Gesicht" rotieren soll
 
         self.rcv_timeout_secs = (
