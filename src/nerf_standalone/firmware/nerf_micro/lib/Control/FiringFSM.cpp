@@ -74,7 +74,7 @@ void FiringFSM::evalTransition() {
                 break;
 
             case FiringState::PUSHING:
-                // Pusher-Servo war lange genug ausgefahren, jetzt wieder zurückziehen/bremsen
+                // Pusher-Servo macht eine volle 360 grad umdrehung
                 // (BRAKING).
                 if (now - _stateStartTime >= (uint32_t)_shotDuration) {
                     _nextState = FiringState::BRAKING;
@@ -82,7 +82,7 @@ void FiringFSM::evalTransition() {
                 break;
 
             case FiringState::BRAKING:
-                // Pusher ist zurückgefahren, kurze Pause zur Abkühlung (COOLDOWN).
+                // Pusher ist auf home pisition, kurze Pause zur Abkühlung (COOLDOWN).
                 if (now - _stateStartTime >= Config::BRAKE_MS) {
                     _nextState = FiringState::COOLDOWN;
                 }
