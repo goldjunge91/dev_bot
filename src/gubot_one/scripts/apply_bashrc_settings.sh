@@ -21,7 +21,7 @@ cat >> "$BASHRC" << EOF
 # Workspace Alias
 alias ws='source $WS_PATH/install/setup.bash'
 
-# Source ROS 2 Base
+# Source ROS 2
 if [ -f /opt/ros/humble/setup.bash ]; then
     source /opt/ros/humble/setup.bash
 fi
