@@ -6,7 +6,6 @@
 #include "rclcpp/logging.hpp"
 
 #include <cmath>
-#include <sstream>
 #include <vector>
 
 namespace nerf_standalone {
@@ -14,7 +13,7 @@ namespace nerf_standalone {
 // --- NerfComms Implementierung (Serielle Kommunikation) ---
 
 void NerfComms::connect(const std::string &serial_device, int32_t baud_rate) {
-    // Baudrate konvertieren (Standard-Werte für Arduino-Kommunikation)
+    // Baudrate konvertieren – konfigurierbar über URDF/YAML (hardware_parameters)
     LibSerial::BaudRate baud;
     switch (baud_rate) {
         case 9600:
@@ -209,8 +208,10 @@ hardware_interface::CallbackReturn NerfSystem::on_activate(
 hardware_interface::CallbackReturn NerfSystem::on_deactivate(
     const rclcpp_lifecycle::State & /*previous_state*/) {
     // Lifecycle: Deactivate - Sicherheitsstopp und Disarm
-    comms_.send_command("TEST_ESC 0");  // Stoppe Schwungräder
-    comms_.send_command("DISARM");      // Deaktiviere System
+    // DISARM löst in der Arduino-Firmware triggerDisarming() aus,
+    // welches die ESCs detacht und alle Motoren sicher stoppt.
+    // comms_.send_command("TEST_ESC 0");  // ENTFERNT: Umging die FSM-Sicherheitslogik
+    comms_.send_command("DISARM");  // Sicher: triggerDisarming() → Motoren stop, ESCs detach
     RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "System DISARMED");
     return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -309,39 +310,44 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
         comms_.send_command(ss.str());
     }
 
-    // 2. Pusher (Velocity) - Löst einzelnen Schuss aus bei Velocity > Schwellwert
+    // 2. Schuss auslösen – Wird an die FiringFSM delegiert
+    // Bei pusher_vel > 1.0 senden wir den High-Level-Befehl "SHOT 80".
+    // Die FSM übernimmt autonom die komplette Sequenz:
+    //   SPINNING_UP (Flywheels hochfahren) → PUSHING (Dart schieben)
+    //   → BRAKING (Pusher zurück) → COOLDOWN → ARMED
+    // Dadurch müssen keine Einzelbefehle (TEST_ESC, DANGEROUS_SHOT) gesendet werden.
     static bool pusher_active = false;
     if (hw_commands_.pusher_vel > 1.0 && !pusher_active) {
-        // Feuere einen Schuss (Pusher-Zyklus für 500ms)
-        comms_.send_command("DANGEROUS_SHOT 500");
+        // comms_.send_command("DANGEROUS_SHOT 500");  // ENTFERNT: Umging die FSM
+        comms_.send_command("SHOT 80");  // FSM: triggerFire(80) → sichere Schusssequenz
         pusher_active = true;
-        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: DANGEROUS_SHOT");
+        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: SHOT 80 (via FSM)");
     } else if (hw_commands_.pusher_vel < 0.1) {
         pusher_active = false;  // Reset bei niedriger Velocity
     }
 
-    // 3. Flywheels (Velocity) - Mappe rad/s auf 0-100% PWM
-    double max_vel = 100.0;  // Maximale Geschwindigkeit in rad/s
-    // Verwende Durchschnitt beider Räder für einzelnen ESC-Befehl
-    double avg_vel =
-        (std::abs(hw_commands_.flywheel_l_vel) + std::abs(hw_commands_.flywheel_r_vel)) / 2.0;
-
-    int pwm_percent = static_cast<int>((avg_vel / max_vel) * 100);  // Berechne PWM-Prozent
-    pwm_percent = std::max(0, std::min(100, pwm_percent));          // Begrenze auf 0-100%
-
-    static int last_pwm = -1;
-    if (pwm_percent == 0 && last_pwm != 0) {
-        // Explizit PWM 1000 (Min Throttle) senden zum Stoppen
-        // Umgeht Firmware-Bug wo TEST_ESC 0 auf 20% Power setzt
-        comms_.send_command("PWM 1000");
-        last_pwm = 0;
-    } else if (std::abs(pwm_percent - last_pwm) > 2) {
-        // Deadband um Traffic zu reduzieren (nur bei Änderung > 2% senden)
-        std::stringstream ss;
-        ss << "TEST_ESC " << pwm_percent;
-        comms_.send_command(ss.str());
-        last_pwm = pwm_percent;
-    }
+    // 3. Flywheels – ENTFERNT
+    // Die Flywheel-Steuerung wird jetzt komplett von der FiringFSM im Arduino
+    // übernommen. Der SHOT-Befehl (oben) startet die SPINNING_UP Phase automatisch.
+    // Manuelles Senden von TEST_ESC oder PWM ist nicht mehr nötig und würde die
+    // FSM in den ESC_TEST-Modus versetzen, was SHOT-Befehle blockiert.
+    //
+    // --- Alter Code (entfernt wegen FSM-Konflikt) ---
+    // double max_vel = 100.0;
+    // double avg_vel =
+    //     (std::abs(hw_commands_.flywheel_l_vel) + std::abs(hw_commands_.flywheel_r_vel)) / 2.0;
+    // int pwm_percent = static_cast<int>((avg_vel / max_vel) * 100);
+    // pwm_percent = std::max(0, std::min(100, pwm_percent));
+    // static int last_pwm = -1;
+    // if (pwm_percent == 0 && last_pwm != 0) {
+    //     comms_.send_command("PWM 1000");  // Unsicher: Umging FSM-Sicherheitslogik
+    //     last_pwm = 0;
+    // } else if (std::abs(pwm_percent - last_pwm) > 2) {
+    //     std::stringstream ss;
+    //     ss << "TEST_ESC " << pwm_percent;  // Unsicher: Setzte FSM in ESC_TEST-Modus
+    //     comms_.send_command(ss.str());
+    //     last_pwm = pwm_percent;
+    // }
 
     return hardware_interface::return_type::OK;
 }
