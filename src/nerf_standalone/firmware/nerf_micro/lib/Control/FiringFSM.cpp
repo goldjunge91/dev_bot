@@ -37,63 +37,67 @@ FiringFSM::FiringFSM(EscCallback onFlywheelPower,
 void FiringFSM::evalTransition() {
     uint32_t now = millis();  // millis() aus der Arduino-Bibliothek: Gibt die Zeit in Millisekunden
                               // seit Systemstart zurück
-    _nextState = _currentState;  // Default: kein Wechsel
 
-    // === 1. Automatisches Entschärfen (Auto-Disarm) ===
-    // Wenn das System scharf (ARMED) oder im Leerlauf (IDLE) ist, aber zu lange
-    // nichts passiert (= Inaktivität), wird es aus Sicherheitsgründen entschärft.
-    if (_isArmed && (_currentState == FiringState::ARMED || _currentState == FiringState::IDLE) &&
-        (now - _lastActivityTime > Config::AUTO_DISARM_MS)) {
-        _nextState = FiringState::DISARMING;
-        return;
-    }
+    // Nur wenn nicht bereits durch externe Befehle (z.B. Serial) ein Statuswechsel
+    // angefordert wurde, evaluieren wir die internen (zeit-basierten) Timer:
+    if (_nextState == _currentState) {
+        // === 1. Automatisches Entschärfen (Auto-Disarm) ===
+        // Wenn das System scharf (ARMED) oder im Leerlauf (IDLE) ist, aber zu lange
+        // nichts passiert (= Inaktivität), wird es aus Sicherheitsgründen entschärft.
+        if (_isArmed &&
+            (_currentState == FiringState::ARMED || _currentState == FiringState::IDLE) &&
+            (now - _lastActivityTime > Config::AUTO_DISARM_MS)) {
+            _nextState = FiringState::DISARMING;
+            return;
+        }
 
-    // State-spezifische Transitions
-    switch (_currentState) {
-        case FiringState::ARMING:
-            // Nach Ablauf der Sicherheitsverzögerung wird das System SCHARF geschaltet.
-            if (now - _stateStartTime >= Config::ARM_DELAY_MS) {
-                _nextState = FiringState::ARMED;
-            }
-            break;
+        // State-spezifische Transitions
+        switch (_currentState) {
+            case FiringState::ARMING:
+                // Nach Ablauf der Sicherheitsverzögerung wird das System SCHARF geschaltet.
+                if (now - _stateStartTime >= Config::ARM_DELAY_MS) {
+                    _nextState = FiringState::ARMED;
+                }
+                break;
 
-        case FiringState::DISARMING:
-            // Nach dem Lösen der Motoren ist das System sicher (DISARMED).
-            _nextState = FiringState::DISARMED;
-            break;
+            case FiringState::DISARMING:
+                // Nach dem Lösen der Motoren ist das System sicher (DISARMED).
+                _nextState = FiringState::DISARMED;
+                break;
 
-        case FiringState::SPINNING_UP:
-            // Motoren haben lange genug beschleunigt, jetzt Dart in die Räder schieben (PUSHING).
-            if (now - _stateStartTime >= Config::SPINUP_MS) {
-                _nextState = FiringState::PUSHING;
-            }
-            break;
+            case FiringState::SPINNING_UP:
+                // Motoren haben lange genug beschleunigt, jetzt Dart in die Räder schieben
+                // (PUSHING).
+                if (now - _stateStartTime >= Config::SPINUP_MS) {
+                    _nextState = FiringState::PUSHING;
+                }
+                break;
 
-        case FiringState::PUSHING:
-            // Pusher-Servo war lange genug ausgefahren, jetzt wieder zurückziehen/bremsen
-            // (BRAKING).
-            if (now - _stateStartTime >= (uint32_t)_shotDuration) {
-                _nextState = FiringState::BRAKING;
-            }
-            break;
+            case FiringState::PUSHING:
+                // Pusher-Servo war lange genug ausgefahren, jetzt wieder zurückziehen/bremsen
+                // (BRAKING).
+                if (now - _stateStartTime >= (uint32_t)_shotDuration) {
+                    _nextState = FiringState::BRAKING;
+                }
+                break;
 
-        case FiringState::BRAKING:
-            // Pusher ist zurückgefahren, kurze Pause zur Abkühlung (COOLDOWN).
-            if (now - _stateStartTime >= Config::BRAKE_MS) {
-                _nextState = FiringState::COOLDOWN;
-            }
-            break;
+            case FiringState::BRAKING:
+                // Pusher ist zurückgefahren, kurze Pause zur Abkühlung (COOLDOWN).
+                if (now - _stateStartTime >= Config::BRAKE_MS) {
+                    _nextState = FiringState::COOLDOWN;
+                }
+                break;
 
-        case FiringState::COOLDOWN:
-            // Schusssequenz ist komplett beendet, System ist wieder bereit für den nächsten Schuss
-            // (ARMED).
-            if (now - _stateStartTime >= 100) {
-                _nextState = FiringState::ARMED;
-            }
-            break;
+            case FiringState::COOLDOWN:
+                // Schusssequenz beendet, System ist wieder bereit für den nächsten Schuss (ARMED).
+                if (now - _stateStartTime >= 100) {
+                    _nextState = FiringState::ARMED;
+                }
+                break;
 
-        default:
-            break;
+            default:
+                break;
+        }
     }
 }
 
@@ -107,6 +111,11 @@ void FiringFSM::evalState() {
     // State-Wechsel?
     if (_nextState != _currentState) {
         FiringState oldState = _currentState;
+        {
+            char dbg[48];
+            sprintf(dbg, "DBG evalState: %d -> %d", (int)oldState, (int)_nextState);
+            _onDebug(dbg);
+        }
         _currentState = _nextState;
         _stateStartTime = millis();
 
