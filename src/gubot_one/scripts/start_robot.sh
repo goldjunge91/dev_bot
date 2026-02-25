@@ -26,7 +26,7 @@ else
 fi
 
 # Standard-Argumente
-CAMERA_TYPE="v4l2" # Standard für Pi: v4l2 (stabiler)
+CAMERA_TYPE="usb_cam" # Standard für Tailscale: usb_cam (MJPEG)
 TARGET_PERSON=""
 ALLOW_SEARCH="false"
 
@@ -37,7 +37,15 @@ while [[ $# -gt 0 ]]; do
       LAUNCH_FACE="true"
       shift
       ;;
-    --usb-cam)
+    --mjpg)
+      CAMERA_TYPE="usb_cam"
+      shift
+      ;;
+    --yuyv)
+      CAMERA_TYPE="v4l2"
+      shift
+      ;;
+    --usb-cam) # Abwärtskompatibilität
       CAMERA_TYPE="usb_cam"
       shift
       ;;

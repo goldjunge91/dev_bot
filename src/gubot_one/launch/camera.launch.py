@@ -31,7 +31,7 @@ def generate_launch_description():
                 parameters=[
                     {
                         "video_device": "/dev/video0",  # USB Kamera Device
-                        "pixel_format": "mjpg",  # MJPEG Format nutzen
+                        "pixel_format": "YUYV",  # YUYV Format nutzen (unkomprimiert, stabiler für v4l2)
                         "image_size": [
                             320,
                             240,
