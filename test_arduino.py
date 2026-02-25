@@ -13,20 +13,31 @@ def test_pico():
         print(f"Could not connect: {e}")
         return
 
+    # Wichtig: Warte, bis der Arduino UART hochgefahren ist
+    time.sleep(2.5)
+    ser.reset_input_buffer()
+
     commands = [
         "ARM",
         "STATUS",
         "TEST_ESC 20",
-        "DANGEROUS_SHOT 50",
+        "DANGEROUS_SHOT 500",
         "TEST_ESC 0",
         "DISARM",
     ]
+
     for cmd in commands:
         print(f"> {cmd}")
-        ser.write((cmd + "\n").encode())
-        time.sleep(2.5)  # Wait for arming delay and action
+        # Verwende STRENGSTENS ASCII und strikt nur '\n' als Ende, kein unsichtbares '\r'
+        ser.write((cmd + "\n").encode("ascii"))
+        time.sleep(2.5)
+
         while ser.in_waiting > 0:
-            print(ser.readline().decode().strip())
+            resp = ser.readline()
+            try:
+                print(resp.decode("ascii").strip())
+            except UnicodeDecodeError:
+                print(f"[RAW]: {resp}")
 
     ser.close()
 
