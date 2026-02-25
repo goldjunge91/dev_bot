@@ -11,7 +11,7 @@
 			"/opt/ros/humble/local/lib/python3.10/dist-packages"
 		],
 		"python.analysis.extraPaths": [
-			"/home/ros/dev_bot/install/nerf_standalone/local/lib/python3.10/dist-packages",
+			"/home/ros/projects/my_new_robot/install/nerf_standalone/local/lib/python3.10/dist-packages",
 			"/opt/ros/humble/lib/python3.10/site-packages",
 			"/opt/ros/humble/local/lib/python3.10/dist-packages"
 		],

@@ -362,7 +362,15 @@
   "python.analysis.autoImportCompletions": true,
   "python.autoComplete.extraPaths": [
     "/opt/ros/humble/lib/python3.10/site-packages",
-    "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    "/opt/ros/humble/local/lib/python3.10/dist-packages",
+    "/home/ros/projects/my_new_robot/install/nerf_standalone/local/lib/python3.10/dist-packages",
+    "/home/ros/projects/my_new_robot/install/ball_tracker/lib/python3.10/site-packages"
+  ],
+  "python.analysis.extraPaths": [
+    "/opt/ros/humble/lib/python3.10/site-packages",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages",
+    "/home/ros/projects/my_new_robot/install/nerf_standalone/local/lib/python3.10/dist-packages",
+    "/home/ros/projects/my_new_robot/install/ball_tracker/lib/python3.10/site-packages"
   ],
   "ros.distro": "humble",
   "ROS2.autoShowOutputChannel": true,
