@@ -1,27 +1,3 @@
-<!-- <?xml version="1.0" encoding="UTF-8"?>
-<CycloneDDS xmlns="https://cdds.io/config">
-  <Domain Id="any">
-    <General>
-      <Interfaces>
-        <NetworkInterface name="tailscale0"/>
-      </Interfaces>
-      <AllowMulticast>false</AllowMulticast>
-      <Transport>udp</Transport>
-      <FragmentSize>1194B</FragmentSize>
-    </General>
-    <SharedMemory>
-      <Enable>false</Enable>
-      <LogLevel>info</LogLevel>
-    </SharedMemory>
-    <Discovery>
-      <Peers>
-        <Peer Address="100.67.220.49"/>
-      </Peers>
-      <ParticipantIndex>auto</ParticipantIndex>
-      <MaxAutoParticipantIndex>40</MaxAutoParticipantIndex>
-    </Discovery>
-  </Domain>
-</CycloneDDS> -->
 <?xml version="1.0" encoding="UTF-8"?>
 <CycloneDDS xmlns="https://cdds.io/config">
   <Domain Id="any">
@@ -30,12 +6,20 @@
         <NetworkInterface name="tailscale0"/>
       </Interfaces>
       <AllowMulticast>false</AllowMulticast>
+      <MaxMessageSize>1200B</MaxMessageSize>
+      <FragmentSize>1180B</FragmentSize>
+      <Transport>udp</Transport>
     </General>
+    <Internal>
+      <SocketReceiveBufferSize>10MB</SocketReceiveBufferSize>
+    </Internal>
     <Discovery>
       <Peers>
         <Peer Address="100.67.220.49"/>
         <Peer Address="100.104.50.79"/>
       </Peers>
+      <ParticipantIndex>auto</ParticipantIndex>
+      <MaxAutoParticipantIndex>40</MaxAutoParticipantIndex>
     </Discovery>
   </Domain>
 </CycloneDDS>

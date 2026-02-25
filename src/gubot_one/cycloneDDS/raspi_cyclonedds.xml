@@ -3,15 +3,20 @@
   <Domain Id="any">
     <General>
       <Interfaces>
-        <NetworkInterface name="tailscale0" priority="default" multicast="default" />
+        <NetworkInterface name="tailscale0"/>
       </Interfaces>
       <AllowMulticast>false</AllowMulticast>
+      <MaxMessageSize>1200B</MaxMessageSize>
+      <FragmentSize>1180B</FragmentSize>
       <Transport>udp</Transport>
     </General>
+    <Internal>
+      <SocketReceiveBufferSize>10MB</SocketReceiveBufferSize>
+    </Internal>
     <Discovery>
       <Peers>
-        <Peer Address="100.104.50.79"/>
         <Peer Address="100.67.220.49"/>
+        <Peer Address="100.104.50.79"/>
       </Peers>
       <ParticipantIndex>auto</ParticipantIndex>
       <MaxAutoParticipantIndex>120</MaxAutoParticipantIndex>
