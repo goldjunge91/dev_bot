@@ -8,7 +8,6 @@ Funktionen:
 - Roboter-Bewegung (WASD)
 - Nerf Launcher Steuerung
 - Arming/Disarming (1/2)
-- Flywheel Kontrolle (3/4/5)
 - Tilt Servo (T/G)
 - Feuer-Befehl (SPACE)
 
@@ -18,13 +17,10 @@ Tastenbelegung:
     S - Rückwärts
     A - Links drehen
     D - Rechts drehen
-    
+
   Launcher:
     1 - Disarm System
     2 - ARM System
-    3 - Flywheels stoppen
-    4 - Flywheels Normal (50%)
-    5 - Flywheels Turbo (100%)
     SPACE - Schießen
     T - Tilt UP (6.28 rad)
     G - Tilt DOWN (5.23 rad)
@@ -49,9 +45,6 @@ Moving around:
 Launcher Controls:
    1 : Disarm System
    2 : ARM System
-   3 : Stop Flywheels
-   4 : Spin Flywheels (Normal)
-   5 : Spin Flywheels (Turbo)
    
    SPACE : Fire Single Shot (Pulse Pusher)
    
@@ -62,9 +55,9 @@ CTRL-C to quit
 """
 
 moveBindings = {
-    "w": (0.5, 0.0),   # Vorwärts: linear_x=0.5, angular_z=0.0
+    "w": (0.5, 0.0),  # Vorwärts: linear_x=0.5, angular_z=0.0
     "s": (-0.5, 0.0),  # Rückwärts: linear_x=-0.5
-    "a": (0.0, 1.0),   # Links drehen: angular_z=1.0
+    "a": (0.0, 1.0),  # Links drehen: angular_z=1.0
     "d": (0.0, -1.0),  # Rechts drehen: angular_z=-1.0
 }
 
@@ -94,20 +87,28 @@ class NerfTeleop(Node):
         # Publisher: Roboter-Bewegung
         # Queue Size 10 = Puffert max. 10 Bewegungsbefehle
         self.pub_cmd_vel = self.create_publisher(Twist, "/cmd_vel", 10)
-        
+
         # Publisher: Nerf Launcher Komponenten
         # Queue Size 10 = Gut für Echtzeit-Steuerung
         self.pub_arming = self.create_publisher(
-            Float64MultiArray, "/arming_controller/commands", 10  # Sicherheitssystem
+            Float64MultiArray,
+            "/arming_controller/commands",
+            10,  # Sicherheitssystem
         )
         self.pub_flywheel = self.create_publisher(
-            Float64MultiArray, "/flywheel_controller/commands", 10  # Flywheel Motoren
+            Float64MultiArray,
+            "/flywheel_controller/commands",
+            10,  # Flywheel Motoren
         )
         self.pub_pusher = self.create_publisher(
-            Float64MultiArray, "/pusher_controller/commands", 10  # Dart Pusher
+            Float64MultiArray,
+            "/pusher_controller/commands",
+            10,  # Dart Pusher
         )
         self.pub_trigger = self.create_publisher(
-            Float64MultiArray, "/trigger_controller/commands", 10  # Tilt Servo
+            Float64MultiArray,
+            "/trigger_controller/commands",
+            10,  # Tilt Servo
         )
 
         # Timer: Läuft mit 10Hz für kontinuierliche Steuerung
@@ -117,7 +118,6 @@ class NerfTeleop(Node):
         self.speed = 0.0  # Linear-Geschwindigkeit
         self.turn = 0.0  # Winkel-Geschwindigkeit
         self.armed = False  # Arming-Status
-        self.flywheel_speed = 0.0  # Aktuelle Flywheel-Geschwindigkeit
         self.pusher_active = False  # Pusher aktiv während Schuss
         self.pusher_timer = 0  # Timer für Pusher-Puls
         self.tilt_pos = 6.28  # Startposition: UP (360°)
@@ -150,21 +150,6 @@ class NerfTeleop(Node):
         elif key == "2":
             self.get_logger().info("ARMING SYSTEM!")
             self.publish_arming(1.0)
-
-        elif key == "3":
-            self.get_logger().info("Stopping Flywheels")
-            self.flywheel_speed = 0.0
-            self.publish_flywheel(0.0)
-
-        elif key == "4":
-            self.get_logger().info("Spinning Up (Normal)")
-            self.flywheel_speed = 50.0  # 50% Geschwindigkeit
-            self.publish_flywheel(self.flywheel_speed)
-
-        elif key == "5":
-            self.get_logger().info("Spinning Up (Turbo)")
-            self.flywheel_speed = 100.0  # 100% Geschwindigkeit
-            self.publish_flywheel(self.flywheel_speed)
 
         elif key == " ":  # SPACE = Feuer
             if not self.pusher_active:
@@ -207,12 +192,6 @@ class NerfTeleop(Node):
         msg.data = [float(val)]
         self.pub_arming.publish(msg)
 
-    def publish_flywheel(self, speed):
-        msg = Float64MultiArray()
-        # Links positiv, rechts negativ für Gegen-Rotation
-        msg.data = [float(speed), float(-speed)]
-        self.pub_flywheel.publish(msg)
-
     def publish_pusher(self, speed):
         msg = Float64MultiArray()
         msg.data = [float(speed)]
@@ -234,7 +213,8 @@ def main(args=None):
     finally:
         node.publish_twist(0.0, 0.0)
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
 

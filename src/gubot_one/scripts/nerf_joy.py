@@ -6,7 +6,6 @@ Steuert den Nerf-Launcher über einen Xbox/PlayStation Controller.
 
 Hauptfunktionen:
 - Arming/Disarming System (LB+RB für 3s halten)
-- Flywheel Geschwindigkeitskontrolle (LT Trigger)
 - Tilt Servo Steuerung (LB/RB einzeln)
 - Feuer-Befehl (A-Taste)
 - Notfall-Disarm (D-Pad beliebige Richtung)
@@ -19,7 +18,6 @@ Button Mapping (Xbox Controller):
 - 12-15: D-Pad (Emergency Disarm)
 
 Axis Mapping:
-- Axis 2: LT Analog (Flywheel Speed 0-100%)
 - Axis 6/7: D-Pad Axes (Emergency Disarm)
 """
 
@@ -41,16 +39,19 @@ class NerfJoy(Node):
         # Publisher: Steuert verschiedene Launcher-Komponenten
         # Queue Size 10 = Gut für Echtzeit-Steuerung, alte Befehle werden verworfen
         self.pub_arming = self.create_publisher(
-            Float64MultiArray, "/arming_controller/commands", 10  # Arming/Disarming (Sicherheitssystem)
-        )
-        self.pub_flywheel = self.create_publisher(
-            Float64MultiArray, "/flywheel_controller/commands", 10  # Flywheel Motoren (Schussgeschwindigkeit)
+            Float64MultiArray,
+            "/arming_controller/commands",
+            10,  # Arming/Disarming (Sicherheitssystem)
         )
         self.pub_pusher = self.create_publisher(
-            Float64MultiArray, "/pusher_controller/commands", 10  # Dart Pusher (Schussmechanismus)
+            Float64MultiArray,
+            "/pusher_controller/commands",
+            10,  # Dart Pusher (Schussmechanismus)
         )
         self.pub_trigger = self.create_publisher(
-            Float64MultiArray, "/trigger_controller/commands", 10  # Tilt Servo (Neigungswinkel)
+            Float64MultiArray,
+            "/trigger_controller/commands",
+            10,  # Tilt Servo (Neigungswinkel)
         )
 
         # State Variables
@@ -87,13 +88,12 @@ class NerfJoy(Node):
     def joy_callback(self, msg):
         """
         Hauptlogik: Verarbeitet alle Joystick-Eingaben
-        
+
         Prioritäten:
         1. D-Pad → Notfall-Disarm (höchste Priorität)
         2. LB+RB (3s) → Arming Toggle
         3. LB/RB einzeln → Tilt Control (nur wenn nicht arming)
-        4. LT → Flywheel Speed
-        5. A → Fire (nur wenn armed + flywheel aktiv)
+        4. A → Fire (nur wenn armed)
         """
         # Initialisierung beim ersten Durchlauf
         if not self.last_buttons:
@@ -167,42 +167,17 @@ class NerfJoy(Node):
                     self.publish_trigger(self.tilt_pos)
                     self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
 
-        # --- 3. Flywheel Speed (LT) ---
-        # Anforderung: "abhängig davon wie stark LT gedrückt wird"
-        # User Map sagt LT ist Button 6, aber "wie stark" → Achse
-        # Normalerweise Achse 2 (L2) oder Achse 5
-
-        flywheel_tgt = 0.0
-
-        # Prüfe Achse 2 (Standard LT Analog)
-        if len(msg.axes) > 2:
-            raw = msg.axes[2]
-            # Standard Linux Xbox: 1.0 (Released) bis -1.0 (Pressed)
-            # Mappe auf 0.0 - 1.0
-            val = (1.0 - raw) / 2.0
-            if val > 0.05:
-                flywheel_tgt = val * 100.0  # 0-100% Geschwindigkeit
-
-        # Fallback/Override: Digitaler Button 6 (LT) aus User Map
-        # Falls gedrückt, setze auf spezifische Geschwindigkeit (z.B. 50%) wenn Achse nicht hoch ist
-        if 6 < len(msg.buttons) and msg.buttons[6] == 1:
-            # Wenn Achse nahe 0 liest, nutze Button-Standard
-            if flywheel_tgt < 10.0:
-                flywheel_tgt = 50.0
-
-        self.publish_flywheel(flywheel_tgt)
-
-        # --- 4. Fire (A) ---
+        # --- 3. Fire (A) ---
         # Anforderung: "Schießen mit A" → User Map: 0='A'
         if pressed(0):
-            # Sicherheitsprüfungen: Armed UND Flywheel aktiv
-            if self.armed_state and flywheel_tgt > 10.0:
+            # Sicherheitsprüfungen: Armed
+            if self.armed_state:
                 self.get_logger().info("FIRE!")
                 self.pusher_active = True
                 self.pusher_timer = 5  # 0.5s bei 20Hz (5 * 0.05s)
                 self.publish_pusher(20.0)
-            elif pressed(0):  # Logge warum fehlgeschlagen
-                self.get_logger().warn("Cannot Fire: Check Arm/Flywheel")
+            else:
+                self.get_logger().warn("Cannot Fire: System not Armed")
 
         # Speichere aktuellen Zustand für nächste Iteration
         self.last_buttons = msg.buttons
@@ -213,15 +188,6 @@ class NerfJoy(Node):
         msg = Float64MultiArray()
         msg.data = [float(val)]
         self.pub_arming.publish(msg)
-
-    def publish_flywheel(self, speed):
-        """
-        Sendet Flywheel-Geschwindigkeit (0-100%)
-        Links positiv, rechts negativ für Gegen-Rotation
-        """
-        msg = Float64MultiArray()
-        msg.data = [float(speed), float(-speed)]
-        self.pub_flywheel.publish(msg)
 
     def publish_pusher(self, speed):
         """Sendet Pusher-Geschwindigkeit"""
@@ -248,7 +214,8 @@ def main(args=None):
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == "__main__":
