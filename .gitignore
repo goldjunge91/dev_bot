@@ -57,3 +57,4 @@ scripts/face_data/face_raw/
 scripts/face_data/faces_raw/gunter/
 scripts/face_data/faces_raw/marco/
 scripts/face_data/faces_raw/schatz/
+src/nerf_standalone/nerf_standalone/__pycache__/nerf_control_node.cpython-310.pyc

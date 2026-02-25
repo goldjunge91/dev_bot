@@ -19,17 +19,16 @@ Topics (Published):
 - /pusher_controller/commands - Pusher Servo Geschwindigkeit
 
 Schuss-Sequenz:
-1. Flywheels hochfahren (1s)
-2. Pusher vorwärts (0.5s)
-3. Pusher stoppen
-4. Flywheels stoppen
+    Die komplette Sequenz wird an die Firmware-FSM delegiert.
+    Der ROS2-Node sendet nur den SHOT-Befehl über den Pusher-Controller.
+    Die FSM steuert autonom: SPINNING_UP → PUSHING → BRAKING → COOLDOWN → ARMED
 """
 
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray
 from std_srvs.srv import Trigger
-import time
+# import time  # Nicht mehr nötig: FSM übernimmt Timing
 
 
 class NerfControlNode(Node):
@@ -46,15 +45,17 @@ class NerfControlNode(Node):
             "/trigger_controller/commands",
             10,  # Tilt Servo
         )
-        self.flywheel_pub = self.create_publisher(
-            Float64MultiArray,
-            "/flywheel_controller/commands",
-            10,  # Flywheel Motoren
-        )
+        # Hinweis: flywheel_pub entfernt – die Firmware-FSM steuert die
+        # Flywheels autonom innerhalb der SHOT-Sequenz.
+        # self.flywheel_pub = self.create_publisher(
+        #     Float64MultiArray,
+        #     "/flywheel_controller/commands",
+        #     10,  # Flywheel Motoren
+        # )
         self.pusher_pub = self.create_publisher(
             Float64MultiArray,
             "/pusher_controller/commands",
-            10,  # Pusher Servo
+            10,  # Pusher Servo (löst SHOT in Hardware-Interface aus)
         )
         self.arming_pub = self.create_publisher(
             Float64MultiArray,
@@ -140,49 +141,37 @@ class NerfControlNode(Node):
 
     def fire_callback(self, request, response):
         """
-        Service Callback: Führt komplette Schuss-Sequenz aus
+        Service Callback: Löst einen Schuss über die Firmware-FSM aus.
 
-        Sequenz:
-        1. Flywheels auf 100% hochfahren
-        2. 1 Sekunde warten für Spin-Up
-        3. Pusher vorwärts mit 10.0 Geschwindigkeit
-        4. 0.5 Sekunden warten
-        5. Pusher stoppen (0.0)
-        6. Flywheels stoppen
+        Sendet pusher_vel > 1.0, was im Hardware-Interface (nerf_system.cpp)
+        als SHOT-Befehl an die Firmware-FSM weitergeleitet wird.
+        Die FSM steuert die komplette Sequenz autonom:
+        SPINNING_UP → PUSHING → BRAKING → COOLDOWN → ARMED
 
-        HINWEIS: time.sleep() blockiert Node!
-        Für Produktion: Verwende Timer oder Action Server
+        WICHTIG: Kein time.sleep()! Die Firmware übernimmt das Timing.
         """
-        self.get_logger().info("FIRE SEQUENCE INITIATED")
+        self.get_logger().info("FIRE: Sending SHOT command to Firmware FSM")
 
-        # 1. Flywheels hochfahren
-        cmd_fly = Float64MultiArray()
-        cmd_fly.data = [100.0, 100.0]  # Beide Motoren 100%
-        self.flywheel_pub.publish(cmd_fly)
-        self.get_logger().info("Flywheels SPINNING UP...")
-        time.sleep(1.0)  # Warte auf Spin-Up
-
-        # 2. Dart schieben
+        # Sende Schuss-Befehl über Pusher-Controller
+        # pusher_vel > 1.0 löst "SHOT 80" im Hardware-Interface aus
         cmd_push = Float64MultiArray()
-        cmd_push.data = [10.0]  # Geschwindigkeit
+        cmd_push.data = [10.0]
         self.pusher_pub.publish(cmd_push)
-        self.get_logger().info("Pusher ADVANCE")
-        time.sleep(0.5)  # Warte auf Push
 
-        # 3. Pusher zurückziehen (Stoppen/Rückwärts?)
-        # Für Continuous Servo: 0.0 = Stopp
-        cmd_push.data = [0.0]
-        self.pusher_pub.publish(cmd_push)
-        self.get_logger().info("Pusher STOP")
-
-        # 4. Flywheels herunterfahren
-        cmd_fly.data = [0.0, 0.0]
-        self.flywheel_pub.publish(cmd_fly)
-        self.get_logger().info("Flywheels STOP")
+        # Reset Pusher-Command nach kurzer Zeit (non-blocking Timer)
+        self._reset_timer = self.create_timer(0.5, self._reset_pusher)
 
         response.success = True
-        response.message = "Dart fired!"
+        response.message = "Shot delegated to Firmware FSM"
         return response
+
+    def _reset_pusher(self):
+        """Setzt den Pusher-Command zurück auf 0 (einmalig)"""
+        cmd = Float64MultiArray()
+        cmd.data = [0.0]
+        self.pusher_pub.publish(cmd)
+        self._reset_timer.cancel()
+        self.get_logger().info("FIRE: Pusher command reset")
 
 
 def main(args=None):

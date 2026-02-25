@@ -208,6 +208,7 @@ hardware_interface::CallbackReturn NerfSystem::on_deactivate(
     const rclcpp_lifecycle::State & /*previous_state*/) {
     // Lifecycle: Deactivate – DISARM stoppt Motoren und detacht ESCs via FSM
     comms_.send_command("DISARM");
+    armed_ = false;  // State zurücksetzen
     RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "System DISARMED");
     return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -263,20 +264,20 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
     }
 
     // 0. Manuelles Arming (Position > 0.5 -> ARM, sonst DISARM)
-    static bool armed = false;
+    // armed_ ist Member-Variable (nicht static), wird beim Lifecycle-Reset korrekt zurückgesetzt
     bool should_arm = (hw_commands_.arming_pos > 0.5);
 
-    if (should_arm && !armed) {
+    if (should_arm && !armed_) {
         comms_.send_command("ARM");  // Aktiviere System
-        armed = true;
+        armed_ = true;
         RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: ARM");
-    } else if (!should_arm && armed) {
+    } else if (!should_arm && armed_) {
         comms_.send_command("DISARM");  // Deaktiviere System
-        armed = false;
+        armed_ = false;
         RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: DISARM");
     }
 
-    if (!armed)  // Wenn nicht armed, keine weiteren Commands senden
+    if (!armed_)  // Wenn nicht armed, keine weiteren Commands senden
         return hardware_interface::return_type::OK;
 
     // 1. Tilt (Trigger Joint) Logik - Verwendet UP/DN Commands für kontinuierliche Rotation
@@ -308,13 +309,13 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
 
     // 2. Schuss auslösen – SHOT delegiert die komplette Sequenz an die FiringFSM
     //    (SPINNING_UP → PUSHING → BRAKING → COOLDOWN → ARMED)
-    static bool pusher_active = false;
-    if (hw_commands_.pusher_vel > 1.0 && !pusher_active) {
+    // pusher_active_ verhindert mehrfaches Senden bei gehaltener Eingabe
+    if (hw_commands_.pusher_vel > 1.0 && !pusher_active_) {
         comms_.send_command("SHOT 80");  // FSM: triggerFire(80)
-        pusher_active = true;
+        pusher_active_ = true;
         RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: SHOT 80 (via FSM)");
     } else if (hw_commands_.pusher_vel < 0.1) {
-        pusher_active = false;
+        pusher_active_ = false;
     }
 
     // Hinweis: Flywheels werden nicht separat angesteuert.
