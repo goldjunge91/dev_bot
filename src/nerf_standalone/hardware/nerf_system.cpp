@@ -6,6 +6,7 @@
 #include "rclcpp/logging.hpp"
 
 #include <cmath>
+#include <sstream>
 #include <vector>
 
 namespace nerf_standalone {
@@ -58,9 +59,7 @@ void NerfComms::send_command(const std::string &cmd) {
         return;
 
     try {
-        // Füge Newline für Arduino hinzu (Arduino erwartet Zeilenende als Befehlstrenner)
-        serial_conn_.Write(cmd + "\n");
-        // serial_conn_.DrainWriteBuffer(); // Optional: Warte bis Daten gesendet wurden
+        serial_conn_.Write(cmd + "\n");  // Arduino erwartet \n als Befehlstrenner
     } catch (const std::exception &e) {
         RCLCPP_ERROR(
             rclcpp::get_logger("NerfComms"), "Serial write failed (%s). Closing port.", e.what());
@@ -207,11 +206,8 @@ hardware_interface::CallbackReturn NerfSystem::on_activate(
 
 hardware_interface::CallbackReturn NerfSystem::on_deactivate(
     const rclcpp_lifecycle::State & /*previous_state*/) {
-    // Lifecycle: Deactivate - Sicherheitsstopp und Disarm
-    // DISARM löst in der Arduino-Firmware triggerDisarming() aus,
-    // welches die ESCs detacht und alle Motoren sicher stoppt.
-    // comms_.send_command("TEST_ESC 0");  // ENTFERNT: Umging die FSM-Sicherheitslogik
-    comms_.send_command("DISARM");  // Sicher: triggerDisarming() → Motoren stop, ESCs detach
+    // Lifecycle: Deactivate – DISARM stoppt Motoren und detacht ESCs via FSM
+    comms_.send_command("DISARM");
     RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "System DISARMED");
     return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -310,44 +306,19 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
         comms_.send_command(ss.str());
     }
 
-    // 2. Schuss auslösen – Wird an die FiringFSM delegiert
-    // Bei pusher_vel > 1.0 senden wir den High-Level-Befehl "SHOT 80".
-    // Die FSM übernimmt autonom die komplette Sequenz:
-    //   SPINNING_UP (Flywheels hochfahren) → PUSHING (Dart schieben)
-    //   → BRAKING (Pusher zurück) → COOLDOWN → ARMED
-    // Dadurch müssen keine Einzelbefehle (TEST_ESC, DANGEROUS_SHOT) gesendet werden.
+    // 2. Schuss auslösen – SHOT delegiert die komplette Sequenz an die FiringFSM
+    //    (SPINNING_UP → PUSHING → BRAKING → COOLDOWN → ARMED)
     static bool pusher_active = false;
     if (hw_commands_.pusher_vel > 1.0 && !pusher_active) {
-        // comms_.send_command("DANGEROUS_SHOT 500");  // ENTFERNT: Umging die FSM
-        comms_.send_command("SHOT 80");  // FSM: triggerFire(80) → sichere Schusssequenz
+        comms_.send_command("SHOT 80");  // FSM: triggerFire(80)
         pusher_active = true;
         RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: SHOT 80 (via FSM)");
     } else if (hw_commands_.pusher_vel < 0.1) {
-        pusher_active = false;  // Reset bei niedriger Velocity
+        pusher_active = false;
     }
 
-    // 3. Flywheels – ENTFERNT
-    // Die Flywheel-Steuerung wird jetzt komplett von der FiringFSM im Arduino
-    // übernommen. Der SHOT-Befehl (oben) startet die SPINNING_UP Phase automatisch.
-    // Manuelles Senden von TEST_ESC oder PWM ist nicht mehr nötig und würde die
-    // FSM in den ESC_TEST-Modus versetzen, was SHOT-Befehle blockiert.
-    //
-    // --- Alter Code (entfernt wegen FSM-Konflikt) ---
-    // double max_vel = 100.0;
-    // double avg_vel =
-    //     (std::abs(hw_commands_.flywheel_l_vel) + std::abs(hw_commands_.flywheel_r_vel)) / 2.0;
-    // int pwm_percent = static_cast<int>((avg_vel / max_vel) * 100);
-    // pwm_percent = std::max(0, std::min(100, pwm_percent));
-    // static int last_pwm = -1;
-    // if (pwm_percent == 0 && last_pwm != 0) {
-    //     comms_.send_command("PWM 1000");  // Unsicher: Umging FSM-Sicherheitslogik
-    //     last_pwm = 0;
-    // } else if (std::abs(pwm_percent - last_pwm) > 2) {
-    //     std::stringstream ss;
-    //     ss << "TEST_ESC " << pwm_percent;  // Unsicher: Setzte FSM in ESC_TEST-Modus
-    //     comms_.send_command(ss.str());
-    //     last_pwm = pwm_percent;
-    // }
+    // Hinweis: Flywheels werden nicht separat angesteuert.
+    // Die FiringFSM im Arduino steuert die ESCs autonom innerhalb der SHOT-Sequenz.
 
     return hardware_interface::return_type::OK;
 }
