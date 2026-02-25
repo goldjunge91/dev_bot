@@ -36,6 +36,9 @@ class NerfControlNode(Node):
     def __init__(self):
         super().__init__("nerf_control_node")
 
+        self.declare_parameter("auto_arm", False)
+        self.auto_arm = self.get_parameter("auto_arm").value
+
         # Publishers: Steuern Hardware-Controller
         # Queue Size 10 = Puffert max. 10 Befehle, alte werden verworfen
         self.trigger_pub = self.create_publisher(
@@ -52,6 +55,11 @@ class NerfControlNode(Node):
             Float64MultiArray,
             "/pusher_controller/commands",
             10,  # Pusher Servo
+        )
+        self.arming_pub = self.create_publisher(
+            Float64MultiArray,
+            "/arming_controller/commands",
+            10,  # System Arming (Hardware Freigabe)
         )
 
         # Subscribers: Empfängt Tilt-Befehle
@@ -82,6 +90,16 @@ class NerfControlNode(Node):
         cmd = Float64MultiArray()
         cmd.data = [6.28]
         self.trigger_pub.publish(cmd)
+
+        if self.auto_arm:
+            self.get_logger().warn("AUTO-ARMING the system (Hardware Enable)...")
+            cmd_arm = Float64MultiArray()
+            cmd_arm.data = [1.0]
+            self.arming_pub.publish(cmd_arm)
+        else:
+            self.get_logger().info(
+                "System is DISARMED. Send ARM command or use Gamepad LB+RB."
+            )
 
         # Timer zerstören damit er nur einmal läuft
         self.init_timer.cancel()

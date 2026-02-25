@@ -68,6 +68,13 @@ def generate_launch_description():
         description="Type of camera driver to use (v4l2 or usb_cam)",
     )
 
+    auto_arm = LaunchConfiguration("auto_arm")
+    auto_arm_arg = DeclareLaunchArgument(
+        "auto_arm",
+        default_value="false",
+        description="Auto-arm the Nerf launcher on startup",
+    )
+
     # Roboter-Basis starten
     # Enthält: State Publisher, Controller Manager, Hardware Interfaces, Twist Mux
     base_launch = IncludeLaunchDescription(
@@ -82,6 +89,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "use_nerf_hardware": "true",  # Nerf Launcher aktivieren
+            "auto_arm": auto_arm,
         }.items(),
     )
 
@@ -204,6 +212,7 @@ def generate_launch_description():
             target_person_arg,
             allow_search_arg,
             camera_type_arg,
+            auto_arm_arg,
             base_launch,
             lidar_launch,
             v4l2_camera_launch,

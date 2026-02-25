@@ -65,6 +65,7 @@ def generate_launch_description():
 
     # Launch Configuration
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
+    auto_arm = LaunchConfiguration("auto_arm")
 
     # 1. Robot State Publisher
     # Publiziert URDF und TF-Transformationen
@@ -244,6 +245,7 @@ def generate_launch_description():
         package="nerf_standalone",
         executable="nerf_control_node",
         output="screen",
+        parameters=[{"auto_arm": auto_arm}],
     )
 
     delayed_nerf_control = RegisterEventHandler(
@@ -275,6 +277,11 @@ def generate_launch_description():
                 "use_nerf_hardware",
                 default_value="false",
                 description="Enable Nerf hardware if true",
+            ),
+            DeclareLaunchArgument(
+                "auto_arm",
+                default_value="false",
+                description="Auto-arm the Nerf launcher on startup",
             ),
             rsp,
             joystick,

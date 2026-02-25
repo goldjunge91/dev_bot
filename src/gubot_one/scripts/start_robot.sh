@@ -29,12 +29,17 @@ fi
 CAMERA_TYPE="usb_cam" # Standard für Tailscale: usb_cam (MJPEG)
 TARGET_PERSON=""
 ALLOW_SEARCH="false"
+AUTO_ARM="false"
 
 # Parse Argumente (optional)
 while [[ $# -gt 0 ]]; do
   case $1 in
     --face)
       LAUNCH_FACE="true"
+      shift
+      ;;
+    --armed)
+      AUTO_ARM="true"
       shift
       ;;
     --mjpg)
@@ -66,7 +71,8 @@ done
 # Prepare ROS launch arguments
 ROS_ARGS="launch_camera:=true \
           launch_face_tracker:=$LAUNCH_FACE \
-          camera_type:=$CAMERA_TYPE"
+          camera_type:=$CAMERA_TYPE \
+          auto_arm:=$AUTO_ARM"
 
 # Only add target_person if not empty to prevent ROS launch "malformed argument" error
 if [ -n "$TARGET_PERSON" ]; then
