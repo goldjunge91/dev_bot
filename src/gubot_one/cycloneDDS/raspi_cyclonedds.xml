@@ -10,9 +10,7 @@
       <FragmentSize>1180B</FragmentSize>
       <Transport>udp</Transport>
     </General>
-    <Internal>
-      <SocketReceiveBufferSize>10MB</SocketReceiveBufferSize>
-    </Internal>
+
     <Discovery>
       <Peers>
         <Peer Address="100.67.220.49"/>
