@@ -27,7 +27,7 @@ def generate_launch_description():
 
     arg_port = DeclareLaunchArgument(
         "port",
-        default_value="/dev/ttyACM0",  # Standard serieller Port für Arduino
+        # default_value="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00",  # Standard serieller Port für Arduino
         description="Serial port for Nerf Arduino",
     )
 
