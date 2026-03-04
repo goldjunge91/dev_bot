@@ -117,8 +117,13 @@ class FireAtFace(Node):
                 )
                 self.trigger_fire()
             else:
-                pass
+                # pass
                 # self.get_logger().info(f"Locked on... waiting for cooldown ({self.cooldown_secs - (time.time() - self.last_fire_time):.1f}s)")
+                remaining = self.cooldown_secs - (time.time() - self.last_fire_time)
+                self.get_logger().info(
+                    f"Locked on... waiting for cooldown ({remaining:.1f}s)",
+                    throttle_duration_sec=2.0,
+                )
 
     def trigger_fire(self):
         if not self.fire_client.wait_for_service(timeout_sec=1.0):

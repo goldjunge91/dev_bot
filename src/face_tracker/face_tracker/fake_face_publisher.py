@@ -66,7 +66,8 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        print(f"Error: {e}")
+        # print(f"Error: {e}")
+        node.get_logger().error(f"Error: {e}")
     finally:
         node.destroy_node()
         if rclpy.ok():

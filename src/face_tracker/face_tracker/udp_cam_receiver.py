@@ -47,7 +47,11 @@ class UdpCamReceiver(Node):
                 msg.header.frame_id = "camera_frame"
 
                 self.publisher_.publish(msg)
-                self.get_logger().info(f"Frame empfangen von {addr}, PUBLISHED!")
+                # self.get_logger().info(f"Frame empfangen von {addr}, PUBLISHED!")
+                self.get_logger().debug(
+                    f"Frame empfangen von {addr}, PUBLISHED!",
+                    throttle_duration_sec=5.0,
+                )
 
         except BlockingIOError:
             # Keine Daten verfügbar
