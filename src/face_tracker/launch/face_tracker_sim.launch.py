@@ -9,7 +9,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     params_file = os.path.join(
-        get_package_share_directory("ball_tracker"),
+        get_package_share_directory("face_tracker"),
         "config",
         "face_tracker_params.yaml",
     )
@@ -30,7 +30,7 @@ def generate_launch_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(
-                        get_package_share_directory("ball_tracker"),
+                        get_package_share_directory("face_tracker"),
                         "launch",
                         "face_tracker.launch.py",
                     )

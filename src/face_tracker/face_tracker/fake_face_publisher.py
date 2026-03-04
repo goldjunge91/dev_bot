@@ -3,7 +3,6 @@ import rclpy
 from rclpy.node import Node
 from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithPose
 import math
-import sys
 
 
 class FakeFacePublisher(Node):

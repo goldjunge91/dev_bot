@@ -17,9 +17,8 @@ from vision_msgs.msg import (
     ObjectHypothesisWithPose,
     BoundingBox2D,
 )
-from geometry_msgs.msg import Pose2D
 
-import ball_tracker.process_image as proc
+import face_tracker.process_image as proc
 
 
 class DetectFace(Node):

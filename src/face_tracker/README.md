@@ -1,21 +1,26 @@
-# ball_tracker
+# face_tracker
 
-This repository contains a simple demonstration of using ROS and OpenCV to track a ball with a mobile robot via a camera feed.
+Face detection, recognition, and tracking package for the Gubot One robot with Nerf launcher integration.
 
-The associated tutorial is available [here](https://youtu.be/gISSSbYUZag).
-
-Thanks very much to Tiziano Fiorenzani for his [ROS 1 tutorial](https://www.youtube.com/watch?v=We6CQHhhOFo) and [corresponding code](https://github.com/tizianofiorenzani/ros_tutorials/blob/master/opencv/src/find_ball.py) on which this repo is based (code reproduced with permission).
-
-One other thing to be wary of: this is a ROS/ament Python package, which means the launch and config files contained will NOT be linked with the `--symlink-install` command for colcon, and will need to be rebuilt after changes.
-
-
-## Getting started
-
-A launch file and example parameters are provided.
+Uses the `face_recognition` library for face detection and identification against registered face profiles.
 
 ## Nodes
 
-TODO Document them
+- **detect_face** – Detects and identifies faces in camera images, publishes `Detection2DArray` on `/face_detections`
+- **follow_face** – Steers the robot to follow a detected face using `cmd_vel` and tilt servo commands
+- **fire_at_face** – Triggers the Nerf launcher `/nerf/fire` service when a face is centered and close enough
+- **register_face** – Interactive tool to register new face profiles (captures samples via camera)
+- **udp_cam_sender** – Streams camera video via UDP for offloading processing to a remote PC
+- **udp_cam_receiver** – Receives UDP camera stream and publishes as ROS2 Image topic
+- **fake_face_publisher** – Publishes simulated face detections for testing without a camera
 
-## Known issues
-- Can't easily detect red due to hue wrap. If you need to detect red robustly you'll need to go in and mess with the HSV filtering.
+## Launch Files
+
+- `face_tracker.launch.py` – Main face tracking pipeline (detect + follow + fire)
+- `face_tracker_sim.launch.py` – Face tracking configured for Gazebo simulation
+- `face_tracker_udp.launch.py` – Face tracking with UDP camera stream for remote processing
+
+## Getting Started
+
+1. Register a face: `ros2 run face_tracker register_face --ros-args -p person_name:=<name>`
+2. Launch: `ros2 launch face_tracker face_tracker.launch.py`

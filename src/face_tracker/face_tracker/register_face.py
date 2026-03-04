@@ -4,8 +4,8 @@
 # Nimmt Fotos per Kamera auf, berechnet Encodings und speichert sie.
 #
 # Aufruf:
-#   ros2 run ball_tracker register_face --ros-args -p person_name:=marco
-#   ros2 run ball_tracker register_face --ros-args -p person_name:=schatz -p num_samples:=40
+#   ros2 run face_tracker register_face --ros-args -p person_name:=marco
+#   ros2 run face_tracker register_face --ros-args -p person_name:=schatz -p num_samples:=40
 
 import rclpy
 from rclpy.node import Node
@@ -47,7 +47,7 @@ class RegisterFace(Node):
         if not self.person_name:
             self.get_logger().error(
                 "Kein person_name angegeben!\n"
-                "Aufruf: ros2 run ball_tracker register_face --ros-args -p person_name:=<name>"
+                "Aufruf: ros2 run face_tracker register_face --ros-args -p person_name:=<name>"
             )
             return
 

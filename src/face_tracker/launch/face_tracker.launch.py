@@ -14,7 +14,7 @@ def generate_launch_description():
     params_file_dec = DeclareLaunchArgument(
         "params_file",
         default_value=os.path.join(
-            get_package_share_directory("ball_tracker"),
+            get_package_share_directory("face_tracker"),
             "config",
             "face_tracker_params.yaml",
         ),
@@ -70,7 +70,7 @@ def generate_launch_description():
 
     # --- Nodes ---
     detect_node = Node(
-        package="ball_tracker",
+        package="face_tracker",
         executable="detect_face",
         parameters=[params_file, {"target_person": target_person}],
         remappings=[("/image_in", image_topic)],
@@ -78,7 +78,7 @@ def generate_launch_description():
     )
 
     follow_node = Node(
-        package="ball_tracker",
+        package="face_tracker",
         executable="follow_face",
         parameters=[
             params_file,
@@ -93,7 +93,7 @@ def generate_launch_description():
     )
 
     fire_node = Node(
-        package="ball_tracker",
+        package="face_tracker",
         executable="fire_at_face",
         parameters=[params_file, {"target_person": target_person}],
         condition=UnlessCondition(detect_only),
