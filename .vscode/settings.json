@@ -424,6 +424,7 @@
   "C_Cpp_Runner.compilerArgs": [],
   "C_Cpp_Runner.linkerArgs": [],
   "C_Cpp_Runner.includePaths": [
+    "${workspaceFolder}/src/nerf_launch_system/hardware/include",
     "${workspaceFolder}/src/**/include",
     "${workspaceFolder}/install/**/include",
     "/opt/ros/humble/include/**"
