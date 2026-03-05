@@ -44,7 +44,7 @@
         <xacro:if value="$(arg use_nerf_hardware)">
             <ros2_control name="NerfSystem" type="system">
                 <hardware>
-                    <plugin>nerf_standalone/NerfSystem</plugin>
+                    <plugin>nerf_launch_system/NerfSystem</plugin>
                     <param name="port">$(arg nerf_port)</param>
                     <param name="baud_rate">115200</param>
                 </hardware>

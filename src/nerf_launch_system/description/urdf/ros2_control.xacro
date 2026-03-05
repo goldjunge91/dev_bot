@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="nerf_ros2_control">
+        <gazebo>
+            <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
+                <parameters>$(find nerf_launch_system)/config/controllers.yaml</parameters>
+                <parameters>$(find nerf_launch_system)/config/gains.yaml</parameters>
+            </plugin>
+        </gazebo>
+        <ros2_control name="IgnitionSystem" type="system">
+            <hardware>
+                <plugin>ign_ros2_control/IgnitionSystem</plugin>
+            </hardware>
+            
+            <joint name="trigger_joint">
+                <command_interface name="position"/>
+                <state_interface name="velocity"/>
+                <state_interface name="position">
+                  <param name="initial_value">6.28</param>
+                </state_interface>
+            </joint>
+            <joint name="dart_pusher_joint">
+                <command_interface name="velocity"/>
+                <state_interface name="velocity"/>
+                <state_interface name="position"/>
+            </joint>
+            <!-- Flywheel Joints entfernt (FSM)
+            <joint name="flywheel_left_joint">
+                <command_interface name="velocity"/>
+                <state_interface name="velocity"/>
+                <state_interface name="position"/>
+            </joint>
+            <joint name="flywheel_right_joint">
+                <command_interface name="velocity"/>
+                <state_interface name="velocity"/>
+                <state_interface name="position"/>
+            </joint>
+            -->
+
+        </ros2_control>
+
+    </xacro:macro>
+    <xacro:macro name="nerf_ros2_control_joints_only">        
+        <joint name="trigger_joint">
+            <command_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position">
+              <param name="initial_value">6.28</param>
+            </state_interface>
+        </joint>
+        <joint name="dart_pusher_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+        <!-- Flywheel Joints entfernt (FSM)
+        <joint name="flywheel_left_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+        <joint name="flywheel_right_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+        -->
+
+    </xacro:macro>
+
+</robot>

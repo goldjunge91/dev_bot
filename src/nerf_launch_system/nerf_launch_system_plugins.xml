@@ -1,0 +1,7 @@
+<library path="nerf_system">
+  <class name="nerf_launch_system/NerfSystem" type="nerf_launch_system::NerfSystem" base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Arduino Pro Micro hardware interface for Nerf Launcher.
+    </description>
+  </class>
+</library>

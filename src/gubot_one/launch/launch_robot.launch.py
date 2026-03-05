@@ -242,7 +242,7 @@ def generate_launch_description():
 
     # 7. Nerf Control Node (startet nach arming)
     nerf_control = Node(
-        package="nerf_standalone",
+        package="nerf_launch_system",
         executable="nerf_control_node",
         output="screen",
         parameters=[{"auto_arm": auto_arm}],
