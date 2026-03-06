@@ -175,7 +175,7 @@ class NerfJoy(Node):
                 self.get_logger().info("FIRE!")
                 self.pusher_active = True
                 self.pusher_timer = 5  # 0.5s bei 20Hz (5 * 0.05s)
-                self.publish_shooter(80.0)
+                self.publish_shooter(10.0)
             else:
                 self.get_logger().warn("Cannot Fire: System not Armed")
 

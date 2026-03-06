@@ -24,6 +24,8 @@ Tastenbelegung:
     SPACE - Schießen
     T - Tilt UP (6.28 rad)
     G - Tilt DOWN (5.23 rad)
+    R - Power UP (+5%)
+    F - Power DOWN (-5%)
 """
 
 import sys
@@ -50,6 +52,9 @@ Launcher Controls:
    
    t : Tilt Servo (UP - 6.28)
    g : Tilt Servo (DOWN - 5.23)
+   
+   r : Increase Fire Power (+5%)
+   f : Decrease Fire Power (-5%)
 
 CTRL-C to quit
 """
@@ -116,6 +121,7 @@ class NerfTeleop(Node):
         self.pusher_timer = 0  # Timer für Pusher-Puls
         self.tilt_pos = 6.28  # Startposition: UP (360°)
         self.tilt_step = 0.05  # Schrittweite für Tilt
+        self.shot_power = 10.0  # Standard Schuss-Power (0-100)
 
         print(msg)  # Zeige Hilfe-Text
 
@@ -150,7 +156,7 @@ class NerfTeleop(Node):
                 self.get_logger().info("FIRING!")
                 self.pusher_active = True
                 self.pusher_timer = 5  # 0.5 Sekunden bei 10Hz
-                self.publish_shooter(80.0)  # Standard Power 80%
+                self.publish_shooter(self.shot_power)
 
         elif key == "t":  # Tilt UP
             self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
@@ -160,6 +166,12 @@ class NerfTeleop(Node):
             self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
             self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
             self.publish_tilt(self.tilt_pos)
+        elif key == "r":  # Power UP
+            self.shot_power = min(100.0, self.shot_power + 5.0)
+            self.get_logger().info(f"Shot Power: {self.shot_power:.0f}%")
+        elif key == "f":  # Power DOWN
+            self.shot_power = max(0.0, self.shot_power - 5.0)
+            self.get_logger().info(f"Shot Power: {self.shot_power:.0f}%")
 
         elif key == "\x03":  # CTRL-C = Beenden
             self.publish_twist(0.0, 0.0)
