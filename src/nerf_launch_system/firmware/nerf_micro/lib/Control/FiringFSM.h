@@ -94,12 +94,14 @@ public:
 
     /**
      * @brief Wertet zeit- oder logikbasierte Zustandsübergänge aus.
-     * Muss in der Hauptschleife (loop) aufgerufen werden.
+     * Setzt nur _nextState, führt aber keine direkten Hardware-Aktionen aus.
      */
     void evalTransition();
 
     /**
-     * @brief Führt Hardware-Aktionen basierend auf dem aktuellen Zustand aus.
+     * @brief Übernimmt _nextState und führt Hardware-Aktionen aus.
+     * Wird nur aktiv, wenn sich der Zustand ändert (_nextState != _currentState)
+     * und feuert die Ein- und Austrittsaktionen genau einmalig ab.
      * Muss in der Hauptschleife nach `evalTransition()` aufgerufen werden.
      */
     void evalState();

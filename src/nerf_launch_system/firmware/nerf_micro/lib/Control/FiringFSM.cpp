@@ -95,6 +95,15 @@ void FiringFSM::evalTransition() {
                 }
                 break;
 
+            case FiringState::IDLE:
+            case FiringState::ARMED:
+            case FiringState::DISARMED:
+            case FiringState::ESC_TEST:
+            case FiringState::CALIBRATING:
+                // Diese Zustände erfordern im regulären Betrieb keine automatischen
+                // zeitgesteuerten Übergänge. Übergänge werden durch externe Events ausgelöst.
+                break;
+
             default:
                 break;
         }
@@ -102,10 +111,11 @@ void FiringFSM::evalTransition() {
 }
 
 /**
- * @brief Führt Eingangsaktionen (Entry) und kontinuierliche Aktionen aus.
+ * @brief Wendet den Zustandswechsel an und führt Entry/Exit-Aktionen aus.
  *
- * Behandelt das Ansteuern der Schwungräder und Servos sowie das
- * Senden von Debug-Status-Updates bei einem Zustandswechsel.
+ * Wird nur aktiv, wenn `_nextState != _currentState`. Führt dann GENAU EINMAL
+ * die Hardware-Aktionen (Schwungräder/Servos) für den neuen Zustand aus.
+ * Es gibt hier keine kontinuierlichen Aktionen.
  */
 void FiringFSM::evalState() {
     // State-Wechsel?

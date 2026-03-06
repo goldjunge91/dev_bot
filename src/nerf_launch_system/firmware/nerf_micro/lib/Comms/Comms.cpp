@@ -4,6 +4,8 @@
 
 #include "Comms.h"
 
+#include "Help.h"
+
 // #include "../Debug/ESCCalibration.h"
 
 // 'Stream' aus der Arduino-Bibliothek (Datenstrom, z.B. Serial)
