@@ -54,7 +54,7 @@ Launcher Controls:
    g : Tilt Servo (DOWN - 5.23)
    
    r / f : Increase/Decrease Fire Power (5% steps)
-   e / d : Increase/Decrease Fire Power (1% steps)
+   e / b : Increase/Decrease Fire Power (1% steps)
 
 CTRL-C to quit
 """
@@ -194,7 +194,7 @@ class NerfTeleop(Node):
             self.input_count += 1
             self.shot_power = min(100.0, self.shot_power + 1.0)
             self.get_logger().info(f"Shot Power: {self.shot_power:.1f}% (+1%)")
-        elif key == "d":  # Power DOWN 1%
+        elif key == "b":  # Power DOWN 1%
             self.input_count += 1
             self.shot_power = max(0.0, self.shot_power - 1.0)
             self.get_logger().info(f"Shot Power: {self.shot_power:.1f}% (-1%)")
