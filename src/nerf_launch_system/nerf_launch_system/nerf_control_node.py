@@ -1,6 +1,21 @@
 #!/usr/bin/env python3
+
+# Copyright 2026 Developer
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Nerf Control Node - High-Level Launcher Control
+Nerf Control Node - High-Level Launcher Control.
+
 ================================================
 Bietet High-Level ROS2 Interface für Nerf Launcher
 
@@ -15,7 +30,7 @@ Topics (Subscribed):
 
 Topics (Published):
 - /trigger_controller/commands - Tilt Servo Position (Radiant)
-# - /flywheel_controller/commands - Flywheel Motor Geschwindigkeiten (entfernt: Firmware-FSM steuert autonom)
+# - /flywheel_controller/commands - Flywheel Motor Geschwindigkeiten (entfernt: Firmware-FSM steuert autonom)  # noqa: E501
 - /pusher_controller/commands - Pusher Servo Geschwindigkeit
 
 Schuss-Sequenz:
@@ -71,7 +86,7 @@ class NerfControlNode(Node):
         self.tilt_min = 5.23  # ~300° (Unten)
         self.tilt_max = 6.28  # ~360° (Oben)
 
-        self.get_logger().info("Nerf Control Node Started")
+        self.get_logger().info("{'id': 'node_start'} Nerf Control Node Started")
 
         # Initialisierungs-Timer (einmalig nach 1s)
         # HINWEIS: Kann gelöscht werden wenn nicht benötigt
@@ -79,31 +94,38 @@ class NerfControlNode(Node):
 
     def init_callback(self):
         """
-        Initialisiert Launcher-Position auf 'UP' (6.28 rad)
-        Läuft nur einmal
+        Initialisiert Launcher-Position auf 'UP' (6.28 rad) Läuft nur.
+
+        einmal.
         """
-        self.get_logger().info("Initializing Launcher Position to UP (6.28)...")
+        self.get_logger().info(
+            "{'id': 'init', 'action': 'move_up'} Initializing Launcher Position to UP (6.28)..."
+        )
         cmd = Float64MultiArray()
         cmd.data = [6.28]
         self.trigger_pub.publish(cmd)
 
         if self.auto_arm:
-            self.get_logger().warn("AUTO-ARMING the system (Hardware Enable)...")
+            self.get_logger().warn(
+                "{'id': 'init', 'action': 'auto_arm'} AUTO-ARMING the system (Hardware Enable)..."
+            )
             cmd_arm = Float64MultiArray()
             cmd_arm.data = [1.0]
             self.arming_pub.publish(cmd_arm)
         else:
             self.get_logger().info(
-                "System is DISARMED. Send ARM command or use Gamepad LB+RB."
+                "{'id': 'init', 'status': 'disarmed'} System is DISARMED. Send ARM command or use Gamepad LB+RB."  # noqa: E501
             )
 
         # Timer zerstören damit er nur einmal läuft
         self.init_timer.cancel()
-        self.get_logger().info("Initialization Complete.")
+        self.get_logger().info(
+            "{'id': 'init', 'status': 'complete'} Initialization Complete."
+        )
 
     def tilt_callback(self, msg):
         """
-        Akzeptiert normalisierte Tilt-Werte [0.0 - 1.0]
+        Akzeptiert normalisierte Tilt-Werte [0.0 - 1.0].
 
         Mapping:
         0.0 = Unten (5.23 rad ≈ 300°)
@@ -131,7 +153,7 @@ class NerfControlNode(Node):
             cmd.data = [target_phys]
             self.trigger_pub.publish(cmd)
             self.get_logger().debug(
-                f"Tilt Command: {target_norm} -> Physical: {target_phys:.2f}"
+                f"{{'id': 'tilt_cmd', 'norm': {target_norm}, 'phys': {target_phys:.2f}}} Tilt Command processed"  # noqa: E501
             )
 
     def fire_callback(self, request, response):
@@ -145,7 +167,9 @@ class NerfControlNode(Node):
 
         WICHTIG: Kein time.sleep()! Die Firmware übernimmt das Timing.
         """
-        self.get_logger().info("FIRE: Sending SHOT command to Firmware FSM")
+        self.get_logger().info(
+            "{'id': 'fire', 'action': 'shot'} FIRE: Sending SHOT command to Firmware FSM"
+        )
 
         # Sende Schuss-Befehl über Pusher-Controller
         # pusher_vel > 1.0 löst "SHOT 80" im Hardware-Interface aus
@@ -161,12 +185,14 @@ class NerfControlNode(Node):
         return response
 
     def _reset_pusher(self):
-        """Setzt den Pusher-Command zurück auf 0 (einmalig)"""
+        """Setzt den Pusher-Command zurück auf 0 (einmalig).."""
         cmd = Float64MultiArray()
         cmd.data = [0.0]
         self.pusher_pub.publish(cmd)
         self._reset_timer.cancel()
-        self.get_logger().info("FIRE: Pusher command reset")
+        self.get_logger().info(
+            "{'id': 'fire', 'action': 'pusher_reset'} FIRE: Pusher command reset"
+        )
 
 
 def main(args=None):

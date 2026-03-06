@@ -81,4 +81,15 @@ ament_export_dependencies(
   pluginlib
 )
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_nerf_system test/test_nerf_system.cpp)
+  target_link_libraries(test_nerf_system nerf_system)
+
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_control_node test/test_control_node.py
+    APPEND_ENV PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}
+  )
+endif()
+
 ament_package()

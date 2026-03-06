@@ -1,4 +1,17 @@
-# Copyright 2026 - Fire At Face Node
+# Copyright 2026 Developer
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Triggers the Nerf Launcher when a face is locked on.
 
 import rclpy
@@ -58,7 +71,7 @@ class FireAtFace(Node):
 
         self.last_fire_time = 0.0
         self.get_logger().info(
-            f"FireAtFace started. Target: '{self.target_person or 'ANY'}'. Cooldown: {self.cooldown_secs}s"
+            f"FireAtFace started. Target: '{self.target_person or 'ANY'}'. Cooldown: {self.cooldown_secs}s"  # noqa: E501
         )
 
     def listener_callback(self, msg: Detection2DArray):
@@ -113,12 +126,12 @@ class FireAtFace(Node):
         if is_centered and is_close_enough:
             if is_cooldown_ready:
                 self.get_logger().warn(
-                    f"LOCKED ON! Firing at {target_det.results[0].hypothesis.class_id if target_det.results else 'Generic'}"
+                    f"LOCKED ON! Firing at {target_det.results[0].hypothesis.class_id if target_det.results else 'Generic'}"  # noqa: E501
                 )
                 self.trigger_fire()
             else:
                 # pass
-                # self.get_logger().info(f"Locked on... waiting for cooldown ({self.cooldown_secs - (time.time() - self.last_fire_time):.1f}s)")
+                # self.get_logger().info(f"Locked on... waiting for cooldown ({self.cooldown_secs - (time.time() - self.last_fire_time):.1f}s)")  # noqa: E501
                 remaining = self.cooldown_secs - (time.time() - self.last_fire_time)
                 self.get_logger().info(
                     f"Locked on... waiting for cooldown ({remaining:.1f}s)",

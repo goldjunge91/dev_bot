@@ -1,3 +1,17 @@
+# Copyright 2026 Developer
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Simulation Launch File für Nerf Standalone System
 # Startet Gazebo-Simulation mit ROS2 Control und RViz
 #
@@ -39,7 +53,7 @@ def generate_launch_description():
     use_gazebo_classic_arg = DeclareLaunchArgument(
         "use_gazebo_classic",
         default_value="false",
-        description="Whether to use Gazebo Classic (true) or modern Gazebo Ignition/Harmonic (false)",
+        description="Whether to use Gazebo Classic (true) or modern Gazebo Ignition/Harmonic (false)",  # noqa: E501
     )
 
     use_gazebo_classic = LaunchConfiguration("use_gazebo_classic")

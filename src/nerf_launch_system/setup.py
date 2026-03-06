@@ -25,7 +25,7 @@ setup(
     zip_safe=True,
     maintainer="ros",
     maintainer_email="30201929+goldjunge91@users.noreply.github.com",
-    description="ROS2 hardware interface and control node for the Nerf dart launcher on Gubot One.",
+    description="ROS2 hardware interface and control node for the Nerf dart launcher on Gubot One.",  # noqa: E501
     license="Apache-2.0",
     extras_require={
         "test": [

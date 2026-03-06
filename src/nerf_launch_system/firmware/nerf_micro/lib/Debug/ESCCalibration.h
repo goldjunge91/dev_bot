@@ -5,6 +5,7 @@
 
 #include "Config.h"
 #include "SerialOutput.h"
+
 #include <Arduino.h>
 #include <Servo.h>
 
@@ -16,30 +17,30 @@
  */
 class ESCCalibration {
 private:
-  Servo &_escLeft;
-  Servo &_escRight;
+    Servo &_escLeft;
+    Servo &_escRight;
 
 public:
-  ESCCalibration(Servo &escL, Servo &escR);
+    ESCCalibration(Servo &escL, Servo &escR);
 
-  /**
-   * @brief Sends Maximum Throttle (2000us).
-   * Used as the first step in ESC calibration.
-   */
-  void calibrateMax();
+    /**
+     * @brief Sends Maximum Throttle (2000us).
+     * Used as the first step in ESC calibration.
+     */
+    void calibrateMax();
 
-  /**
-   * @brief Sends Minimum Throttle (1000us).
-   * Used to finalize ESC calibration.
-   */
-  void calibrateMin();
+    /**
+     * @brief Sends Minimum Throttle (1000us).
+     * Used to finalize ESC calibration.
+     */
+    void calibrateMin();
 
-  /**
-   * @brief Runs a ramp-up/ramp-down test sequence.
-   * WARNING: Motors will spin!
-   */
-  void testSequence();
+    /**
+     * @brief Runs a ramp-up/ramp-down test sequence.
+     * WARNING: Motors will spin!
+     */
+    void testSequence();
 };
 
-#endif // DEBUG_CALIBRATION
-#endif // ESCCALIBRATION_H
+#endif  // DEBUG_CALIBRATION
+#endif  // ESCCALIBRATION_H

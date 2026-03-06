@@ -1,6 +1,16 @@
-# Copyright 2026 - Face Detection Utilities
-# Based on process_image.py by Tiziano Fiorenzani / Josh Newans
-# Refactored to only contain face detection and recognition functions.
+# Copyright 2026 Developer
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import cv2
 import numpy as np
@@ -10,8 +20,12 @@ import os
 
 
 def load_encodings(path):
-    """Lädt gespeicherte Gesichts-Encodings aus einer .pkl-Datei.
-    Gibt (known_encodings, known_names) zurück, oder ([], []) wenn Datei nicht existiert."""
+    """
+        Lädt gespeicherte Gesichts-Encodings aus einer .pkl-Datei.
+
+    Gibt (known_encodings, known_names) zurück, oder ([], []) wenn Datei
+    nicht existiert.
+    """
     expanded = os.path.expanduser(path)
     if not os.path.exists(expanded):
         return [], []
@@ -23,7 +37,11 @@ def load_encodings(path):
 def find_and_identify_faces(
     image, known_encodings, known_names, tolerance=0.6, model="hog"
 ):
-    """Erkennt Gesichter im Bild und identifiziert sie anhand gespeicherter Encodings."""
+    """
+    Erkennt Gesichter im Bild und identifiziert sie anhand gespeicherter.
+
+    Encodings.
+    """
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     face_locations = face_recognition.face_locations(rgb_image, model=model)
     face_encodings = face_recognition.face_encodings(rgb_image, face_locations)

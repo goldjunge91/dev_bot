@@ -1,3 +1,17 @@
+// Copyright 2026 Developer
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @file nerf_communication.cpp
  * @brief Implementierung der seriellen Kommunikation mit dem Mikrocontroller
@@ -38,8 +52,9 @@ void NerfCommunication::disconnect() {
         try {
             serial_port_.Close();
         } catch (const std::exception &e) {
-            RCLCPP_ERROR(
-                rclcpp::get_logger("NerfCommunication"), "Error closing serial port: %s", e.what());
+            RCLCPP_ERROR(rclcpp::get_logger("NerfCommunication"),
+                         "{'id': 'serial_error', 'error': '%s'} Error closing serial port",
+                         e.what());
         }
     }
 }
@@ -55,7 +70,7 @@ void NerfCommunication::send_command(const std::string &cmd) {
         serial_port_.Write(cmd + "\n");
     } catch (const std::exception &e) {
         RCLCPP_ERROR(rclcpp::get_logger("NerfCommunication"),
-                     "Serial write failed (%s). Closing port.",
+                     "{'id': 'serial_error', 'error': '%s'} Serial write failed. Closing port.",
                      e.what());
         disconnect();
     }

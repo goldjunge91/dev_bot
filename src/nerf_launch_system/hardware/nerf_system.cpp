@@ -1,3 +1,17 @@
+// Copyright 2026 Developer
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @file nerf_system.cpp
  * @brief Implementierung des ros2_control Hardware Interface für den Nerf Launcher
@@ -27,28 +41,32 @@ hardware_interface::CallbackReturn NerfSystem::on_init(
     baud_rate_ = std::stoi(info_.hardware_parameters["baud_rate"]);
 
     RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
-                "Initialized NerfSystem on port %s @ %d",
+                "{'id': 'init', 'port': '%s', 'baud': %d} Initialized NerfSystem",
                 port_.c_str(),
                 baud_rate_);
 
     // Verifiziere Joints aus URDF-Konfiguration
     for (const hardware_interface::ComponentInfo &joint : info_.joints) {
-        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Joint found: %s", joint.name.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
+                    "{'id': 'joint_discovery', 'name': '%s'} Joint found",
+                    joint.name.c_str());
 
         if (joint.name != "tilt_joint" &&
             joint.name != "trigger_joint" &&  // Fallback falls URDF noch nicht aktualisiert
             joint.name != "shooter_joint" && joint.name != "system_arming_joint") {
-            RCLCPP_FATAL(
-                rclcpp::get_logger("NerfSystem"), "Unsupported joint '%s'", joint.name.c_str());
+            RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
+                         "{'id': 'unsupported_joint', 'name': '%s'} Unsupported joint",
+                         joint.name.c_str());
             return hardware_interface::CallbackReturn::ERROR;
         }
 
         for (const auto &command_interface : joint.command_interfaces) {
             if (!get_command_ptr(joint.name, command_interface.name)) {
                 RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
-                             "Unsupported command interface '%s' for joint '%s'",
-                             command_interface.name.c_str(),
-                             joint.name.c_str());
+                             "{'id': 'unsupported_interface', 'joint': '%s', 'type': '%s'} "
+                             "Unsupported command interface",
+                             joint.name.c_str(),
+                             command_interface.name.c_str());
                 return hardware_interface::CallbackReturn::ERROR;
             }
         }
@@ -56,9 +74,10 @@ hardware_interface::CallbackReturn NerfSystem::on_init(
         for (const auto &state_interface : joint.state_interfaces) {
             if (!get_state_ptr(joint.name, state_interface.name)) {
                 RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
-                             "Unsupported state interface '%s' for joint '%s'",
-                             state_interface.name.c_str(),
-                             joint.name.c_str());
+                             "{'id': 'unsupported_interface', 'joint': '%s', 'type': '%s'} "
+                             "Unsupported state interface",
+                             joint.name.c_str(),
+                             state_interface.name.c_str());
                 return hardware_interface::CallbackReturn::ERROR;
             }
         }
@@ -69,13 +88,18 @@ hardware_interface::CallbackReturn NerfSystem::on_init(
 
 hardware_interface::CallbackReturn NerfSystem::on_configure(
     const rclcpp_lifecycle::State & /*previous_state*/) {
-    RCLCPP_INFO(
-        rclcpp::get_logger("NerfSystem"), "Configuring... Opening Serial %s", port_.c_str());
+    RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
+                "{'id': 'configure', 'port': '%s'} Configuring... Opening Serial",
+                port_.c_str());
     try {
         comms_.connect(port_, baud_rate_);
-        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Serial Connected Successfully");
+        RCLCPP_INFO(
+            rclcpp::get_logger("NerfSystem"),
+            "{'id': 'serial_status', 'attribute': 'connected'} Serial Connected Successfully");
     } catch (const std::exception &e) {
-        RCLCPP_ERROR(rclcpp::get_logger("NerfSystem"), "Failed to open serial port: %s", e.what());
+        RCLCPP_ERROR(rclcpp::get_logger("NerfSystem"),
+                     "{'id': 'serial_error', 'error': '%s'} Failed to open serial port",
+                     e.what());
         return hardware_interface::CallbackReturn::ERROR;
     }
     return hardware_interface::CallbackReturn::SUCCESS;
@@ -89,7 +113,9 @@ hardware_interface::CallbackReturn NerfSystem::on_cleanup(
 
 hardware_interface::CallbackReturn NerfSystem::on_activate(
     const rclcpp_lifecycle::State & /*previous_state*/) {
-    RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "System Activated (Waiting for ARM command)");
+    RCLCPP_INFO(
+        rclcpp::get_logger("NerfSystem"),
+        "{'id': 'status', 'state': 'activated'} System Activated (Waiting for ARM command)");
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -97,7 +123,8 @@ hardware_interface::CallbackReturn NerfSystem::on_deactivate(
     const rclcpp_lifecycle::State & /*previous_state*/) {
     comms_.send_command("DISARM");
     armed_ = false;
-    RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "System DISARMED");
+    RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
+                "{'id': 'status', 'state': 'disarmed'} System DISARMED");
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -111,9 +138,10 @@ std::vector<hardware_interface::StateInterface> NerfSystem::export_state_interfa
             double *state_ptr = get_state_ptr(joint.name, interface.name);
             if (!state_ptr) {
                 RCLCPP_ERROR(rclcpp::get_logger("NerfSystem"),
-                             "Skipping unsupported state interface '%s' for joint '%s'",
-                             interface.name.c_str(),
-                             joint.name.c_str());
+                             "{'id': 'unsupported_export', 'joint': '%s', 'type': '%s'} Skipping "
+                             "unsupported state interface",
+                             joint.name.c_str(),
+                             interface.name.c_str());
                 continue;
             }
             state_interfaces.emplace_back(
@@ -132,9 +160,10 @@ std::vector<hardware_interface::CommandInterface> NerfSystem::export_command_int
             double *command_ptr = get_command_ptr(joint.name, interface.name);
             if (!command_ptr) {
                 RCLCPP_ERROR(rclcpp::get_logger("NerfSystem"),
-                             "Skipping unsupported command interface '%s' for joint '%s'",
-                             interface.name.c_str(),
-                             joint.name.c_str());
+                             "{'id': 'unsupported_export', 'joint': '%s', 'type': '%s'} Skipping "
+                             "unsupported command interface",
+                             joint.name.c_str(),
+                             interface.name.c_str());
                 continue;
             }
             command_interfaces.emplace_back(
@@ -176,7 +205,8 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
     if (!comms_.connected()) {
         if (!serial_warned_) {
             RCLCPP_WARN(rclcpp::get_logger("NerfSystem"),
-                        "Serial disconnected. Skipping write commands.");
+                        "{'id': 'serial_status', 'attribute': 'disconnected'} Serial disconnected. "
+                        "Skipping write commands.");
             serial_warned_ = true;
         }
         return hardware_interface::return_type::OK;
@@ -189,11 +219,13 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
     if (should_arm && !armed_) {
         comms_.send_command("ARM");
         armed_ = true;
-        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: ARM");
+        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
+                    "{'id': 'command', 'action': 'ARM'} Command sent");
     } else if (!should_arm && armed_) {
         comms_.send_command("DISARM");
         armed_ = false;
-        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: DISARM");
+        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
+                    "{'id': 'command', 'action': 'DISARM'} Command sent");
     }
 
     if (!armed_) return hardware_interface::return_type::OK;
@@ -228,7 +260,9 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
         shot_ss << "SHOT " << shot_power;
         comms_.send_command(shot_ss.str());
         pusher_active_ = true;
-        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: SHOT %d (via FSM)", shot_power);
+        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
+                    "{'id': 'command', 'action': 'SHOT', 'power': %d} Command sent (via FSM)",
+                    shot_power);
     } else if (shot_power <= 0) {
         pusher_active_ = false;
     }
