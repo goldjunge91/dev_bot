@@ -24,8 +24,8 @@ Tastenbelegung:
     SPACE - Schießen
     T - Tilt UP (6.28 rad)
     G - Tilt DOWN (5.23 rad)
-    R - Power UP (+5%)
-    F - Power DOWN (-5%)
+    R / F - Power UP/DN (5% steps)
+    E / D - Power UP/DN (1% steps)
 """
 
 import sys
@@ -53,8 +53,8 @@ Launcher Controls:
    t : Tilt Servo (UP - 6.28)
    g : Tilt Servo (DOWN - 5.23)
    
-   r : Increase Fire Power (+5%)
-   f : Decrease Fire Power (-5%)
+   r / f : Increase/Decrease Fire Power (5% steps)
+   e / d : Increase/Decrease Fire Power (1% steps)
 
 CTRL-C to quit
 """
@@ -121,7 +121,9 @@ class NerfTeleop(Node):
         self.pusher_timer = 0  # Timer für Pusher-Puls
         self.tilt_pos = 6.28  # Startposition: UP (360°)
         self.tilt_step = 0.05  # Schrittweite für Tilt
-        self.shot_power = 10.0  # Standard Schuss-Power (0-100)
+        self.shot_power = 5.0  # Standard Schuss-Power (0-100)
+        self.input_count = 0  # Zähler für Reprints
+        self.max_inputs = 15  # Reprint nach 15 Eingaben
 
         print(msg)  # Zeige Hilfe-Text
 
@@ -134,44 +136,74 @@ class NerfTeleop(Node):
 
         # Bewegungs-Steuerung
         if key in moveBindings.keys():
+            self.input_count += 1
             self.speed = moveBindings[key][0]
             self.turn = moveBindings[key][1]
-        elif key == " " or key == "k":  # Space oder K stoppt Bewegung
+        elif key == " ":  # SPACE wird unten für Schuss/Stopp behandelt
+            pass
+        elif key == "k":
+            self.input_count += 1
             self.speed = 0.0
             self.turn = 0.0
-        else:
+        elif key != "":
             self.speed = 0.0
             self.turn = 0.0
+            # Keine Erhöhung von input_count bei leeren/unbekannten Tasten
 
         # Launcher-Steuerung
         if key == "1":
+            self.input_count += 1
             self.get_logger().info("Disarming...")
             self.publish_arming(0.0)
         elif key == "2":
+            self.input_count += 1
             self.get_logger().info("ARMING SYSTEM!")
             self.publish_arming(1.0)
 
-        elif key == " ":  # SPACE = Feuer
+        elif key == " ":  # SPACE = Feuer (und Stopp oben)
             if not self.pusher_active:
-                self.get_logger().info("FIRING!")
+                self.input_count += 1
+                self.get_logger().info(f"FIRING (Power: {self.shot_power:.1f}%)!")
                 self.pusher_active = True
                 self.pusher_timer = 5  # 0.5 Sekunden bei 10Hz
                 self.publish_shooter(self.shot_power)
 
+            # Stoppe Bewegung bei SPACE
+            self.speed = 0.0
+            self.turn = 0.0
+
         elif key == "t":  # Tilt UP
+            self.input_count += 1
             self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
             self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
             self.publish_tilt(self.tilt_pos)
         elif key == "g":  # Tilt DOWN
+            self.input_count += 1
             self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
             self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
             self.publish_tilt(self.tilt_pos)
-        elif key == "r":  # Power UP
+        elif key == "r":  # Power UP 5%
+            self.input_count += 1
             self.shot_power = min(100.0, self.shot_power + 5.0)
-            self.get_logger().info(f"Shot Power: {self.shot_power:.0f}%")
-        elif key == "f":  # Power DOWN
+            self.get_logger().info(f"Shot Power: {self.shot_power:.1f}% (+5%)")
+        elif key == "f":  # Power DOWN 5%
+            self.input_count += 1
             self.shot_power = max(0.0, self.shot_power - 5.0)
-            self.get_logger().info(f"Shot Power: {self.shot_power:.0f}%")
+            self.get_logger().info(f"Shot Power: {self.shot_power:.1f}% (-5%)")
+        elif key == "e":  # Power UP 1%
+            self.input_count += 1
+            self.shot_power = min(100.0, self.shot_power + 1.0)
+            self.get_logger().info(f"Shot Power: {self.shot_power:.1f}% (+1%)")
+        elif key == "d":  # Power DOWN 1%
+            self.input_count += 1
+            self.shot_power = max(0.0, self.shot_power - 1.0)
+            self.get_logger().info(f"Shot Power: {self.shot_power:.1f}% (-1%)")
+
+        # Periodischer Reprint der Hilfe
+        if self.input_count >= self.max_inputs:
+            print(msg)
+            print(f"--- Current Status: Power Level = {self.shot_power:.1f}% ---")
+            self.input_count = 0
 
         elif key == "\x03":  # CTRL-C = Beenden
             self.publish_twist(0.0, 0.0)

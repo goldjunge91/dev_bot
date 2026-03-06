@@ -174,7 +174,7 @@ class NerfControlNode(Node):
         # Sende Schuss-Befehl über Pusher-Controller
         # pusher_vel > 1.0 löst "SHOT 80" im Hardware-Interface aus
         cmd_push = Float64MultiArray()
-        cmd_push.data = [10.0]
+        cmd_push.data = [5.0]
         self.pusher_pub.publish(cmd_push)
 
         # Reset Pusher-Command nach kurzer Zeit (non-blocking Timer)
