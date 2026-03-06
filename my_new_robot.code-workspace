@@ -10,11 +10,6 @@
 			"/opt/ros/humble/lib/python3.10/site-packages",
 			"/opt/ros/humble/local/lib/python3.10/dist-packages"
 		],
-		"python.analysis.extraPaths": [
-			"/home/ros/projects/my_new_robot/install/nerf_standalone/local/lib/python3.10/dist-packages",
-			"/opt/ros/humble/lib/python3.10/site-packages",
-			"/opt/ros/humble/local/lib/python3.10/dist-packages"
-		],
 		"chat.tools.terminal.autoApprove": {
 			"true": true
 		},
