@@ -9,14 +9,14 @@
                 <param name="baud_rate">115200</param>
             </hardware>
             
-            <joint name="trigger_joint">
+            <joint name="tilt_joint">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
             </joint>
-
-            <joint name="dart_pusher_joint">
-                <command_interface name="velocity"/>
-                <state_interface name="velocity"/>
+            
+            <joint name="shooter_joint">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
             </joint>
 
             <!-- Flywheel Joints entfernt: Firmware-FSM steuert Flywheels autonom via SHOT -->
@@ -34,6 +34,15 @@
 
             <joint name="system_arming_joint">
                 <command_interface name="position"/>
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="flywheel_left_joint">
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="flywheel_right_joint">
+                <state_interface name="position"/>
             </joint>
 
         </ros2_control>

@@ -12,15 +12,15 @@
                 <plugin>gz_ros2_control/GazeboSimSystem</plugin>
             </hardware>
             
-            <joint name="trigger_joint">
+            <joint name="tilt_joint">
                 <command_interface name="position"/>
                 <state_interface name="velocity"/>
                 <state_interface name="position">
                   <param name="initial_value">6.28</param>
                 </state_interface>
             </joint>
-            <joint name="dart_pusher_joint">
-                <command_interface name="velocity"/>
+            <joint name="shooter_joint">
+                <command_interface name="position"/>
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
@@ -41,15 +41,15 @@
 
     </xacro:macro>
     <xacro:macro name="nerf_ros2_control_joints_only">        
-        <joint name="trigger_joint">
+        <joint name="tilt_joint">
             <command_interface name="position"/>
             <state_interface name="velocity"/>
             <state_interface name="position">
               <param name="initial_value">6.28</param>
             </state_interface>
         </joint>
-        <joint name="dart_pusher_joint">
-            <command_interface name="velocity"/>
+        <joint name="shooter_joint">
+            <command_interface name="position"/>
             <state_interface name="velocity"/>
             <state_interface name="position"/>
         </joint>
