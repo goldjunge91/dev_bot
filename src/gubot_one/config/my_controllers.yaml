@@ -85,8 +85,6 @@ diff_cont:
 
 
 
-joint_broad:
-  ros__parameters:
 
 #trigger_controller:
 #  ros__parameters:
