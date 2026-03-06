@@ -9,6 +9,8 @@ if(APPLE)
     find_library(FOUNDATION_LIBRARY Foundation)
 endif()
 
+add_compile_definitions(BOOST_BIND_GLOBAL_PLACEHOLDERS)
+
 ## Sources
 set(serial_SRCS
     src/serial.cc
