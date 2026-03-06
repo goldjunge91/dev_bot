@@ -62,6 +62,7 @@ def generate_launch_description():
                 "image_height": 240,
                 "framerate": 10.0,  # 10 Bilder pro Sekunde
                 "camera_name": "real_cam",  # Name für Kalibrierung
+                "camera_info_url": "package://gubot_one/config/camera_info/real_cam.yaml",  # Kalibrierungsdatei
                 "frame_id": "camera_link_optical",  # TF Frame
             }
         ],
