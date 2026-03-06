@@ -57,14 +57,14 @@ class NerfControlNode(Node):
         # Queue Size 10 = Puffert max. 10 Befehle, alte werden verworfen
         self.trigger_pub = self.create_publisher(
             Float64MultiArray,
-            "/trigger_controller/commands",
+            "/tilt_controller/commands",
             10,  # Tilt Servo
         )
         # Hinweis: flywheel_pub entfernt – die Firmware-FSM steuert die
         # Flywheels autonom innerhalb der SHOT-Sequenz.
         self.pusher_pub = self.create_publisher(
             Float64MultiArray,
-            "/pusher_controller/commands",
+            "/shooter_controller/commands",
             10,  # Pusher Servo (löst SHOT in Hardware-Interface aus)
         )
         self.arming_pub = self.create_publisher(

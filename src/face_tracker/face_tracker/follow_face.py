@@ -102,6 +102,9 @@ class FollowFace(Node):
             .get_parameter_value()
             .double_value
         )
+        # Deadzones matching fire_at_face thresholds
+        self.deadzone_x = 0.1
+        self.deadzone_y = 0.15
 
         # --- Zustand ---
         timer_period = 0.1  # Sekunden
@@ -130,19 +133,40 @@ class FollowFace(Node):
                 msg.linear.x = self.forward_chase_speed
 
             # X-Achse: Rotation des Roboters
-            # target_val ist bereits im Wertebereich [-1, 1], wir fügen den Offset skaliert hinzu
-            # Ein offset von 0 bedeutet, dass target_val 0 das Zentrum ist
             offset_scaled_x = self.camera_offset_x * 2.0
             error_x = self.target_val - offset_scaled_x
-            msg.angular.z = -self.angular_chase_multiplier * error_x
 
             # Y-Achse: Tilt Servo anpassen
             target_center_y = 0.5 + self.camera_offset_y
             error_y = target_center_y - self.target_y
 
-            # Passe aktuellen Tilt an
-            self.current_tilt += error_y * self.tilt_chase_multiplier
-            self.current_tilt = max(0.0, min(1.0, self.current_tilt))
+            # Deadzone-Logik: Innerhalb des Toleranzbereichs anhalten
+            # offset_x / offset_y Skalierung analog zu fire_at_face
+            # raw_x lief im listener_callback von [-1, 1], offset ist in [0, 1] skaliert.
+            # fire_at_face berechnet: offset_x = abs(center_x - target_center_x) (Skala 0-1)
+            # Hier haben wir error_x im Bereich [-1, 1], also vergleichen wir mit deadzone_x * 2.0
+
+            in_deadzone_x = abs(error_x) < (self.deadzone_x * 2.0)
+            in_deadzone_y = abs(error_y) < self.deadzone_y
+
+            if (
+                in_deadzone_x
+                and in_deadzone_y
+                and self.target_dist >= self.max_size_thresh
+            ):
+                # Roboter ist zentriert UND nah genug -> Anhalten!
+                msg.linear.x = 0.0
+                msg.angular.z = 0.0
+            else:
+                # Nicht in Center-Position oder zu weit weg -> Nachsteuern
+                if not in_deadzone_x:
+                    msg.angular.z = -self.angular_chase_multiplier * error_x
+                else:
+                    msg.angular.z = 0.0  # Stabile Ausrichtung in X
+
+                if not in_deadzone_y:
+                    self.current_tilt += error_y * self.tilt_chase_multiplier
+                    self.current_tilt = max(0.0, min(1.0, self.current_tilt))
 
             tilt_msg.data = [self.current_tilt]
             self.tilt_publisher_.publish(tilt_msg)
