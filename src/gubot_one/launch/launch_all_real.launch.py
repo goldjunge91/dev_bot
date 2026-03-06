@@ -185,7 +185,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             [
                 os.path.join(
-                    get_package_share_directory("ball_tracker"),
+                    get_package_share_directory("face_tracker"),
                     "launch",
                     "face_tracker.launch.py",
                 )

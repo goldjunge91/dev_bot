@@ -27,6 +27,7 @@ fi
 
 # Standard-Argumente
 CAMERA_TYPE="usb_cam" # Standard für Tailscale: usb_cam (MJPEG)
+LAUNCH_FACE="false"
 TARGET_PERSON=""
 ALLOW_SEARCH="false"
 AUTO_ARM="false"
