@@ -3,6 +3,9 @@ controller_manager:
     update_rate: 100
     # use_sim_time: true
 
+    joint_broad:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
     diff_cont:
       type: diff_drive_controller/DiffDriveController
 
@@ -82,8 +85,8 @@ diff_cont:
 
 
 
-# joint_broad:
-#   ros__parameters:
+joint_broad:
+  ros__parameters:
 
 #trigger_controller:
 #  ros__parameters:

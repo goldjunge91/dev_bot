@@ -43,14 +43,14 @@ class NerfJoy(Node):
             "/arming_controller/commands",
             10,  # Arming/Disarming (Sicherheitssystem)
         )
-        self.pub_pusher = self.create_publisher(
+        self.pub_shooter = self.create_publisher(
             Float64MultiArray,
-            "/pusher_controller/commands",
-            10,  # Dart Pusher (Schussmechanismus)
+            "/shooter_controller/commands",
+            10,  # Shooter (Schussmechanismus)
         )
-        self.pub_trigger = self.create_publisher(
+        self.pub_tilt = self.create_publisher(
             Float64MultiArray,
-            "/trigger_controller/commands",
+            "/tilt_controller/commands",
             10,  # Tilt Servo (Neigungswinkel)
         )
 
@@ -83,7 +83,7 @@ class NerfJoy(Node):
             self.pusher_timer -= 1
             if self.pusher_timer <= 0:
                 self.pusher_active = False
-                self.publish_pusher(0.0)  # Stoppe Pusher nach 0.5s
+                self.publish_shooter(0.0)  # Stoppe Pusher nach 0.5s
 
     def joy_callback(self, msg):
         """
@@ -159,12 +159,12 @@ class NerfJoy(Node):
 
                 if pressed(4):  # LB
                     self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
-                    self.publish_trigger(self.tilt_pos)
+                    self.publish_tilt(self.tilt_pos)
                     self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
 
                 if pressed(5):  # RB
                     self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
-                    self.publish_trigger(self.tilt_pos)
+                    self.publish_tilt(self.tilt_pos)
                     self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
 
         # --- 3. Fire (A) ---
@@ -175,7 +175,7 @@ class NerfJoy(Node):
                 self.get_logger().info("FIRE!")
                 self.pusher_active = True
                 self.pusher_timer = 5  # 0.5s bei 20Hz (5 * 0.05s)
-                self.publish_pusher(20.0)
+                self.publish_shooter(80.0)
             else:
                 self.get_logger().warn("Cannot Fire: System not Armed")
 
@@ -189,20 +189,20 @@ class NerfJoy(Node):
         msg.data = [float(val)]
         self.pub_arming.publish(msg)
 
-    def publish_pusher(self, speed):
-        """Sendet Pusher-Geschwindigkeit"""
+    def publish_shooter(self, power):
+        """Sendet Shooter-Befehl (Flywheel Power %)"""
         msg = Float64MultiArray()
-        msg.data = [float(speed)]
-        self.pub_pusher.publish(msg)
+        msg.data = [float(power)]
+        self.pub_shooter.publish(msg)
 
-    def publish_trigger(self, pos):
+    def publish_tilt(self, pos):
         """
         Sendet Tilt-Servo Position in Radiant
         5.23 rad ≈ 300° (DOWN), 6.28 rad ≈ 360° (UP)
         """
         msg = Float64MultiArray()
         msg.data = [float(pos)]
-        self.pub_trigger.publish(msg)
+        self.pub_tilt.publish(msg)
 
 
 def main(args=None):

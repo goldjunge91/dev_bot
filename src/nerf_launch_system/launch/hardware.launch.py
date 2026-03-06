@@ -87,36 +87,25 @@ def generate_launch_description():
         output="screen",
     )
 
-    trigger_controller = Node(
+    tilt_controller = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "trigger_controller",
+            "tilt_controller",
             "--controller-manager",
             "/controller_manager",
-        ],  # Nerf Tilt/Trigger Controller
+        ],  # Nerf Tilt Controller
         output="screen",
     )
 
-    # flywheel_controller = Node(
-    #     package="controller_manager",
-    #     executable="spawner",
-    #     arguments=[
-    #         "flywheel_controller",  # Schwungrad-Controller (ESC)
-    #         "--controller-manager",
-    #         "/controller_manager",
-    #     ],
-    #     output="screen",
-    # )
-
-    pusher_controller = Node(
+    shooter_controller = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "pusher_controller",
+            "shooter_controller",
             "--controller-manager",
             "/controller_manager",
-        ],  # Dart-Pusher Controller
+        ],  # Nerf Shooter Controller
         output="screen",
     )
 
@@ -144,9 +133,8 @@ def generate_launch_description():
             node_robot_state_publisher,
             controller_manager,
             joint_state_broadcaster,
-            trigger_controller,
-            # flywheel_controller,
-            pusher_controller,
+            tilt_controller,
+            shooter_controller,
             arming_controller,
             nerf_control,
         ]

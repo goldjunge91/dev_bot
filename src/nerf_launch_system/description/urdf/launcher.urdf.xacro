@@ -164,7 +164,7 @@
             </geometry>
         </visual>
     </link>
-    <joint name="trigger_joint" type="revolute">
+    <joint name="tilt_joint" type="revolute">
         <origin xyz="0.08882309 0.10354221000000001 -0.00119223" rpy="-1.5707963267948943 -3.374960801568061e-11 -1.570862213919093" />
         <parent link="bottom_plate" />
         <child link="motor_bracket" />
@@ -213,7 +213,7 @@
         <parent link="motor_bracket" />
         <child link="Servo_dart_pusher" />
     </joint>
-    <joint name="dart_pusher_joint" type="continuous">
+    <joint name="shooter_joint" type="continuous">
         <origin xyz="0.004999060000000002 0.014171329999999998 0.013443680000000003" rpy="1.5707963267948966 2.7571572048402603e-21 -2.354302446406244e-21" />
         <parent link="Servo_dart_pusher" />
         <child link="pusher_servo_part" />

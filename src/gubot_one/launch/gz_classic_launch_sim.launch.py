@@ -159,45 +159,31 @@ def generate_launch_description():
     )
 
     # Nerf Launcher Controllers
-    flywheel_controller_spawner = Node(
+    tilt_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["flywheel_controller"],
+        arguments=["tilt_controller"],
         output="screen",
     )
 
-    trigger_controller_spawner = Node(
+    shooter_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["trigger_controller"],
+        arguments=["shooter_controller"],
         output="screen",
     )
 
-    pusher_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["pusher_controller"],
-        output="screen",
-    )
-
-    delayed_nerf_flywheel = RegisterEventHandler(
+    delayed_nerf_tilt = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_entity,
-            on_exit=[flywheel_controller_spawner],
+            on_exit=[tilt_controller_spawner],
         )
     )
 
-    delayed_nerf_trigger = RegisterEventHandler(
+    delayed_nerf_shooter = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_entity,
-            on_exit=[trigger_controller_spawner],
-        )
-    )
-
-    delayed_nerf_pusher = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[pusher_controller_spawner],
+            on_exit=[shooter_controller_spawner],
         )
     )
 
@@ -252,9 +238,8 @@ def generate_launch_description():
             delayed_diff_drive_spawner,
             delayed_joint_broad_spawner,
             delayed_imu_broadcaster_spawner,
-            delayed_nerf_flywheel,
-            delayed_nerf_trigger,
-            delayed_nerf_pusher,
+            delayed_nerf_tilt,
+            delayed_nerf_shooter,
             delayed_nerf_arming,
             rviz_node,
         ]

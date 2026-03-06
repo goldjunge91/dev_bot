@@ -5,34 +5,24 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    trigger_controller:
+    tilt_controller:
       type: position_controllers/JointGroupPositionController
 
-    # flywheel_controller: Entfernt – Firmware-FSM steuert Flywheels autonom via SHOT
-    #   type: velocity_controllers/JointGroupVelocityController
-
-    pusher_controller:
-      type: velocity_controllers/JointGroupVelocityController
+    shooter_controller:
+      type: position_controllers/JointGroupPositionController
 
     arming_controller:
       type: forward_command_controller/ForwardCommandController
 
-trigger_controller:
+tilt_controller:
   ros__parameters:
     joints:
-      - trigger_joint
+      - tilt_joint
 
-# flywheel_controller: Entfernt – Firmware-FSM steuert Flywheels autonom via SHOT
-# flywheel_controller:
-#   ros__parameters:
-#     joints:
-#       - flywheel_left_joint
-#       - flywheel_right_joint
-
-pusher_controller:
+shooter_controller:
   ros__parameters:
     joints:
-      - dart_pusher_joint
+      - shooter_joint
 
 arming_controller:
   ros__parameters:

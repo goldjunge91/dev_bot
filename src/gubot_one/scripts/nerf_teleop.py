@@ -89,25 +89,19 @@ class NerfTeleop(Node):
         self.pub_cmd_vel = self.create_publisher(Twist, "/cmd_vel", 10)
 
         # Publisher: Nerf Launcher Komponenten
-        # Queue Size 10 = Gut für Echtzeit-Steuerung
         self.pub_arming = self.create_publisher(
             Float64MultiArray,
             "/arming_controller/commands",
             10,  # Sicherheitssystem
         )
-        self.pub_flywheel = self.create_publisher(
+        self.pub_shooter = self.create_publisher(
             Float64MultiArray,
-            "/flywheel_controller/commands",
-            10,  # Flywheel Motoren
+            "/shooter_controller/commands",
+            10,  # Shooter (löst SHOT in Hardware aus)
         )
-        self.pub_pusher = self.create_publisher(
+        self.pub_tilt = self.create_publisher(
             Float64MultiArray,
-            "/pusher_controller/commands",
-            10,  # Dart Pusher
-        )
-        self.pub_trigger = self.create_publisher(
-            Float64MultiArray,
-            "/trigger_controller/commands",
+            "/tilt_controller/commands",
             10,  # Tilt Servo
         )
 
@@ -156,16 +150,16 @@ class NerfTeleop(Node):
                 self.get_logger().info("FIRING!")
                 self.pusher_active = True
                 self.pusher_timer = 5  # 0.5 Sekunden bei 10Hz
-                self.publish_pusher(20.0)
+                self.publish_shooter(80.0)  # Standard Power 80%
 
         elif key == "t":  # Tilt UP
             self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
             self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
-            self.publish_trigger(self.tilt_pos)
+            self.publish_tilt(self.tilt_pos)
         elif key == "g":  # Tilt DOWN
             self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
             self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
-            self.publish_trigger(self.tilt_pos)
+            self.publish_tilt(self.tilt_pos)
 
         elif key == "\x03":  # CTRL-C = Beenden
             self.publish_twist(0.0, 0.0)
@@ -179,7 +173,7 @@ class NerfTeleop(Node):
             self.pusher_timer -= 1
             if self.pusher_timer <= 0:
                 self.pusher_active = False
-                self.publish_pusher(0.0)  # Stoppe Pusher
+                self.publish_shooter(0.0)  # Stoppe Pusher/Sequenz reset
 
     def publish_twist(self, linear, angular):
         twist = Twist()
@@ -192,15 +186,15 @@ class NerfTeleop(Node):
         msg.data = [float(val)]
         self.pub_arming.publish(msg)
 
-    def publish_pusher(self, speed):
+    def publish_shooter(self, power):
         msg = Float64MultiArray()
-        msg.data = [float(speed)]
-        self.pub_pusher.publish(msg)
+        msg.data = [float(power)]
+        self.pub_shooter.publish(msg)
 
-    def publish_trigger(self, pos):
+    def publish_tilt(self, pos):
         msg = Float64MultiArray()
         msg.data = [float(pos)]
-        self.pub_trigger.publish(msg)
+        self.pub_tilt.publish(msg)
 
 
 def main(args=None):
