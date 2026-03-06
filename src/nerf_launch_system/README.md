@@ -80,6 +80,13 @@ cd /home/ros/projects/my_new_robot
 source install/setup.bash
 ros2 launch gubot_one launch_sim.launch.py
 ```
+Die Simulation startet nun standardmäßig mit der leeren Welt:
+ros2 launch nerf_launch_system simulate.launch.py
+
+
+
+ros2 launch nerf_launch_system simulate.launch.py world:=$(ros2 pkg prefix nerf_launch_system)/share/nerf_launch_system/worlds/obstacles.world
+
 
 <!-- 
 

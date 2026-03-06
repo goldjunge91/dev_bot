@@ -23,6 +23,10 @@
   <depend>ros2_control</depend>
   <depend>ros2_controllers</depend>
   <depend>gazebo_ros2_control</depend>
+  <depend>ros_gz_sim</depend>
+  <depend>ros_gz_bridge</depend>
+  <depend>ros_gz_interfaces</depend>
+  <depend>ign_ros2_control</depend>
   <depend>libserial-dev</depend>
 
   <test_depend>ament_copyright</test_depend>

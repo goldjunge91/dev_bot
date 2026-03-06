@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:macro name="nerf_ros2_control">
+        <gazebo>
+            <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+                <parameters>$(find nerf_launch_system)/config/controllers.yaml</parameters>
+            </plugin>
+        </gazebo>
         <ros2_control name="NerfGazeboSystem" type="system">
             <hardware>
                 <plugin>gazebo_ros2_control/GazeboSystem</plugin>
@@ -28,6 +33,10 @@
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
+            <joint name="system_arming_joint">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+            </joint>
 
         </ros2_control>
 
@@ -53,6 +62,10 @@
         <joint name="flywheel_right_joint">
             <command_interface name="velocity"/>
             <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+        <joint name="system_arming_joint">
+            <command_interface name="position"/>
             <state_interface name="position"/>
         </joint>
 
