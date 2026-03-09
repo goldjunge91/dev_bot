@@ -196,21 +196,15 @@
         <parent link="motor_bracket" />
         <child link="motor_right" />
     </joint>
-    <joint name="flywheel_right_joint" type="continuous">
+    <joint name="flywheel_right_joint" type="fixed">
         <origin xyz="0.0 -7.800000000000029e-06 -0.0175" rpy="1.5707963267948966 -7.224685652388453e-18 -2.3543024464062444e-21" />
         <parent link="motor_right" />
         <child link="flywheel_right" />
-        <axis xyz="-7.22468811426675e-18 -1.0 0.0004460000000000001" />
-        <limit effort="10.0" velocity="100.0"/>
-        <dynamics damping="0.0" friction="0.0"/>
     </joint>
-    <joint name="flywheel_left_joint" type="continuous">
+    <joint name="flywheel_left_joint" type="fixed">
         <origin xyz="0.0 -7.810000000000317e-06 -0.0175" rpy="1.5707963267948966 -1.0870161501361781e-16 -2.35430244640625e-21" />
         <parent link="motor_left" />
         <child link="flywheel_left" />
-        <axis xyz="-1.0870161747549608e-16 -0.9999999999999999 0.000446" />
-        <limit effort="10.0" velocity="100.0"/>
-        <dynamics damping="0.0" friction="0.0"/>
     </joint>
     <joint name="motor_bracket_torret_on_motor_bracket" type="fixed">
         <origin xyz="0.11710034290805325 0.0007477600039520603 -0.01370000462490558" rpy="-1.570796326761147 -1.5707304396707 3.141592653589793" />
