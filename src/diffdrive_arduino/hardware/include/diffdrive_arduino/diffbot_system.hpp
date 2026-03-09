@@ -99,6 +99,11 @@ private:
     double imu_gx_ = 0.0;
     double imu_gy_ = 0.0;
     double imu_gz_ = 0.0;
+    // Identity Quaternion for 6-DOF IMU
+    double imu_q_x_ = 0.0;
+    double imu_q_y_ = 0.0;
+    double imu_q_z_ = 0.0;
+    double imu_q_w_ = 1.0;
 };
 
 }  // namespace diffdrive_arduino

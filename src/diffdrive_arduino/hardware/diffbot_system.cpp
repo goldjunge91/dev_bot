@@ -127,6 +127,14 @@ DiffDriveArduinoHardware::export_state_interfaces() {
         hardware_interface::StateInterface("imu_sensor", "angular_velocity.y", &imu_gy_));
     state_interfaces.emplace_back(
         hardware_interface::StateInterface("imu_sensor", "angular_velocity.z", &imu_gz_));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface("imu_sensor", "orientation.x", &imu_q_x_));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface("imu_sensor", "orientation.y", &imu_q_y_));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface("imu_sensor", "orientation.z", &imu_q_z_));
+    state_interfaces.emplace_back(
+        hardware_interface::StateInterface("imu_sensor", "orientation.w", &imu_q_w_));
 
     return state_interfaces;
 }
