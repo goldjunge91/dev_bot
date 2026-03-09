@@ -180,7 +180,14 @@ def generate_launch_description():
         )
     )
 
-    # 3. Nerf Tilt Controller (startet nach joint_broad)
+    # Node: Spawner für imu_broadcaster
+    imu_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["imu_broadcaster"],
+    )
+
+    # 3. Nerf Tilt Controller (startet nach imu_broadcaster)
     nerf_tilt_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -188,9 +195,16 @@ def generate_launch_description():
         output="screen",
     )
 
-    delayed_nerf_tilt = RegisterEventHandler(
+    delayed_imu_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=joint_broad_spawner,
+            on_exit=[imu_broadcaster_spawner],
+        )
+    )
+
+    delayed_nerf_tilt = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=imu_broadcaster_spawner,
             on_exit=[nerf_tilt_spawner],
         )
     )
@@ -273,6 +287,9 @@ def generate_launch_description():
             delayed_controller_manager,
             delayed_diff_drive_spawner,
             delayed_joint_broad_spawner,
+            delayed_imu_broadcaster_spawner,
+            delayed_nerf_tilt,
+            delayed_nerf_shooter,
             nerf_group,
         ]
     )

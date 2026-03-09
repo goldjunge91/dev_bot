@@ -145,7 +145,7 @@ class NerfTeleop(Node):
             self.input_count += 1
             self.speed = 0.0
             self.turn = 0.0
-        elif key != "":
+        else:
             self.speed = 0.0
             self.turn = 0.0
             # Keine Erhöhung von input_count bei leeren/unbekannten Tasten
