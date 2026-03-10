@@ -39,7 +39,18 @@ void NerfCommunication::connect(const std::string &serial_device, int32_t baud_r
             break;
     }
 
+    /*
     serial_port_.Open(serial_device);
+    serial_port_.SetBaudRate(baud);
+    serial_port_.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
+    serial_port_.SetFlowControl(LibSerial::FlowControl::FLOW_CONTROL_NONE);
+    serial_port_.SetParity(LibSerial::Parity::PARITY_NONE);
+    serial_port_.SetStopBits(LibSerial::StopBits::STOP_BITS_1);
+    */
+    serial_device_ = serial_device;
+    baud_rate_ = baud_rate;
+
+    serial_port_.Open(serial_device_);
     serial_port_.SetBaudRate(baud);
     serial_port_.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
     serial_port_.SetFlowControl(LibSerial::FlowControl::FLOW_CONTROL_NONE);
@@ -73,6 +84,15 @@ void NerfCommunication::send_command(const std::string &cmd) {
                      "{'id': 'serial_error', 'error': '%s'} Serial write failed. Closing port.",
                      e.what());
         disconnect();
+    }
+}
+
+void NerfCommunication::reconnect() {
+    if (serial_device_.empty()) return;
+    try {
+        connect(serial_device_, baud_rate_);
+    } catch (...) {
+        // Silently fail, next write will trigger another attempt
     }
 }
 

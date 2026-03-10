@@ -19,6 +19,7 @@
 #include "nerf_launch_system/nerf_system.hpp"
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "rclcpp/clock.hpp"
 #include "rclcpp/logging.hpp"
 
 #include <cmath>
@@ -203,6 +204,15 @@ hardware_interface::return_type NerfSystem::read(const rclcpp::Time & /*time*/,
 hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
                                                   const rclcpp::Duration & /*period*/) {
     if (!comms_.connected()) {
+        rclcpp::Time now = rclcpp::Clock(RCL_ROS_TIME).now();
+        if ((now - last_reconnect_attempt_).seconds() > 5.0) {
+            RCLCPP_INFO(
+                rclcpp::get_logger("NerfSystem"),
+                "{'id': 'serial_reconnect', 'status': 'attempting'} Attempting to reconnect...");
+            comms_.reconnect();
+            last_reconnect_attempt_ = now;
+        }
+
         if (!serial_warned_) {
             RCLCPP_WARN(rclcpp::get_logger("NerfSystem"),
                         "{'id': 'serial_status', 'attribute': 'disconnected'} Serial disconnected. "

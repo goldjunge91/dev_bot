@@ -48,8 +48,15 @@ public:
      */
     void send_command(const std::string &cmd);
 
+    /**
+     * @brief Versucht die Verbindung mit den letzten Parametern wiederherzustellen
+     */
+    void reconnect();
+
 private:
     LibSerial::SerialPort serial_port_;
+    std::string serial_device_;
+    int32_t baud_rate_;
 };
 
 }  // namespace nerf_launch_system

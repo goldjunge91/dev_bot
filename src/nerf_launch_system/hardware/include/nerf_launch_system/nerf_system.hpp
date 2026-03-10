@@ -33,6 +33,7 @@
 #include "nerf_launch_system/nerf_communication.hpp"
 #include "nerf_launch_system/nerf_types.hpp"
 #include "rclcpp/macros.hpp"
+#include "rclcpp/time.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
 #include <memory>
@@ -147,6 +148,7 @@ private:
     bool armed_ = false;
     bool pusher_active_ = false;
     bool serial_warned_ = false;
+    rclcpp::Time last_reconnect_attempt_{0, 0, RCL_ROS_TIME};
 
     double *get_state_ptr(const std::string &joint_name, const std::string &interface_name);
 
