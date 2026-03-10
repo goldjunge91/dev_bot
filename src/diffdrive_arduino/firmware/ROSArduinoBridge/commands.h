@@ -11,6 +11,7 @@
 #define DIGITAL_READ 'd'
 #define READ_ENCODERS 'e'
 #define READ_IMU 'i'
+#define CALIBRATE_IMU 'k'
 #define MOTOR_SPEEDS 'm'
 #define MOTOR_RAW_PWM 'o'
 #define PING 'p'

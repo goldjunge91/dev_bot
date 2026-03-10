@@ -31,6 +31,12 @@ void imuSetup();
 // Liest aktuelle Accel+Gyro-Werte. Gibt false zurück bei Fehler.
 bool imuRead(ImuData &data);
 
+// Trigger manual calibration and save to flash
+void imuCalibrate();
+
+// Load calibration from flash
+void imuLoadCalibration();
+
 #endif  // ARDUINO_ARCH_RP2040
 
 #endif  // IMU_DRIVER_H

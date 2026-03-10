@@ -239,6 +239,14 @@ int runCommand() {
             Serial.println("IMU_NOT_SUPPORTED");
 #endif
         break;
+        case CALIBRATE_IMU:
+#if defined(ARDUINO_ARCH_RP2040)
+            imuCalibrate();
+            Serial.println("OK");
+#else
+            Serial.println("IMU_NOT_SUPPORTED");
+#endif
+            break;
         case RESET_ENCODERS:
             resetEncoders();
             resetPID();
@@ -334,6 +342,7 @@ void setup() {
     /* IMU initialisieren (nur Pico) */
 #if defined(ARDUINO_ARCH_RP2040)
     imuSetup();
+    imuLoadCalibration();  // Geladene Kalibrierung anwenden
 #endif
 
     /* Attach servos if used */

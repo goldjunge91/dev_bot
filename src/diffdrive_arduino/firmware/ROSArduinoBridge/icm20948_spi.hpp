@@ -3,6 +3,7 @@
 #include "hardware/spi.h"
 // #include "shared/Vector3f.hpp"  // Entfernt: war Teil des alten FreeRTOS-Projekts
 
+#include <cstddef>
 #include <cstdint>
 
 // Lokale 3D-Vektor-Struct als Ersatz fuer shared::Vector3f
@@ -28,6 +29,13 @@ public:
     explicit Icm20948Simple(const Config &config);
 
     bool initialize();
+    bool calibrateGyro(int num_samples = 200);
+    void setGyroBias(Vec3 bias) {
+        gyro_bias_ = bias;
+    }
+    Vec3 getGyroBias() const {
+        return gyro_bias_;
+    }
     bool readAcceleration(Vec3 &accel_g);
     bool readGyroscope(Vec3 &gyro_dps);
     bool readTemperature(float &temperature_c);
@@ -40,6 +48,7 @@ private:
     Config config_;
     bool initialized_ = false;
     uint8_t current_bank_ = 0xFF;  // Ungültiger Startwert, um Umschaltung zu erzwingen
+    Vec3 gyro_bias_ = {0.0f, 0.0f, 0.0f};
 };
 
 }  // namespace hal::hardware

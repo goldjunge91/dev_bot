@@ -118,6 +118,40 @@ bool Icm20948Simple::initialize() {
     return true;
 }
 
+bool Icm20948Simple::calibrateGyro(int num_samples) {
+    if (!initialized_) return false;
+
+    Serial.print("[ICM20948-SPI] Calibrating Gyro (stay still)...");
+    float sum_x = 0, sum_y = 0, sum_z = 0;
+    Vec3 temp;
+
+    // Reset bias temporarily for calibration
+    Vec3 old_bias = gyro_bias_;
+    gyro_bias_ = {0.0f, 0.0f, 0.0f};
+
+    for (int i = 0; i < num_samples; i++) {
+        readGyroscope(temp);
+        sum_x += temp.x;
+        sum_y += temp.y;
+        sum_z += temp.z;
+        delay(5);
+    }
+
+    gyro_bias_.x = sum_x / (float)num_samples;
+    gyro_bias_.y = sum_y / (float)num_samples;
+    gyro_bias_.z = sum_z / (float)num_samples;
+
+    Serial.println(" Done.");
+    Serial.print("[ICM20948-SPI] New Gyro Bias: ");
+    Serial.print(gyro_bias_.x, 4);
+    Serial.print(", ");
+    Serial.print(gyro_bias_.y, 4);
+    Serial.print(", ");
+    Serial.println(gyro_bias_.z, 4);
+
+    return true;
+}
+
 bool Icm20948Simple::readRegisters(uint8_t reg, uint8_t *buffer, size_t length) {
     uint8_t reg_addr = reg | 0x80;  // Lese-Bit setzen
 
@@ -175,9 +209,9 @@ bool Icm20948Simple::readGyroscope(Vec3 &gyro_dps) {
     int16_t raw_y = (buffer[2] << 8) | buffer[3];
     int16_t raw_z = (buffer[4] << 8) | buffer[5];
 
-    gyro_dps.x = static_cast<float>(raw_x) / GYRO_SENS_250DPS;
-    gyro_dps.y = static_cast<float>(raw_y) / GYRO_SENS_250DPS;
-    gyro_dps.z = static_cast<float>(raw_z) / GYRO_SENS_250DPS;
+    gyro_dps.x = (static_cast<float>(raw_x) / GYRO_SENS_250DPS) - gyro_bias_.x;
+    gyro_dps.y = (static_cast<float>(raw_y) / GYRO_SENS_250DPS) - gyro_bias_.y;
+    gyro_dps.z = (static_cast<float>(raw_z) / GYRO_SENS_250DPS) - gyro_bias_.z;
     return true;
 }
 

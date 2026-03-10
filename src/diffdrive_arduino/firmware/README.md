@@ -178,3 +178,25 @@ Some quick things to note
 - Make the speed input counts per second
 - Add/test more driver boards
 - Add/test other functionality
+
+
+## How to Compile
+Gehe in das Verzeichnis `src/diffdrive_arduino/firmware/ROSArduinoBridge` und führe diese Befehle aus:
+
+1. Kompilieren:
+
+```bash
+arduino-cli compile --fqbn rp2040:rp2040:rpipico ROSArduinoBridge.ino
+```
+
+2. Hochladen: Prüfe zuerst, an welchem Port der Pico hängt (meist /dev/ttyACM0):
+```bash
+ls /dev/ttyACM*
+```
+Dann flashen (ersetze /dev/ttyACM0 falls nötig):
+
+```bash
+arduino-cli upload -p /dev/ttyACM0 --fqbn rp2040:rp2040:rpipico ROSArduinoBridge.ino
+```
+Hinweis: Falls du einen "Permission Denied" Fehler beim Upload bekommst, hilft einmalig: sudo chmod 666 /dev/ttyACM0
+Sobald die Firmware drauf ist, kannst du mit k die Kalibrierung testen! 🚀
