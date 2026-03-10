@@ -323,6 +323,8 @@ def generate_launch_description():
                 "publish_tf": False,
                 "world_frame": "enu",
                 "fixed_frame": "odom",
+                "gain": 0.01,  # Reduziert Drift im Stand (weniger Gyro-Einfluss)
+                "zeta": 0.0,  # Gyro-Bias Korrektur
             }
         ],
         remappings=[
