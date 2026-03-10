@@ -204,7 +204,19 @@ hardware_interface::return_type DiffDriveArduinoHardware::read(const rclcpp::Tim
     }
 
     comms_.read_encoder_values(wheel_l_.enc, wheel_r_.enc);
-    comms_.read_imu_values(imu_ax_, imu_ay_, imu_az_, imu_gx_, imu_gy_, imu_gz_);
+
+    double raw_ax, raw_ay, raw_az, raw_gx, raw_gy, raw_gz;
+    comms_.read_imu_values(raw_ax, raw_ay, raw_az, raw_gx, raw_gy, raw_gz);
+
+    // Umrechnung von G (Firmware) in m/s^2 (ROS 2)
+    imu_ax_ = raw_ax * 9.80665;
+    imu_ay_ = raw_ay * 9.80665;
+    imu_az_ = raw_az * 9.80665;
+
+    // Umrechnung von deg/s (Firmware) in rad/s (ROS 2)
+    imu_gx_ = raw_gx * (M_PI / 180.0);
+    imu_gy_ = raw_gy * (M_PI / 180.0);
+    imu_gz_ = raw_gz * (M_PI / 180.0);
 
     double delta_seconds = period.seconds();
 
