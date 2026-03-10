@@ -10,20 +10,20 @@
             <hardware>
                 <plugin>gazebo_ros2_control/GazeboSystem</plugin>
             </hardware>
-            
+            <!-- 
             <joint name="trigger_joint">
                 <command_interface name="position"/>
                 <state_interface name="velocity"/>
                 <state_interface name="position">
-                  <param name="initial_value">6.28</param>
+                    <param name="initial_value">6.28</param>
                 </state_interface>
             </joint>
             <joint name="dart_pusher_joint">
                 <command_interface name="velocity"/>
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
-            </joint>
-            <joint name="flywheel_left_joint">
+            </joint> -->
+            <!-- <joint name="flywheel_left_joint">
                 <command_interface name="velocity"/>
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
@@ -31,6 +31,15 @@
             <joint name="flywheel_right_joint">
                 <command_interface name="velocity"/>
                 <state_interface name="velocity"/>
+                <state_interface name="position"/>
+            </joint> -->
+            <joint name="tilt_joint">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+            </joint>
+
+            <joint name="shooter_joint">
+                <command_interface name="position"/>
                 <state_interface name="position"/>
             </joint>
             <joint name="system_arming_joint">
@@ -41,12 +50,12 @@
         </ros2_control>
 
     </xacro:macro>
-    <xacro:macro name="nerf_ros2_control_joints_only">        
+    <xacro:macro name="nerf_ros2_control_joints_only">
         <joint name="trigger_joint">
             <command_interface name="position"/>
             <state_interface name="velocity"/>
             <state_interface name="position">
-              <param name="initial_value">6.28</param>
+                <param name="initial_value">6.28</param>
             </state_interface>
         </joint>
         <joint name="dart_pusher_joint">

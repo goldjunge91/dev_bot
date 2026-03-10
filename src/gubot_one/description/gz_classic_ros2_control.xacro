@@ -86,12 +86,13 @@
             </joint>
             <joint name="right_wheel_joint">
                 <command_interface name="velocity">
-                    <param name="min">-10</param>   
+                    <param name="min">-10</param>
                     <param name="max">10</param>
                 </command_interface>
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
+            <!-- 
             <joint name="trigger_joint">
                 <command_interface name="position"/>
                 <state_interface name="position">
@@ -103,6 +104,20 @@
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
+            -->
+            <joint name="tilt_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                    <param name="initial_value">6.28</param>
+                </state_interface>
+            </joint>
+            <joint name="shooter_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+            </joint>
+            <!-- 
             <joint name="flywheel_left_joint">
                 <command_interface name="velocity"/>
                 <state_interface name="velocity"/>
@@ -113,9 +128,12 @@
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
+            -->
             <joint name="system_arming_joint">
                 <command_interface name="position"/>
-                <state_interface name="position"/>
+                <state_interface name="position">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
             </joint>
             <sensor name="imu_sensor">
                 <state_interface name="linear_acceleration.x"/>
@@ -132,7 +150,7 @@
         </ros2_control>
     </xacro:if>
 
- <gazebo>
+    <gazebo>
         <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
             <parameters>$(find gubot_one)/config/my_controllers.yaml</parameters>
             <parameters>$(find gubot_one)/config/gaz_ros2_ctl_use_sim.yaml</parameters>

@@ -265,9 +265,9 @@ def generate_launch_description():
                 os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
             ),
             # Force OpenGL 4.5 for Ogre 2 support via Software Rendering
-            AppendEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
-            AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
-            AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
+            # AppendEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
+            # AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
+            # AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
             world_arg,
             declare_use_sim_time_cmd,
             rsp,

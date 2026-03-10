@@ -8,6 +8,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     RegisterEventHandler,
     AppendEnvironmentVariable,
+    SetEnvironmentVariable,
 )
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -216,18 +217,20 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            AppendEnvironmentVariable(
-                "IGN_GAZEBO_RESOURCE_PATH",
-                os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
+            SetEnvironmentVariable(
+                "GAZEBO_RESOURCE_PATH",
+                "/usr/share/gazebo-11:/usr/share/gazebo:" + os.path.join(get_package_share_directory(package_name), "worlds")
             ),
-            AppendEnvironmentVariable(
+            SetEnvironmentVariable(
                 "GAZEBO_MODEL_PATH",
-                os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
+                os.path.join(os.path.expanduser("~"), ".gazebo", "models") + ":" +
+                os.path.join(get_package_share_directory(package_name), "description", "meshes") + ":" +
+                get_package_share_directory("nerf_launch_system") + "/.."
             ),
             # Force OpenGL 4.5 for Ogre 2 support via Software Rendering
-            AppendEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
-            AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
-            AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
+            SetEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
+            SetEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
+            SetEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
             world_arg,
             declare_use_sim_time_cmd,
             rsp,
