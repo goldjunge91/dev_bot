@@ -1,11 +1,15 @@
-import pytest
-import subprocess
+"""Tests for verifying launch file syntax and start script behavior."""
+
 import os
+import subprocess
+
 from ament_index_python.packages import get_package_share_directory
 
 
 def test_launch_all_real_syntax_and_dependencies():
     """
+    Test launch file syntax and dependencies.
+
     Testet, ob das Launch-File syntaktisch korrekt ist und alle referenzierten
     Pakete (wie face_tracker) vorhanden sind.
     """
@@ -24,6 +28,8 @@ def test_launch_all_real_syntax_and_dependencies():
 
 def test_start_robot_sh_execution_dry_run():
     """
+    Test the start_robot.sh execution using a mock ros2 command.
+
     Testet das start_robot.sh Skript, indem der ros2 launch Befehl durch ein Mock ersetzt wird.
     So wird sichergestellt, dass keine Variablen-Initialisierungsfehler (--face) mehr auftreten.
     """

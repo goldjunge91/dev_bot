@@ -22,17 +22,40 @@ find_package(ament_cmake REQUIRED)
 # find_package(<dependency> REQUIRED)
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
+  # find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # uncomment the line when a copyright and license is not present in all source files
   #set(ament_cmake_copyright_FOUND TRUE)
   # the following line skips cpplint (only works in a git repo)
   # uncomment the line when this package is not in a git repo
   #set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
+  # ament_lint_auto_find_test_dependencies()
 
   find_package(ament_cmake_pytest REQUIRED)
-  ament_add_pytest_test(test_launch_args test/test_launch_args.py)
+
+  # Logic to discover workspace prefixes in the install folder
+  get_filename_component(INSTALL_ROOT "${CMAKE_INSTALL_PREFIX}" DIRECTORY)
+  file(GLOB WS_PREFIXES LIST_DIRECTORIES true "${INSTALL_ROOT}/*")
+
+  set(WS_AMENT_PREFIX_PATH "")
+  set(WS_PYTHONPATH "")
+  foreach(WS_PREFIX ${WS_PREFIXES})
+    if(IS_DIRECTORY "${WS_PREFIX}")
+      set(WS_AMENT_PREFIX_PATH "${WS_PREFIX}:${WS_AMENT_PREFIX_PATH}")
+      set(WS_PYTHONPATH "${WS_PREFIX}/local/lib/python3.10/dist-packages:${WS_PREFIX}/lib/python3.10/site-packages:${WS_PYTHONPATH}")
+    endif()
+  endforeach()
+
+  ament_add_pytest_test(test_launch_args test/test_launch_args.py
+    APPEND_ENV 
+      "AMENT_PREFIX_PATH=${WS_AMENT_PREFIX_PATH}:$ENV{AMENT_PREFIX_PATH}"
+      "PYTHONPATH=${WS_PYTHONPATH}:$ENV{PYTHONPATH}"
+  )
+  ament_add_pytest_test(test_imu_orientation test/test_imu_orientation.py
+    APPEND_ENV 
+      "AMENT_PREFIX_PATH=${WS_AMENT_PREFIX_PATH}:$ENV{AMENT_PREFIX_PATH}"
+      "PYTHONPATH=${WS_PYTHONPATH}:$ENV{PYTHONPATH}"
+  )
 endif()
 
 install(

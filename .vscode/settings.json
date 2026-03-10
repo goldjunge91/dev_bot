@@ -1,5 +1,10 @@
 {
   "cmake.ignoreCMakeListsMissing": true,
+  "cmake.testEnvironment": {
+    "LD_LIBRARY_PATH": "/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib",
+    "AMENT_PREFIX_PATH": "${workspaceFolder}/install/serial:${workspaceFolder}/install/gubot_one:${workspaceFolder}/install/nerf_launch_system:${workspaceFolder}/install/face_tracker:${workspaceFolder}/install/diffdrive_arduino:/opt/ros/humble",
+    "PYTHONPATH": "${workspaceFolder}/install/nerf_launch_system/local/lib/python3.10/dist-packages:${workspaceFolder}/build/face_tracker:${workspaceFolder}/install/face_tracker/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages"
+  },
   "cSpell.allowCompoundWords": true,
   "cSpell.ignorePaths": [
     "**/package-lock.json",
@@ -367,7 +372,9 @@
   ],
   "python.envFile": "${workspaceFolder}/.env",
   "python.testing.env": {
-    "LD_LIBRARY_PATH": "/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib"
+    "LD_LIBRARY_PATH": "/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib",
+    "AMENT_PREFIX_PATH": "${workspaceFolder}/install/serial:${workspaceFolder}/install/nerf_launch_system:${workspaceFolder}/install/gubot_one:${workspaceFolder}/install/face_tracker:${workspaceFolder}/install/diffdrive_arduino:/opt/ros/humble",
+    "PYTHONPATH": "${workspaceFolder}/install/serial/lib/python3.10/site-packages:${workspaceFolder}/install/serial/local/lib/python3.10/dist-packages:${workspaceFolder}/install/nerf_launch_system/lib/python3.10/site-packages:${workspaceFolder}/install/nerf_launch_system/local/lib/python3.10/dist-packages:${workspaceFolder}/install/gubot_one/lib/python3.10/site-packages:${workspaceFolder}/install/gubot_one/local/lib/python3.10/dist-packages:${workspaceFolder}/install/face_tracker/lib/python3.10/site-packages:${workspaceFolder}/install/face_tracker/local/lib/python3.10/dist-packages:${workspaceFolder}/install/diffdrive_arduino/lib/python3.10/site-packages:${workspaceFolder}/install/diffdrive_arduino/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages"
   },
   "python.testing.pytestArgs": [
     "src",
@@ -389,5 +396,6 @@
     "**/install": true,
     "**/log": true,
     "**/node_modules": true
-  }
+  },
+  "ROS2.distro": "humble"
 }

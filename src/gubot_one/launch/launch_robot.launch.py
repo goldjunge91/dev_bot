@@ -65,10 +65,27 @@ def generate_launch_description():
 
     # Launch Configuration
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
+    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
+    use_sim_time = LaunchConfiguration("use_sim_time")
     auto_arm = LaunchConfiguration("auto_arm")
 
     # 1. Robot State Publisher
     # Publiziert URDF und TF-Transformationen
+    # rsp = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         [
+    #             os.path.join(
+    #                 get_package_share_directory(package_name), "launch", "rsp.launch.py"
+    #             )
+    #         ]
+    #     ),
+    #     launch_arguments={
+    #         "use_sim_time": "false",  # Echte Hardware, keine Simulation
+    #         "use_ros2_control": "true",  # ros2_control aktivieren
+    #         "integrated_mode": "true",  # Integrierter Modus (Nerf + Basis zusammen)
+    #         "use_nerf_hardware": use_nerf_hardware,
+    #     }.items(),
+    # )
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
@@ -78,10 +95,11 @@ def generate_launch_description():
             ]
         ),
         launch_arguments={
-            "use_sim_time": "false",  # Echte Hardware, keine Simulation
-            "use_ros2_control": "true",  # ros2_control aktivieren
-            "integrated_mode": "true",  # Integrierter Modus (Nerf + Basis zusammen)
+            "use_sim_time": use_sim_time,
+            "use_ros2_control": "true",
+            "integrated_mode": "true",
             "use_nerf_hardware": use_nerf_hardware,
+            "use_fake_hardware": use_fake_hardware,
         }.items(),
     )
 
@@ -116,15 +134,29 @@ def generate_launch_description():
     # Robot Description für Controller Manager
     pkg_path = os.path.join(get_package_share_directory(package_name))
     xacro_file = os.path.join(pkg_path, "description", "robot.urdf.xacro")
+    # robot_description = Command(
+    #     [
+    #         "xacro ",
+    #         xacro_file,
+    #         " use_ros2_control:=true",
+    #         " sim_mode:=false",
+    #         " integrated_mode:=true",
+    #         " use_nerf_hardware:=",
+    #         use_nerf_hardware,
+    #     ]
+    # )
     robot_description = Command(
         [
             "xacro ",
             xacro_file,
             " use_ros2_control:=true",
-            " sim_mode:=false",
+            " sim_mode:=",
+            use_sim_time,
             " integrated_mode:=true",
             " use_nerf_hardware:=",
             use_nerf_hardware,
+            " use_fake_hardware:=",
+            use_fake_hardware,
         ]
     )
 
@@ -142,8 +174,23 @@ def generate_launch_description():
     )
 
     # Verzögere Controller Manager Start um 3 Sekunden
-    # Gibt anderen Nodes Zeit zum Starten
-    delayed_controller_manager = TimerAction(period=3.0, actions=[controller_manager])
+    # Gibt anderen Nodes Zeit zum Starten (nur bei echter Hardware nötig)
+    # delayed_controller_manager = TimerAction(period=3.0, actions=[controller_manager])
+
+    # NEW: Delay only for real hardware
+    from launch.actions import OpaqueFunction
+
+    def launch_setup(context, *args, **kwargs):
+        use_fake = (
+            context.launch_configurations.get("use_fake_hardware", "false").lower()
+            == "true"
+        )
+        if use_fake:
+            return [controller_manager]
+        else:
+            return [TimerAction(period=3.0, actions=[controller_manager])]
+
+    delayed_controller_manager_action = OpaqueFunction(function=launch_setup)
 
     # --- Controller Spawner Sequenz ---
     # Verhindert "Thundering Herd" auf DDS durch sequenzielles Starten
@@ -266,15 +313,106 @@ def generate_launch_description():
         ],
     )
 
+    # --- NEW IMU FILTER ---
+    imu_filter_node = Node(
+        package="imu_filter_madgwick",
+        executable="imu_filter_madgwick_node",
+        name="imu_filter",
+        output="screen",
+        parameters=[
+            {
+                "use_mag": False,
+                "publish_tf": False,
+                "world_frame": "enu",
+                "fixed_frame": "odom",
+            }
+        ],
+        remappings=[
+            ("/imu/data_raw", "/imu_broadcaster/imu"),
+            ("/imu/data", "/imu/data"),
+        ],
+    )
+
     # Starte alle Komponenten
     # Nur der erste Trigger muss zurückgegeben werden
     # Der Rest startet automatisch über Events
+    # return LaunchDescription(
+    #     [
+    #         DeclareLaunchArgument(
+    #             "use_nerf_hardware",
+    #             default_value="false",
+    #             description="Enable Nerf hardware if true",
+    #         ),
+    #         DeclareLaunchArgument(
+    #             "auto_arm",
+    #             default_value="false",
+    #             description="Auto-arm the Nerf launcher on startup",
+    #         ),
+    #         rsp,
+    #         joystick,
+    #         twist_mux,
+    #         delayed_controller_manager,
+    #         delayed_diff_drive_spawner,
+    #         delayed_joint_broad_spawner,
+    #         delayed_imu_broadcaster_spawner,
+    #         delayed_nerf_tilt,
+    #         delayed_nerf_shooter,
+    #         nerf_group,
+    #     ]
+    # )
+
+    # return LaunchDescription(
+    #     [
+    #         DeclareLaunchArgument(
+    #             "use_nerf_hardware",
+    #             default_value="false",
+    #             description="Enable Nerf hardware if true",
+    #         ),
+    #         DeclareLaunchArgument(
+    #             "use_fake_hardware",
+    #             default_value="false",
+    #             description="Enable fake hardware if true",
+    #         ),
+    #         DeclareLaunchArgument(
+    #             "use_sim_time",
+    #             default_value="false",
+    #             description="Use simulation time if true",
+    #         ),
+    #         DeclareLaunchArgument(
+    #             "auto_arm",
+    #             default_value="false",
+    #             description="Auto-arm the Nerf launcher on startup",
+    #         ),
+    #         rsp,
+    #         joystick,
+    #         twist_mux,
+    #         delayed_controller_manager,
+    #         delayed_diff_drive_spawner,
+    #         delayed_joint_broad_spawner,
+    #         delayed_imu_broadcaster_spawner,
+    #         delayed_nerf_tilt,
+    #         delayed_nerf_shooter,
+    #         nerf_group,
+    #         imu_filter_node,
+    #     ]
+    # )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
                 "use_nerf_hardware",
                 default_value="false",
                 description="Enable Nerf hardware if true",
+            ),
+            DeclareLaunchArgument(
+                "use_fake_hardware",
+                default_value="false",
+                description="Enable fake hardware if true",
+            ),
+            DeclareLaunchArgument(
+                "use_sim_time",
+                default_value="false",
+                description="Use simulation time if true",
             ),
             DeclareLaunchArgument(
                 "auto_arm",
@@ -284,12 +422,13 @@ def generate_launch_description():
             rsp,
             joystick,
             twist_mux,
-            delayed_controller_manager,
+            delayed_controller_manager_action,
             delayed_diff_drive_spawner,
             delayed_joint_broad_spawner,
             delayed_imu_broadcaster_spawner,
             delayed_nerf_tilt,
             delayed_nerf_shooter,
             nerf_group,
+            imu_filter_node,
         ]
     )

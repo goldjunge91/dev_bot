@@ -7,6 +7,7 @@
     <xacro:arg name="use_nerf_hardware" default="true"/>
     <xacro:arg name="nerf_port" default="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00"/>
     <xacro:arg name="use_gazebo_classic" default="false"/>
+    <xacro:arg name="use_fake_hardware" default="false"/>
 
     <xacro:include filename="robot_core.xacro" />
 

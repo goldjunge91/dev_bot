@@ -50,6 +50,7 @@ def generate_launch_description():
     integrated_mode = LaunchConfiguration("integrated_mode")
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
     use_gazebo_classic = LaunchConfiguration("use_gazebo_classic")
+    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
 
     # URDF Datei verarbeiten
     # Xacro wird zu URDF konvertiert mit den angegebenen Parametern
@@ -71,6 +72,8 @@ def generate_launch_description():
             use_nerf_hardware,
             " use_gazebo_classic:=",
             use_gazebo_classic,
+            " use_fake_hardware:=",
+            use_fake_hardware,
         ]
     )
 
@@ -116,6 +119,11 @@ def generate_launch_description():
                 "use_gazebo_classic",
                 default_value="false",
                 description="Use Gazebo Classic if true",
+            ),
+            DeclareLaunchArgument(
+                "use_fake_hardware",
+                default_value="false",
+                description="Enable fake hardware if true",
             ),
             # Nodes
             node_robot_state_publisher,
