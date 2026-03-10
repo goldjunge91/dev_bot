@@ -50,11 +50,12 @@ from launch.actions import (
     TimerAction,
     DeclareLaunchArgument,
     GroupAction,
+    OpaqueFunction,
+    RegisterEventHandler,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
-from launch.actions import RegisterEventHandler
-from launch.event_handlers import OnProcessStart
+from launch.event_handlers import OnProcessStart, OnProcessExit
 from launch.conditions import IfCondition
 
 from launch_ros.actions import Node
@@ -178,7 +179,6 @@ def generate_launch_description():
     # delayed_controller_manager = TimerAction(period=3.0, actions=[controller_manager])
 
     # NEW: Delay only for real hardware
-    from launch.actions import OpaqueFunction
 
     def launch_setup(context, *args, **kwargs):
         use_fake = (
@@ -196,8 +196,6 @@ def generate_launch_description():
     # Verhindert "Thundering Herd" auf DDS durch sequenzielles Starten
     # Kette: diff_cont -> joint_broad -> trigger -> flywheel -> pusher -> arming -> control_node
     # Verwendet OnProcessExit weil Spawner nach erfolgreichem Laden beenden
-
-    from launch.event_handlers import OnProcessExit
 
     # 1. Diff Drive Controller (startet nach controller_manager)
     diff_drive_spawner = Node(
@@ -333,70 +331,6 @@ def generate_launch_description():
         ],
     )
 
-    # Starte alle Komponenten
-    # Nur der erste Trigger muss zurückgegeben werden
-    # Der Rest startet automatisch über Events
-    # return LaunchDescription(
-    #     [
-    #         DeclareLaunchArgument(
-    #             "use_nerf_hardware",
-    #             default_value="false",
-    #             description="Enable Nerf hardware if true",
-    #         ),
-    #         DeclareLaunchArgument(
-    #             "auto_arm",
-    #             default_value="false",
-    #             description="Auto-arm the Nerf launcher on startup",
-    #         ),
-    #         rsp,
-    #         joystick,
-    #         twist_mux,
-    #         delayed_controller_manager,
-    #         delayed_diff_drive_spawner,
-    #         delayed_joint_broad_spawner,
-    #         delayed_imu_broadcaster_spawner,
-    #         delayed_nerf_tilt,
-    #         delayed_nerf_shooter,
-    #         nerf_group,
-    #     ]
-    # )
-
-    # return LaunchDescription(
-    #     [
-    #         DeclareLaunchArgument(
-    #             "use_nerf_hardware",
-    #             default_value="false",
-    #             description="Enable Nerf hardware if true",
-    #         ),
-    #         DeclareLaunchArgument(
-    #             "use_fake_hardware",
-    #             default_value="false",
-    #             description="Enable fake hardware if true",
-    #         ),
-    #         DeclareLaunchArgument(
-    #             "use_sim_time",
-    #             default_value="false",
-    #             description="Use simulation time if true",
-    #         ),
-    #         DeclareLaunchArgument(
-    #             "auto_arm",
-    #             default_value="false",
-    #             description="Auto-arm the Nerf launcher on startup",
-    #         ),
-    #         rsp,
-    #         joystick,
-    #         twist_mux,
-    #         delayed_controller_manager,
-    #         delayed_diff_drive_spawner,
-    #         delayed_joint_broad_spawner,
-    #         delayed_imu_broadcaster_spawner,
-    #         delayed_nerf_tilt,
-    #         delayed_nerf_shooter,
-    #         nerf_group,
-    #         imu_filter_node,
-    #     ]
-    # )
-
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -426,8 +360,6 @@ def generate_launch_description():
             delayed_diff_drive_spawner,
             delayed_joint_broad_spawner,
             delayed_imu_broadcaster_spawner,
-            # delayed_nerf_tilt,
-            # delayed_nerf_shooter,
             nerf_group,
             imu_filter_node,
         ]
