@@ -95,7 +95,8 @@ def generate_launch_description():
             ]
         ),
         launch_arguments={
-            "gz_args": ["-r -v 4 ", LaunchConfiguration("world")],
+            # "gz_args": ["-r -v 4 ", LaunchConfiguration("world")],
+            "gz_args": ["-r -v 4 --render-engine ogre ", LaunchConfiguration("world")]
         }.items(),
     )
 
@@ -130,7 +131,7 @@ def generate_launch_description():
             "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
             "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
             "/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
-            "/imu_sensor/imu_data@sensor_msgs/msg/Imu[gz.msgs.IMU",
+            # "/imu_sensor/imu_data@sensor_msgs/msg/Imu[gz.msgs.IMU",
         ],
         output="screen",
     )
@@ -218,7 +219,28 @@ def generate_launch_description():
             on_exit=[arming_controller_spawner],
         )
     )
-
+    # IMU Filter (Madgwick) - gleiche Konfiguration wie launch_robot.launch.py
+    imu_filter_node = Node(
+        package="imu_filter_madgwick",
+        executable="imu_filter_madgwick_node",
+        name="imu_filter",
+        output="screen",
+        parameters=[
+            {
+                "use_sim_time": True,
+                "use_mag": False,
+                "publish_tf": False,
+                "world_frame": "enu",
+                "fixed_frame": "odom",
+                "gain": 0.01,
+                "zeta": 0.0,
+            }
+        ],
+        remappings=[
+            ("/imu/data_raw", "/imu_broadcaster/imu"),
+            ("/imu/data", "/imu/data"),
+        ],
+    )
     # RViz
     rviz_node = Node(
         package="rviz2",
@@ -257,9 +279,10 @@ def generate_launch_description():
             delayed_diff_drive_spawner,
             delayed_joint_broad_spawner,
             delayed_imu_broadcaster_spawner,
+            imu_filter_node,
+            rviz_node,
             delayed_nerf_tilt,
             delayed_nerf_shooter,
             delayed_nerf_arming,
-            rviz_node,
         ]
     )
