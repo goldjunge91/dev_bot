@@ -1,0 +1,27 @@
+# Quick Start
+#
+# 1. Run `docker compose -f compose.gubot_one.yaml up` on the ROSbot
+# 2. Open a shell inside a docker container `docker compose -f compose.hardware.yaml exec -it rosbot bash`
+# 3. Run `ros2 run teleop_twist_keyboard teleop_twist_keyboard` inside the container
+
+x-common-config:
+  &common-config
+  restart: unless-stopped
+  network_mode: host
+  ipc: host
+  env_file:
+    - .env
+
+services:
+  gubot:
+    # image: husarion/rosbot:humble
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.hardware
+    <<: *common-config
+    devices:
+      - /dev/input:/dev/input:ro # Joystick
+    volumes:
+      - ./dds-config-udp.xml:/udp_profiles.xml:ro
+    command: >
+      ros2 launch gubot_one_bringup launch_robot.launch.py
