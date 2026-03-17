@@ -12,7 +12,7 @@ Ausgabe:
 - Topic: /camera/camera_info (sensor_msgs/CameraInfo)
 
 Verwendung:
-  ros2 launch gubot_one camera.launch.py
+  ros2 launch gubot_one_bringup camera.launch.py
 """
 
 from launch import LaunchDescription

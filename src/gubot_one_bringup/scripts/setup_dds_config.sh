@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define paths
-SOURCE_CONFIG="$HOME/dev_bot/src/gubot_one/cycloneDDS/raspi_cyclonedds.xml"
+SOURCE_CONFIG="$HOME/dev_bot/src/gubot_one_bringup/cycloneDDS/raspi_cyclonedds.xml"
 DEST_CONFIG="/var/tmp/cyclonedds.xml"
 
 echo "Setting up CycloneDDS..."

@@ -23,10 +23,10 @@ Launch Arguments:
 - use_nerf_hardware: true (wird an launch_robot weitergegeben)
 
 Verwendung:
-  ros2 launch gubot_one launch_all_real.launch.py
-  ros2 launch gubot_one launch_all_real.launch.py launch_lidar:=true
-  ros2 launch gubot_one launch_all_real.launch.py launch_camera:=true
-  ros2 launch gubot_one launch_all_real.launch.py launch_camera:=true launch_lidar:=true
+  ros2 launch gubot_one_bringup launch_all_real.launch.py
+  ros2 launch gubot_one_bringup launch_all_real.launch.py launch_lidar:=true
+  ros2 launch gubot_one_bringup launch_all_real.launch.py launch_camera:=true
+  ros2 launch gubot_one_bringup launch_all_real.launch.py launch_camera:=true launch_lidar:=true
 """
 
 import os
@@ -41,7 +41,7 @@ from launch.conditions import IfCondition
 
 
 def generate_launch_description():
-    package_name = "gubot_one"
+    package_name = "gubot_one_bringup"
 
     # Launch Configuration Variablen
     launch_lidar = LaunchConfiguration("launch_lidar")

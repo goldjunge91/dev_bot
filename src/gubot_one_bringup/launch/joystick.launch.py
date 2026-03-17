@@ -18,8 +18,8 @@ Launch Arguments:
 - launch_joy_node: true (startet joy_node lokal)
 
 Verwendung:
-  ros2 launch gubot_one joystick.launch.py
-  ros2 launch gubot_one joystick.launch.py launch_joy_node:=false  # Wenn joy_node woanders läuft
+  ros2 launch gubot_one_bringup joystick.launch.py
+  ros2 launch gubot_one_bringup joystick.launch.py launch_joy_node:=false  # Wenn joy_node woanders läuft
 """
 from launch import LaunchDescription
 from launch_ros.actions import Node
@@ -39,7 +39,7 @@ def generate_launch_description():
 
     # Lade Joystick-Parameter aus YAML
     joy_params = os.path.join(
-        get_package_share_directory("gubot_one"), "config", "joystick.yaml"
+        get_package_share_directory("gubot_one_bringup"), "config", "joystick.yaml"
     )
 
     # Node 1: joy_node - Liest Controller über /dev/input/js0
@@ -70,7 +70,7 @@ def generate_launch_description():
 
     # Node 3: nerf_joy - Steuert Nerf Launcher über Controller
     nerf_joy_node = Node(
-        package="gubot_one",
+        package="gubot_one_bringup",
         executable="nerf_joy.py",
         name="nerf_joy",
         parameters=[{"use_sim_time": use_sim_time}],

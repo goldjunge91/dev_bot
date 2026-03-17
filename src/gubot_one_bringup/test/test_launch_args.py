@@ -13,7 +13,7 @@ def test_launch_all_real_syntax_and_dependencies():
     Testet, ob das Launch-File syntaktisch korrekt ist und alle referenzierten
     Pakete (wie face_tracker) vorhanden sind.
     """
-    package_dir = get_package_share_directory("gubot_one")
+    package_dir = get_package_share_directory("gubot_one_bringup")
     launch_file_path = os.path.join(package_dir, "launch", "launch_all_real.launch.py")
 
     result = subprocess.run(

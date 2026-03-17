@@ -14,7 +14,7 @@ from sensor_msgs.msg import Imu
 @pytest.mark.launch_test
 def generate_test_description():
     """Launch the main robot bringup."""
-    pkg_dir = get_package_share_directory("gubot_one")
+    pkg_dir = get_package_share_directory("gubot_one_bringup")
 
     robot_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

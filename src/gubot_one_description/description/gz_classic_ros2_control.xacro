@@ -1,25 +1,19 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-    <xacro:arg name="use_fake_hardware" default="false"/>
     <xacro:arg name="use_nerf_hardware" default="true"/>
     <xacro:arg name="nerf_port" default="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00"/>
 
     <xacro:unless value="$(arg sim_mode)">
         <ros2_control name="RealRobot" type="system">
             <hardware>
-                <xacro:if value="$(arg use_fake_hardware)">
-                    <plugin>mock_components/GenericSystem</plugin>
-                </xacro:if>
-                <xacro:unless value="$(arg use_fake_hardware)">
-                    <plugin>diffdrive_arduino/DiffDriveArduinoHardware</plugin>
-                    <param name="left_wheel_name">left_wheel_joint</param>
-                    <param name="right_wheel_name">right_wheel_joint</param>
-                    <param name="loop_rate">30</param>
-                    <param name="device">/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00</param>
-                    <param name="baud_rate">115200</param>
-                    <param name="timeout_ms">1000</param>
-                    <param name="enc_counts_per_rev">3436</param>
-                </xacro:unless>
+                <plugin>diffdrive_arduino/DiffDriveArduinoHardware</plugin>
+                <param name="left_wheel_name">left_wheel_joint</param>
+                <param name="right_wheel_name">right_wheel_joint</param>
+                <param name="loop_rate">30</param>
+                <param name="device">/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00</param>
+                <param name="baud_rate">115200</param>
+                <param name="timeout_ms">1000</param>
+                <param name="enc_counts_per_rev">3436</param>
             </hardware>
             <joint name="left_wheel_joint">
                 <command_interface name="velocity">
@@ -38,71 +32,49 @@
                 <state_interface name="velocity"/>
             </joint>
             <sensor name="imu_sensor">
-                <state_interface name="linear_acceleration.x">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="linear_acceleration.y">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="linear_acceleration.z">
-                    <param name="initial_value">9.81</param>
-                </state_interface>
-                <state_interface name="angular_velocity.x">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="angular_velocity.y">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="angular_velocity.z">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="orientation.x">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="orientation.y">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="orientation.z">
-                    <param name="initial_value">0.0</param>
-                </state_interface>
-                <state_interface name="orientation.w">
-                    <param name="initial_value">1.0</param>
-                </state_interface>
+                <state_interface name="linear_acceleration.x"/>
+                <state_interface name="linear_acceleration.y"/>
+                <state_interface name="linear_acceleration.z"/>
+                <state_interface name="angular_velocity.x"/>
+                <state_interface name="angular_velocity.y"/>
+                <state_interface name="angular_velocity.z"/>
             </sensor>
         </ros2_control>
 
         <xacro:if value="$(arg use_nerf_hardware)">
             <ros2_control name="NerfSystem" type="system">
                 <hardware>
-                    <xacro:if value="$(arg use_fake_hardware)">
-                        <plugin>mock_components/GenericSystem</plugin>
-                    </xacro:if>
-                    <xacro:unless value="$(arg use_fake_hardware)">
-                        <plugin>nerf_launch_system/NerfSystem</plugin>
-                        <param name="port">$(arg nerf_port)</param>
-                        <param name="baud_rate">115200</param>
-                    </xacro:unless>
+                    <plugin>nerf_launch_system/NerfSystem</plugin>
+                    <param name="port">$(arg nerf_port)</param>
+                    <param name="baud_rate">115200</param>
                 </hardware>
-                <joint name="tilt_joint">
+                <joint name="trigger_joint">
                     <command_interface name="position"/>
                     <state_interface name="position"/>
                 </joint>
-                <joint name="shooter_joint">
-                    <command_interface name="position"/>
-                    <state_interface name="position"/>
+                <joint name="dart_pusher_joint">
+                    <command_interface name="velocity"/>
+                    <state_interface name="velocity"/>
+                </joint>
+                <joint name="flywheel_left_joint">
+                    <command_interface name="velocity"/>
+                    <state_interface name="velocity"/>
+                </joint>
+                <joint name="flywheel_right_joint">
+                    <command_interface name="velocity"/>
+                    <state_interface name="velocity"/>
                 </joint>
                 <joint name="system_arming_joint">
                     <command_interface name="position"/>
-                    <state_interface name="position"/>
                 </joint>
             </ros2_control>
         </xacro:if>
     </xacro:unless>
 
     <xacro:if value="$(arg sim_mode)">
-        <ros2_control name="IgnitionSystem" type="system">
+        <ros2_control name="GazeboSystem" type="system">
             <hardware>
-                <plugin>ign_ros2_control/IgnitionSystem</plugin>
+                <plugin>gazebo_ros2_control/GazeboSystem</plugin>
             </hardware>
             <joint name="left_wheel_joint">
                 <command_interface name="velocity">
@@ -120,12 +92,15 @@
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
-            <joint name="tilt_joint">
+            <joint name="trigger_joint">
                 <command_interface name="position"/>
-                <state_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">6.28</param>
+                </state_interface>
             </joint>
-            <joint name="shooter_joint">
-                <command_interface name="position"/>
+            <joint name="dart_pusher_joint">
+                <command_interface name="velocity"/>
+                <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
             <joint name="flywheel_left_joint">
@@ -158,9 +133,9 @@
     </xacro:if>
 
  <gazebo>
-        <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
-            <parameters>$(find gubot_one)/config/my_controllers.yaml</parameters>
-            <parameters>$(find gubot_one)/config/gaz_ros2_ctl_use_sim.yaml</parameters>
+        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+            <parameters>$(find gubot_one_bringup)/config/my_controllers.yaml</parameters>
+            <parameters>$(find gubot_one_bringup)/config/gaz_ros2_ctl_use_sim.yaml</parameters>
         </plugin>
     </gazebo>
 

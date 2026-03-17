@@ -38,10 +38,10 @@ export ROS_DOMAIN_ID=0
 HOSTNAME=\$(hostname)
 if [ "\$HOSTNAME" = "ros2pi" ]; then
     echo "Identifiziert als ROBOTER (ros2pi)"
-    export CYCLONEDDS_URI="file://$WS_PATH/src/gubot_one/cycloneDDS/raspi_cyclonedds.xml"
+    export CYCLONEDDS_URI="file://$WS_PATH/src/gubot_one_bringup/cycloneDDS/raspi_cyclonedds.xml"
 else
     echo "Identifiziert als PC (h3mistral/andere)"
-    export CYCLONEDDS_URI="file://$WS_PATH/src/gubot_one/cycloneDDS/pc_cyclonedds.xml"
+    export CYCLONEDDS_URI="file://$WS_PATH/src/gubot_one_bringup/cycloneDDS/pc_cyclonedds.xml"
 fi
 
 # Colorized Output

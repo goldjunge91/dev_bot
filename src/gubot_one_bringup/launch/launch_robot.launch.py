@@ -35,8 +35,8 @@ Launch Arguments:
 - use_nerf_hardware: false (Standard)
 
 Verwendung:
-  ros2 launch gubot_one launch_robot.launch.py
-  ros2 launch gubot_one launch_robot.launch.py use_nerf_hardware:=true
+  ros2 launch gubot_one_bringup launch_robot.launch.py
+  ros2 launch gubot_one_bringup launch_robot.launch.py use_nerf_hardware:=true
 """
 
 import os
@@ -62,7 +62,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    package_name = "gubot_one"
+    package_name = "gubot_one_bringup"
 
     # Launch Configuration
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
@@ -133,7 +133,7 @@ def generate_launch_description():
     )
 
     # Robot Description für Controller Manager
-    pkg_path = os.path.join(get_package_share_directory(package_name))
+    pkg_path = os.path.join(get_package_share_directory("gubot_one_description"))
     xacro_file = os.path.join(pkg_path, "description", "robot.urdf.xacro")
     # robot_description = Command(
     #     [

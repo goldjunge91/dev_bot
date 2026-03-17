@@ -1,0 +1,9 @@
+repositories:
+  diffdrive_arduino:
+    type: git
+    url: https://github.com/joshnewans/diffdrive_arduino.git
+    version: humble
+  serial:
+    type: git
+    url: https://github.com/wjwwood/serial.git
+    version: master

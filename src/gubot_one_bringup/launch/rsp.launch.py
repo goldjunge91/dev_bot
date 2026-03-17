@@ -17,9 +17,9 @@ Launch Arguments:
 - use_nerf_hardware: true (Standard) - Nerf Hardware aktivieren
 
 Verwendung:
-  ros2 launch gubot_one rsp.launch.py
-  ros2 launch gubot_one rsp.launch.py use_sim_time:=true
-  ros2 launch gubot_one rsp.launch.py integrated_mode:=true
+  ros2 launch gubot_one_bringup rsp.launch.py
+  ros2 launch gubot_one_bringup rsp.launch.py use_sim_time:=true
+  ros2 launch gubot_one_bringup rsp.launch.py integrated_mode:=true
 
 Aufbau einer Launch-Datei:
 1. Imports - Benötigte Module
@@ -54,7 +54,7 @@ def generate_launch_description():
 
     # URDF Datei verarbeiten
     # Xacro wird zu URDF konvertiert mit den angegebenen Parametern
-    pkg_path = os.path.join(get_package_share_directory("gubot_one"))
+    pkg_path = os.path.join(get_package_share_directory("gubot_one_description"))
     xacro_file = os.path.join(pkg_path, "description", "robot.urdf.xacro")
 
     # Command() führt xacro zur Laufzeit aus
