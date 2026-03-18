@@ -3,16 +3,8 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import (
-    IncludeLaunchDescription,
-    DeclareLaunchArgument,
-    RegisterEventHandler,
-    AppendEnvironmentVariable,
-    SetEnvironmentVariable,
-    ExecuteProcess,
-)
-from launch.conditions import IfCondition
-from launch.event_handlers import OnProcessExit
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
@@ -20,88 +12,48 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
+    package_name = "gubot_gazebo"
     bringup_package_name = "gubot_one_bringup"
-    gazebo_package_name = "gubot_gazebo"
 
-    # Declare the 'world' argument
-    # Note: For Ignition, world handling is slightly different, but ros_gz_sim accepts sdf file
-    # We will pass the world file directly to gz_sim
-    # Existing world 'obstacles.world' might need conversion to SDF or might work if compatible.
-    # Generally, it's safer to launch an empty world or checking if obstacles.world is SDF compatible.
-    # For now, let's assume we pass "-r <world_file>"
-    world_arg = DeclareLaunchArgument(
-        "world",
-        default_value=os.path.join(
-            get_package_share_directory(gazebo_package_name),
-            "worlds",
-            "obstacles_classic.world",
-        ),
-        description="Path to the gazebo world file",
-    )
-
-    # Declare the 'use_sim_time' argument
-    use_sim_time = LaunchConfiguration("use_sim_time")
-    declare_use_sim_time_cmd = DeclareLaunchArgument(
-        "use_sim_time",
+    use_rviz = LaunchConfiguration("use_rviz")
+    launch_joystick = LaunchConfiguration("launch_joystick")
+    declare_use_rviz_cmd = DeclareLaunchArgument(
+        "use_rviz",
         default_value="true",
-        description="Use sim time if true",
+        description="Launch RViz2",
     )
-
-    declare_launch_nerf_sim_ctrl_cmd = DeclareLaunchArgument(
-        "launch_nerf_sim_controllers",
-        default_value="true",
-        description="Start tilt/shooter controllers in Gazebo Classic",
-    )
-
     declare_launch_joystick_cmd = DeclareLaunchArgument(
         "launch_joystick",
         default_value="false",
-        description="Start local joystick/teleop nodes",
+        description="Start joystick/teleop/nerf_joy input pipeline",
     )
 
-    declare_launch_twist_mux_cmd = DeclareLaunchArgument(
-        "launch_twist_mux",
-        default_value="false",
-        description="Start local twist_mux node",
+    cleanup_rogue_input_nodes = ExecuteProcess(
+        cmd=[
+            "bash",
+            "-lc",
+            "pkill -f 'nerf_teleop.py' || true; "
+            "pkill -f 'nerf_joy.py' || true; "
+            "pkill -f 'teleop_twist_joy.*teleop_node' || true; "
+            "pkill -f 'joy_node' || true",
+        ],
+        output="screen",
+        condition=UnlessCondition(launch_joystick),
     )
 
-    declare_zero_cmd_guard_cmd = DeclareLaunchArgument(
-        "enable_zero_cmd_guard",
-        default_value="true",
-        description="Publish zero cmd_vel continuously to avoid unintended motion",
-    )
-
-    declare_gazebo_master_uri_cmd = DeclareLaunchArgument(
-        "gazebo_master_uri",
-        default_value="http://127.0.0.1:11346",
-        description="Gazebo Classic master URI (change port if already in use)",
-    )
-
-    launch_nerf_sim_controllers = LaunchConfiguration("launch_nerf_sim_controllers")
-    launch_joystick = LaunchConfiguration("launch_joystick")
-    launch_twist_mux = LaunchConfiguration("launch_twist_mux")
-    enable_zero_cmd_guard = LaunchConfiguration("enable_zero_cmd_guard")
-
-    # Robot State Publisher
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
                 os.path.join(
                     get_package_share_directory(bringup_package_name),
                     "launch",
-                    "rsp.launch.py",
+                    "rsp_classic.launch.py",
                 )
             ]
         ),
-        launch_arguments={
-            "use_sim_time": use_sim_time,
-            "use_ros2_control": "true",
-            "integrated_mode": "true",
-            "use_gazebo_classic": "true",
-        }.items(),
+        launch_arguments={"use_sim_time": "true"}.items(),
     )
 
-    # Joystick
     joystick = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
@@ -116,7 +68,6 @@ def generate_launch_description():
         condition=IfCondition(launch_joystick),
     )
 
-    # Twist Mux
     twist_mux_params = os.path.join(
         get_package_share_directory(bringup_package_name), "config", "twist_mux.yaml"
     )
@@ -125,10 +76,14 @@ def generate_launch_description():
         executable="twist_mux",
         parameters=[twist_mux_params, {"use_sim_time": True}],
         remappings=[("/cmd_vel_out", "/diff_cont/cmd_vel_unstamped")],
-        condition=IfCondition(launch_twist_mux),
     )
 
-    # Gazebo Sim (Classic)
+    gazebo_params_file = os.path.join(
+        get_package_share_directory(package_name),
+        "config",
+        "gazebo_params.yaml",
+    )
+
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
@@ -140,12 +95,10 @@ def generate_launch_description():
             ]
         ),
         launch_arguments={
-            "world": LaunchConfiguration("world"),
-            "verbose": "true",
+            "extra_gazebo_args": "--ros-args --params-file " + gazebo_params_file,
         }.items(),
     )
 
-    # Spawn Entity
     spawn_entity = Node(
         package="gazebo_ros",
         executable="spawn_entity.py",
@@ -154,14 +107,10 @@ def generate_launch_description():
             "robot_description",
             "-entity",
             "gubot_one_bringup",
-            "-z",
-            "0.1",
         ],
         output="screen",
     )
 
-    # Controller Spawners - Must wait for spawn_entity to complete
-    # In Ignition, we just wait for spawn.
     diff_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -174,155 +123,33 @@ def generate_launch_description():
         arguments=["joint_broad"],
     )
 
-    imu_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["imu_broadcaster"],
-    )
-
-    delayed_diff_drive_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[diff_drive_spawner],
-        )
-    )
-
-    delayed_joint_broad_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[joint_broad_spawner],
-        )
-    )
-
-    delayed_imu_broadcaster_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[imu_broadcaster_spawner],
-        )
-    )
-
-    # Nerf Launcher Controllers
-    tilt_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["tilt_controller"],
-        output="screen",
-        condition=IfCondition(launch_nerf_sim_controllers),
-    )
-
-    shooter_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["shooter_controller"],
-        output="screen",
-        condition=IfCondition(launch_nerf_sim_controllers),
-    )
-
-    delayed_nerf_tilt = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[tilt_controller_spawner],
-        )
-    )
-
-    delayed_nerf_shooter = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[shooter_controller_spawner],
-        )
-    )
-
-    arming_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["arming_controller"],
-        output="screen",
-    )
-
-    delayed_nerf_arming = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[arming_controller_spawner],
-        )
-    )
-
-    # RViz
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         arguments=[
             "-d",
             os.path.join(
-                    get_package_share_directory(bringup_package_name),
-                    "config",
-                    "view_bot.rviz",
+                get_package_share_directory(bringup_package_name),
+                "config",
+                "view_bot.rviz",
             ),
         ],
         output="screen",
-    )
-
-    zero_cmd_guard = ExecuteProcess(
-        cmd=[
-            "ros2",
-            "topic",
-            "pub",
-            "-r",
-            "20",
-            "/diff_cont/cmd_vel_unstamped",
-            "geometry_msgs/msg/Twist",
-            "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}",
-        ],
-        output="screen",
-        condition=IfCondition(enable_zero_cmd_guard),
+        condition=IfCondition(use_rviz),
     )
 
     return LaunchDescription(
         [
-            world_arg,
-            declare_use_sim_time_cmd,
-            declare_launch_nerf_sim_ctrl_cmd,
+            declare_use_rviz_cmd,
             declare_launch_joystick_cmd,
-            declare_launch_twist_mux_cmd,
-            declare_zero_cmd_guard_cmd,
-            declare_gazebo_master_uri_cmd,
-            AppendEnvironmentVariable(
-                "IGN_GAZEBO_RESOURCE_PATH",
-                os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
-            ),
-            AppendEnvironmentVariable(
-                "GAZEBO_MODEL_PATH",
-                os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
-            ),
-            AppendEnvironmentVariable("GAZEBO_RESOURCE_PATH", "/usr/share/gazebo-11"),
-            AppendEnvironmentVariable(
-                "GAZEBO_RESOURCE_PATH",
-                os.path.join(os.getcwd(), "src"),
-            ),
-            AppendEnvironmentVariable(
-                "GAZEBO_RESOURCE_PATH",
-                os.path.join(os.getcwd(), "install", "nerf_launch_system", "share"),
-            ),
-            AppendEnvironmentVariable(
-                "GAZEBO_RESOURCE_PATH",
-                os.path.join(os.getcwd(), "install", "gubot_one_description", "share"),
-            ),
-            SetEnvironmentVariable("GAZEBO_MASTER_URI", LaunchConfiguration("gazebo_master_uri")),
-            # Force OpenGL 4.5 for Ogre 2 support via Software Rendering
-            AppendEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
-            AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
-            AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
+            cleanup_rogue_input_nodes,
             rsp,
             joystick,
             twist_mux,
             gazebo,
             spawn_entity,
-            delayed_diff_drive_spawner,
-            delayed_joint_broad_spawner,
-            delayed_imu_broadcaster_spawner,
-            delayed_nerf_tilt,
-            delayed_nerf_shooter,
-            delayed_nerf_arming,
-            zero_cmd_guard,
+            diff_drive_spawner,
+            joint_broad_spawner,
             rviz_node,
         ]
     )

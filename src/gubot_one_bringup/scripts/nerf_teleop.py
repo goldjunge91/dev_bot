@@ -22,8 +22,8 @@ Tastenbelegung:
     1 - Disarm System
     2 - ARM System
     SPACE - Schießen
-    T - Tilt UP (6.28 rad)
-    G - Tilt DOWN (5.23 rad)
+    T - Tilt UP (0.52 rad)
+    G - Tilt DOWN (-0.52 rad)
     R / F - Power UP/DN (5% steps)
     E / D - Power UP/DN (1% steps)
 """
@@ -50,8 +50,8 @@ Launcher Controls:
    
    SPACE : Fire Single Shot (Pulse Pusher)
    
-   t : Tilt Servo (UP - 6.28)
-   g : Tilt Servo (DOWN - 5.23)
+   t : Tilt Servo (UP - 0.52)
+   g : Tilt Servo (DOWN - -0.52)
    
    r / f : Increase/Decrease Fire Power (5% steps)
    e / b : Increase/Decrease Fire Power (1% steps)
@@ -119,7 +119,7 @@ class NerfTeleop(Node):
         self.armed = False  # Arming-Status
         self.pusher_active = False  # Pusher aktiv während Schuss
         self.pusher_timer = 0  # Timer für Pusher-Puls
-        self.tilt_pos = 6.28  # Startposition: UP (360°)
+        self.tilt_pos = 0.0  # Startposition: CENTER (0.0°)
         self.tilt_step = 0.05  # Schrittweite für Tilt
         self.shot_power = 5.0  # Standard Schuss-Power (0-100)
         self.input_count = 0  # Zähler für Reprints
@@ -174,12 +174,12 @@ class NerfTeleop(Node):
 
         elif key == "t":  # Tilt UP
             self.input_count += 1
-            self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
+            self.tilt_pos = min(0.52, self.tilt_pos + self.tilt_step)
             self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
             self.publish_tilt(self.tilt_pos)
         elif key == "g":  # Tilt DOWN
             self.input_count += 1
-            self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
+            self.tilt_pos = max(-0.52, self.tilt_pos - self.tilt_step)
             self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
             self.publish_tilt(self.tilt_pos)
         elif key == "r":  # Power UP 5%

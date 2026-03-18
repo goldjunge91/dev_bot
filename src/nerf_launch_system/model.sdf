@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<sdf version="1.7">
+  <model name="nerf_launch_system">
+    <static>true</static>
+    <link name="resource_anchor"/>
+  </model>
+</sdf>

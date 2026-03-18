@@ -72,6 +72,11 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(
+  FILES model.config model.sdf
+  DESTINATION share/${PROJECT_NAME}
+)
+
 ament_export_include_directories(include)
 ament_export_libraries(nerf_system)
 ament_export_dependencies(

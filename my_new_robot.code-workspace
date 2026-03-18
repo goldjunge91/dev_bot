@@ -31,15 +31,6 @@
     "ROS2.distro": "${env:ROS_DISTRO}",
     "editor.formatOnSave": true,
     "files.autoSave": "onFocusChange",
+    "terminal.integrated.defaultProfile.linux": "bash",
   },
-  "emeraldwalk.runonsave": {
-    "commands": [
-      {
-        "match": "\\.(py|cpp|c|h|hpp|cc|cmake|xml)$",
-        "cmd": "bash ${workspaceFolder}/.vscode/run_linters.sh",
-      },
-    ],
-  },
-  "recommendations": ["emeraldwalk.runonsave"],
-  "ament-task-provider.envSetup": "source /opt/ros/${env:ROS_DISTRO}/setup.bash",
 }

@@ -53,15 +53,8 @@
                     <far>8.0</far>
                 </clip>
             </camera>
-            <xacro:if value="$(arg use_gazebo_classic)">
-                <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
-                    <frame_name>camera_link_optical</frame_name>
-                </plugin>
-            </xacro:if>
-            <xacro:unless value="$(arg use_gazebo_classic)">
                 <topic>camera/image_raw</topic>
-            </xacro:unless>
-        </sensor>
+            </sensor>
     </gazebo>
 
 </robot>

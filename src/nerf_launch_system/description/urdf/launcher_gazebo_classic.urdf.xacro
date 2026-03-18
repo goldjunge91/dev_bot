@@ -13,6 +13,7 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <limit lower="0" upper="1" effort="1" velocity="1"/>
         <axis xyz="0 0 1"/>
+        <dynamics damping="20.0" friction="10.0"/>
     </joint>
 
     <link name="bottom_plate">
@@ -24,7 +25,7 @@
         <visual name="bottom_plate_visual">
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/bottom_plate.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/bottom_plate.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="bottom_plate_collision">
@@ -43,7 +44,7 @@
         <visual name="motor_bracket_visual">
             <origin xyz="0.09803428669398517 -4.3732793080548534e-05 -0.013700000763976723" rpy="1.5703501879750486 -1.5707963267948937 0" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/motor_bracket.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/motor_bracket.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
 
@@ -57,7 +58,7 @@
         <visual name="magazin_visual">
             <origin xyz="0.009991696360929777 -0.1260585761325394 0.08876880466816899" rpy="-3.141146514736195 1.079162159671481e-15 3.1415267664655997" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/magazin.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/magazin.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -70,7 +71,7 @@
         <visual name="motor_right_visual">
             <origin xyz="-1.73567760164417e-09 3.029328534687181e-09 -1.3556827271887785e-09" rpy="-1.5707188555909968 0.00043936100150414944 1.7453951561374372" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/motor_right.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/motor_right.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -83,7 +84,7 @@
         <visual name="motor_left_visual">
             <origin xyz="-1.8333526696778791e-09 -2.050084864091417e-09 -1.355682762715915e-09" rpy="-1.5711117946140916 0.00031546780349864484 0.7854640007616747" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/motor_left.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/motor_left.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -96,7 +97,7 @@
         <visual name="Servo_dart_pusher_visual">
             <origin xyz="0.004998394584003245 0.024345667304006825 -0.010460860261822842" rpy="1.570796326794895 -0.0004461388535984491 -1.5707304396707022" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/Servo_dart_pusher.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/Servo_dart_pusher.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -109,7 +110,7 @@
         <visual name="flywheel_left_visual">
             <origin xyz="-0.0631325544432252 0.01313155884148008 -0.0631300993428637" rpy="-1.570165432787083 0.7853321767598774 -3.1411465441724866" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/flywheel_left.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/flywheel_left.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -122,7 +123,7 @@
         <visual name="flywheel_right_visual">
             <origin xyz="-0.01550858803514851 0.013120498025483157 -0.08792554788989197" rpy="-1.568228080674074 1.3961969502773832 -3.139063424976714" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/flywheel_right.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/flywheel_right.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -135,7 +136,7 @@
         <visual name="pusher_servo_part_visual">
             <origin xyz="5.0358234648939514e-09 -0.0031999983978120905 1.4265863324780527e-06" rpy="-1.5712424656484945 6.588712419531712e-05 9.66531786022265e-16" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/pusher_servo_part.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/pusher_servo_part.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -148,7 +149,7 @@
         <visual name="Turret_visual">
             <origin xyz="0.0089380699537615 -0.0803571481976858 -0.002142981347950717" rpy="-0.000446138853596889 -1.0791087584284575e-15 -6.58871241935617e-05" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/Turret.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/Turret.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -161,7 +162,7 @@
         <visual name="Servoarm-v1_visual">
             <origin xyz="0.004000004389203955 -0.08928319312789187 0.01647600710867764" rpy="0.029400113955168578 -8.659366307345483e-14 -3.141592653583827" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/Servoarm-v1.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/Servoarm-v1.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -174,7 +175,7 @@
         <visual name="Nerf-Dart-Launcher_Servo-MG-v1_visual">
             <origin xyz="0.032232880187464355 0.10890697936911703 -0.024499995611303272" rpy="-8.077935669498046e-28 7.226432496549954e-26 1.570796326794921" />
             <geometry>
-                <mesh filename="package://nerf_launch_system/description/meshes/Nerf-Dart-Launcher_Servo-MG-v1.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="file://$(find nerf_launch_system)/description/meshes/Nerf-Dart-Launcher_Servo-MG-v1.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
     </link>
@@ -228,7 +229,7 @@
         <child link="pusher_servo_part" />
         <axis xyz="-2.7546953265439552e-21 1.0 -0.000446" />
         <limit effort="0.1" velocity="20.0"/>
-        <dynamics damping="0.0" friction="0.0"/>
+        <dynamics damping="15.0" friction="8.0"/>
     </joint>
     <joint name="bottom_plate_servo_fix_bottom_plate" type="fixed">
         <origin xyz="0.06821931 0.04425035 -0.01359223" rpy="-1.5707963267948966 -4.855375361027351e-14 -1.5707963267978802" />

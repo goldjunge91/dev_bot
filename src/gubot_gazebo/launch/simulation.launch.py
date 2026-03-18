@@ -83,7 +83,7 @@ def generate_launch_description():
             ]
         ),
         launch_arguments={
-            "use_rviz": "false"
+            "use_rviz": "true"
         }.items(),
     )
 
