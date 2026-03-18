@@ -123,6 +123,24 @@ def generate_launch_description():
         arguments=["joint_broad"],
     )
 
+    tilt_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["tilt_controller"],
+    )
+
+    shooter_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["shooter_controller"],
+    )
+
+    arming_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["arming_controller"],
+    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -150,6 +168,9 @@ def generate_launch_description():
             spawn_entity,
             diff_drive_spawner,
             joint_broad_spawner,
+            tilt_controller_spawner,
+            shooter_controller_spawner,
+            arming_controller_spawner,
             rviz_node,
         ]
     )
