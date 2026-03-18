@@ -12,15 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Simulation Launch File für Nerf Standalone System
+# Simulation Launch File fuer Nerf Standalone System
 # Startet Gazebo-Simulation mit ROS2 Control und RViz
 #
+# World-Dateien zentral in gubot_gazebo/worlds/ (Phase 2 Refactoring):
+#   Ignition default : empty_ignition_standalone.world
+#   Classic default  : obstacles_classic.world
+#
 # Launch-File Struktur:
-# 1. Imports - Benötigte Python-Module
-# 2. LaunchConfiguration - Variablen für Launch-Argumente
-# 3. DeclareLaunchArgument - Definiere konfigurierbare Parameter
-# 4. Nodes - ROS2-Knoten die gestartet werden
-# 5. LaunchDescription - Rückgabe aller Komponenten
+# 1. Imports
+# 2. LaunchConfiguration
+# 3. DeclareLaunchArgument
+# 4. Nodes
+# 5. LaunchDescription
 
 from launch.substitutions import LaunchConfiguration
 import os
@@ -43,17 +47,24 @@ def generate_launch_description():
     pkg_nerf = get_package_share_directory("nerf_launch_system")
     pkg_gazebo_ros = get_package_share_directory("gazebo_ros")
 
-    # Deklariere 'world' Argument - Welche Gazebo-Welt geladen werden soll
+    # Worlds zentral aus gubot_gazebo (Phase 2)
+    # VORHER: os.path.join(pkg_nerf, "worlds", "empty.world")
+    pkg_gubot_gazebo = get_package_share_directory("gubot_gazebo")
+    default_world = os.path.join(
+        pkg_gubot_gazebo, "worlds", "empty_ignition_standalone.world"
+    )
+
     world_arg = DeclareLaunchArgument(
         "world",
-        default_value=os.path.join(pkg_nerf, "worlds", "empty.world"),
-        description="World to load (e.g. empty.world or obstacles.world)",
+        default_value=default_world,
+        description="World to load. Ignition default: empty_ignition_standalone.world, "
+                    "Classic default: obstacles_classic.world (beide in gubot_gazebo/worlds/)",
     )
 
     use_gazebo_classic_arg = DeclareLaunchArgument(
         "use_gazebo_classic",
         default_value="false",
-        description="Whether to use Gazebo Classic (true) or modern Gazebo Ignition/Harmonic (false)",  # noqa: E501
+        description="Whether to use Gazebo Classic (true) or Gazebo Ignition/Harmonic (false)",
     )
 
     use_gazebo_classic = LaunchConfiguration("use_gazebo_classic")
@@ -83,7 +94,7 @@ def generate_launch_description():
         )
         return [node_robot_state_publisher]
 
-    # Gazebo Classic - Physik-Simulator mit ROS2-Integration
+    # Gazebo Classic
     gazebo_params_file = os.path.join(
         get_package_share_directory(package_name), "config", "gazebo_params.yaml"
     )
@@ -92,28 +103,22 @@ def generate_launch_description():
             os.path.join(pkg_gazebo_ros, "launch", "gazebo.launch.py")
         ),
         launch_arguments={
-            "world": LaunchConfiguration("world"),  # Lade spezifizierte Welt
+            "world": LaunchConfiguration("world"),
             "extra_gazebo_args": "--verbose --ros-args --params-file "
-            + gazebo_params_file,  # Zusätzliche Gazebo-Parameter
+            + gazebo_params_file,
         }.items(),
         condition=IfCondition(use_gazebo_classic),
     )
 
-    # Spawn Entity in Gazebo Classic
     spawn_entity_classic = Node(
         package="gazebo_ros",
         executable="spawn_entity.py",
-        arguments=[
-            "-topic",
-            "robot_description",
-            "-entity",
-            "nerf_launcher",
-        ],
+        arguments=["-topic", "robot_description", "-entity", "nerf_launcher"],
         output="screen",
         condition=IfCondition(use_gazebo_classic),
     )
 
-    # Modern Gazebo (Ignition)
+    # Modern Gazebo (Ignition/Harmonic)
     pkg_ros_gz_sim = get_package_share_directory("ros_gz_sim")
     gazebo_ign = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -125,91 +130,75 @@ def generate_launch_description():
         condition=UnlessCondition(use_gazebo_classic),
     )
 
-    # Spawn Entity in Modern Gazebo (Ignition)
     spawn_entity_ign = Node(
         package="ros_gz_sim",
         executable="create",
         arguments=[
-            "-topic",
-            "robot_description",
-            "-name",
-            "nerf_launcher",
-            "-z",
-            "0.5",
+            "-topic", "robot_description",
+            "-name", "nerf_launcher",
+            "-z", "0.5",
         ],
         output="screen",
         condition=UnlessCondition(use_gazebo_classic),
     )
 
-    # ROS-GZ Bridge (nur für Modern Gazebo)
-    # Brückt /clock für use_sim_time
     ros_gz_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        arguments=[
-            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
-        ],
+        arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"],
         output="screen",
         condition=UnlessCondition(use_gazebo_classic),
     )
 
-    # RViz Config - Visualisierungs-Konfiguration
     rviz_config = os.path.join(pkg_nerf, "config", "view_v1.rviz")
-
-    # RViz - 3D-Visualisierung für ROS2
     rviz = Node(
         package="rviz2",
         executable="rviz2",
         name="rviz2",
         output="screen",
-        arguments=["-d", rviz_config],  # Lade gespeicherte Konfiguration
+        arguments=["-d", rviz_config],
     )
 
-    # Spawner für Controller - Laden und Aktivieren der Controller
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[
-            "joint_state_broadcaster"
-        ],  # Publiziert Joint-States auf /joint_states
+        arguments=["joint_state_broadcaster"],
         output="screen",
     )
 
     tilt_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["tilt_controller"],  # Nerf Tilt Controller
+        arguments=["tilt_controller"],
         output="screen",
     )
 
     shooter_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["shooter_controller"],  # Nerf Shooter Controller
+        arguments=["shooter_controller"],
         output="screen",
     )
 
     arming_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["arming_controller"],  # System Arming/Disarming
+        arguments=["arming_controller"],
         output="screen",
     )
 
-    return LaunchDescription(
-        [
-            use_gazebo_classic_arg,
-            world_arg,
-            OpaqueFunction(function=launch_setup),
-            gazebo_classic,
-            spawn_entity_classic,
-            gazebo_ign,
-            spawn_entity_ign,
-            ros_gz_bridge,
-            joint_state_broadcaster_spawner,
-            tilt_controller_spawner,
-            shooter_controller_spawner,
-            arming_controller_spawner,
-            rviz,
-        ]
-    )
+    return LaunchDescription([
+        use_gazebo_classic_arg,
+        world_arg,
+        OpaqueFunction(function=launch_setup),
+        gazebo_classic,
+        spawn_entity_classic,
+        gazebo_ign,
+        spawn_entity_ign,
+        ros_gz_bridge,
+        joint_state_broadcaster_spawner,
+        tilt_controller_spawner,
+        shooter_controller_spawner,
+        arming_controller_spawner,
+        rviz,
+    ])

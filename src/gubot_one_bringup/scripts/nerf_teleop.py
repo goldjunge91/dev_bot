@@ -47,12 +47,12 @@ Moving around:
 Launcher Controls:
    1 : Disarm System
    2 : ARM System
-   
+
    SPACE : Fire Single Shot (Pulse Pusher)
-   
+
    t : Tilt Servo (UP - 0.52)
    g : Tilt Servo (DOWN - -0.52)
-   
+
    r / f : Increase/Decrease Fire Power (5% steps)
    e / b : Increase/Decrease Fire Power (1% steps)
 

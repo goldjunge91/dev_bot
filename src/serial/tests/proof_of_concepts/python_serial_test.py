@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import serial, sys
+import serial
+import sys
 
 
 def main():

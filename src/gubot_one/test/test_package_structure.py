@@ -21,7 +21,6 @@ gubot_one_description bzw. gubot_one_bringup.
 """
 
 import os
-import pytest
 
 GUBOT_ONE_SRC = os.path.join(os.path.dirname(__file__), "..")
 

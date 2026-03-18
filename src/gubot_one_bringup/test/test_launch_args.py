@@ -35,7 +35,7 @@ def test_start_robot_sh_execution_dry_run():
     """
     script_content = """#!/bin/bash
     source /opt/ros/humble/setup.bash
-    
+
     # Fake ros2 command to prevent actual launch
     ros2() {
         if [[ "$1" == "launch" ]]; then
@@ -44,9 +44,9 @@ def test_start_robot_sh_execution_dry_run():
         fi
         command ros2 "$@"
     }
-    
+
     export -f ros2
-    
+
     # Run the script with and without --face to ensure no malformed arguments
     bash ./src/gubot_one/scripts/start_robot.sh --target schatz
     bash ./src/gubot_one/scripts/start_robot.sh --face --target schatz
