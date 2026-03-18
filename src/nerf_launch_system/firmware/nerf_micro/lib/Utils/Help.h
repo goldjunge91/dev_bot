@@ -21,20 +21,20 @@ extern TiltController tiltCtrl;
  */
 class Help {
 public:
-    /**
-     * @brief Gibt die Liste aller verfügbaren Befehle über die Serielle Schnittstelle aus.
-     */
-    static void printHelp();
+  /**
+   * @brief Gibt die Liste aller verfügbaren Befehle über die Serielle Schnittstelle aus.
+   */
+  static void printHelp();
 
-    /**
-     * @brief Gibt die aktuellen Hardware-Konfigurationswerte und Offset-Einstellungen aus.
-     */
-    static void printConfig();
+  /**
+   * @brief Gibt die aktuellen Hardware-Konfigurationswerte und Offset-Einstellungen aus.
+   */
+  static void printConfig();
 
-    /**
-     * @brief Zeigt das Logo und die Systemparameter während des Bootvorgangs an.
-     */
-    static void printStartup();
+  /**
+   * @brief Zeigt das Logo und die Systemparameter während des Bootvorgangs an.
+   */
+  static void printStartup();
 };
 
 #endif  // NERF_MICRO_HELP_H

@@ -3,8 +3,8 @@
    Extended for Pi Pico support
    *************************************************************/
 
-#ifndef MOTOR_DRIVER_H
-#define MOTOR_DRIVER_H
+#ifndef DIFFDRIVE_ARDUINO__FIRMWARE__ROSARDUINOBRIDGE__MOTOR_DRIVER_H_
+#define DIFFDRIVE_ARDUINO__FIRMWARE__ROSARDUINOBRIDGE__MOTOR_DRIVER_H_
 
 #ifdef L298_MOTOR_DRIVER
 #define RIGHT_MOTOR_BACKWARD 5
@@ -20,14 +20,14 @@
 // ============== ARDUINO AVR (Nano, Uno, Mega) ==============
 #if defined(__AVR__)
 // Motor A (Left Motor)
-#define LEFT_MOTOR_PWM 3 // PWMA - PWM pin
-#define LEFT_MOTOR_IN1 4 // AIN1 - Direction
-#define LEFT_MOTOR_IN2 5 // AIN2 - Direction
+#define LEFT_MOTOR_PWM 3  // PWMA - PWM pin
+#define LEFT_MOTOR_IN1 4  // AIN1 - Direction
+#define LEFT_MOTOR_IN2 5  // AIN2 - Direction
 
 // Motor B (Right Motor)
-#define RIGHT_MOTOR_PWM 9 // PWMB - PWM pin
-#define RIGHT_MOTOR_IN1 7 // BIN1 - Direction
-#define RIGHT_MOTOR_IN2 8 // BIN2 - Direction
+#define RIGHT_MOTOR_PWM 9  // PWMB - PWM pin
+#define RIGHT_MOTOR_IN1 7  // BIN1 - Direction
+#define RIGHT_MOTOR_IN2 8  // BIN2 - Direction
 
 // ============== RASPBERRY PI PICO (RP2040) ==============
 #elif defined(ARDUINO_ARCH_RP2040)
@@ -37,9 +37,9 @@
 #define LEFT_MOTOR_IN2 5  // GP5 - AIN2 - Direction
 
 // Motor B (Right Motor)
-#define RIGHT_MOTOR_PWM 6 // GP6 - PWMB - PWM pin
-#define RIGHT_MOTOR_IN1 7 // GP7 - BIN1 - Direction
-#define RIGHT_MOTOR_IN2 8 // GP8 - BIN2 - Direction
+#define RIGHT_MOTOR_PWM 6  // GP6 - PWMB - PWM pin
+#define RIGHT_MOTOR_IN1 7  // GP7 - BIN1 - Direction
+#define RIGHT_MOTOR_IN2 8  // GP8 - BIN2 - Direction
 
 // Invert motor direction if positive speeds drive backward
 #define LEFT_MOTOR_REVERSE 1
@@ -52,4 +52,4 @@ void initMotorController();
 void setMotorSpeed(int i, int spd);
 void setMotorSpeeds(int leftSpeed, int rightSpeed);
 
-#endif // MOTOR_DRIVER_H
+#endif  // DIFFDRIVE_ARDUINO__FIRMWARE__ROSARDUINOBRIDGE__MOTOR_DRIVER_H_

@@ -33,77 +33,82 @@
 #include <string>
 #include <vector>
 
-namespace diffdrive_arduino {
-class DiffDriveArduinoHardware : public hardware_interface::SystemInterface {
-    struct Config {
-        std::string left_wheel_name = "";
-        std::string right_wheel_name = "";
-        float loop_rate = 0.0;
-        std::string device = "";
-        int baud_rate = 0;
-        int timeout_ms = 0;
-        int enc_counts_per_rev = 0;
-        int pid_p = 0;
-        int pid_d = 0;
-        int pid_i = 0;
-        int pid_o = 0;
-    };
+namespace diffdrive_arduino
+{
+class DiffDriveArduinoHardware : public hardware_interface::SystemInterface
+{
+  struct Config
+  {
+    std::string left_wheel_name = "";
+    std::string right_wheel_name = "";
+    float loop_rate = 0.0;
+    std::string device = "";
+    int baud_rate = 0;
+    int timeout_ms = 0;
+    int enc_counts_per_rev = 0;
+    int pid_p = 0;
+    int pid_d = 0;
+    int pid_i = 0;
+    int pid_o = 0;
+  };
 
 public:
-    RCLCPP_SHARED_PTR_DEFINITIONS(DiffDriveArduinoHardware);
+  RCLCPP_SHARED_PTR_DEFINITIONS(DiffDriveArduinoHardware);
 
-    DIFFDRIVE_ARDUINO_PUBLIC
-    hardware_interface::CallbackReturn on_init(
-        const hardware_interface::HardwareInfo &info) override;
+  DIFFDRIVE_ARDUINO_PUBLIC
+  hardware_interface::CallbackReturn on_init(
+    const hardware_interface::HardwareInfo & info) override;
 
-    DIFFDRIVE_ARDUINO_PUBLIC
-    std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+  DIFFDRIVE_ARDUINO_PUBLIC
+  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-    DIFFDRIVE_ARDUINO_PUBLIC
-    std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+  DIFFDRIVE_ARDUINO_PUBLIC
+  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-    DIFFDRIVE_ARDUINO_PUBLIC
-    hardware_interface::CallbackReturn on_configure(
-        const rclcpp_lifecycle::State &previous_state) override;
+  DIFFDRIVE_ARDUINO_PUBLIC
+  hardware_interface::CallbackReturn on_configure(
+    const rclcpp_lifecycle::State & previous_state) override;
 
-    DIFFDRIVE_ARDUINO_PUBLIC
-    hardware_interface::CallbackReturn on_cleanup(
-        const rclcpp_lifecycle::State &previous_state) override;
+  DIFFDRIVE_ARDUINO_PUBLIC
+  hardware_interface::CallbackReturn on_cleanup(
+    const rclcpp_lifecycle::State & previous_state) override;
 
-    DIFFDRIVE_ARDUINO_PUBLIC
-    hardware_interface::CallbackReturn on_activate(
-        const rclcpp_lifecycle::State &previous_state) override;
+  DIFFDRIVE_ARDUINO_PUBLIC
+  hardware_interface::CallbackReturn on_activate(
+    const rclcpp_lifecycle::State & previous_state) override;
 
-    DIFFDRIVE_ARDUINO_PUBLIC
-    hardware_interface::CallbackReturn on_deactivate(
-        const rclcpp_lifecycle::State &previous_state) override;
+  DIFFDRIVE_ARDUINO_PUBLIC
+  hardware_interface::CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State & previous_state) override;
 
-    DIFFDRIVE_ARDUINO_PUBLIC
-    hardware_interface::return_type read(const rclcpp::Time &time,
-                                         const rclcpp::Duration &period) override;
+  DIFFDRIVE_ARDUINO_PUBLIC
+  hardware_interface::return_type read(
+    const rclcpp::Time & time,
+    const rclcpp::Duration & period) override;
 
-    DIFFDRIVE_ARDUINO_PUBLIC
-    hardware_interface::return_type write(const rclcpp::Time &time,
-                                          const rclcpp::Duration &period) override;
+  DIFFDRIVE_ARDUINO_PUBLIC
+  hardware_interface::return_type write(
+    const rclcpp::Time & time,
+    const rclcpp::Duration & period) override;
 
 private:
-    ArduinoComms comms_;
-    Config cfg_;
-    Wheel wheel_l_;
-    Wheel wheel_r_;
+  ArduinoComms comms_;
+  Config cfg_;
+  Wheel wheel_l_;
+  Wheel wheel_r_;
 
-    // IMU Data
-    double imu_ax_ = 0.0;
-    double imu_ay_ = 0.0;
-    double imu_az_ = 0.0;
-    double imu_gx_ = 0.0;
-    double imu_gy_ = 0.0;
-    double imu_gz_ = 0.0;
-    // Identity Quaternion for 6-DOF IMU
-    double imu_q_x_ = 0.0;
-    double imu_q_y_ = 0.0;
-    double imu_q_z_ = 0.0;
-    double imu_q_w_ = 1.0;
+  // IMU Data
+  double imu_ax_ = 0.0;
+  double imu_ay_ = 0.0;
+  double imu_az_ = 0.0;
+  double imu_gx_ = 0.0;
+  double imu_gy_ = 0.0;
+  double imu_gz_ = 0.0;
+  // Identity Quaternion for 6-DOF IMU
+  double imu_q_x_ = 0.0;
+  double imu_q_y_ = 0.0;
+  double imu_q_z_ = 0.0;
+  double imu_q_w_ = 1.0;
 };
 
 }  // namespace diffdrive_arduino

@@ -20,25 +20,25 @@
  */
 class SerialOutput {
 public:
-    /**
-     * @brief Gibt einen Flash-String (PROGMEM) auf den seriellen Schnittstellen aus.
-     * @param msg Der Text-String im Flash-Speicher (muss das F() Makro verwenden).
-     */
-    static void print(const __FlashStringHelper *msg);  // __FlashStringHelper aus der
+  /**
+   * @brief Gibt einen Flash-String (PROGMEM) auf den seriellen Schnittstellen aus.
+   * @param msg Der Text-String im Flash-Speicher (muss das F() Makro verwenden).
+   */
+  static void print(const __FlashStringHelper * msg);   // __FlashStringHelper aus der
                                                         // Arduino-Bibliothek (hilft, RAM zu sparen)
-    /**
-     * @brief Gibt einen formatierten String mit bis zu zwei Zahlen (long) aus.
-     * @param format Das prinft-ähnliche Format (z.B. "Wert: %ld").
-     * @param value1 Erste einzusetzende Zahl.
-     * @param value2 Zweite einzusetzende Zahl (optional, Standard 0).
-     */
-    static void printf(const char *format, long value1, long value2 = 0);
-    /**
-     * @brief Gibt einen formatierten String mit einer Zeichenkette ein.
-     * @param format Das prinft-ähnliche Format (z.B. "Status: %s").
-     * @param strValue Der einzusetzende String.
-     */
-    static void printf(const char *format, const char *strValue);
+  /**
+   * @brief Gibt einen formatierten String mit bis zu zwei Zahlen (long) aus.
+   * @param format Das prinft-ähnliche Format (z.B. "Wert: %ld").
+   * @param value1 Erste einzusetzende Zahl.
+   * @param value2 Zweite einzusetzende Zahl (optional, Standard 0).
+   */
+  static void printf(const char * format, long value1, long value2 = 0);
+  /**
+   * @brief Gibt einen formatierten String mit einer Zeichenkette ein.
+   * @param format Das prinft-ähnliche Format (z.B. "Status: %s").
+   * @param strValue Der einzusetzende String.
+   */
+  static void printf(const char * format, const char * strValue);
 };
 
 #endif  // SERIALOUTPUT_H

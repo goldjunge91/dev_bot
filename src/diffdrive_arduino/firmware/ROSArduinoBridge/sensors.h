@@ -8,7 +8,8 @@ float microsecondsToCm(long microseconds)
   return microseconds / 29 / 2;
 }
 
-long Ping(int pin) {
+long Ping(int pin)
+{
   long duration, range;
 
   // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
@@ -28,7 +29,6 @@ long Ping(int pin) {
 
   // convert the time into meters
   range = microsecondsToCm(duration);
-  
-  return(range);
-}
 
+  return range;
+}

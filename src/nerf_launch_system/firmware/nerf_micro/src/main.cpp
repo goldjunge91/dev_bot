@@ -33,31 +33,32 @@ Comms commsUSB(nerf, tiltCtrl, Serial);
 Comms commsUART(nerf, tiltCtrl, Serial1);
 
 // --- SETUP ---
-void setup() {
-    Serial.begin(Config::BAUD_RATE);
-    Serial1.begin(Config::BAUD_RATE);
+void setup()
+{
+  Serial.begin(Config::BAUD_RATE);
+  Serial1.begin(Config::BAUD_RATE);
 
-    // Wait for USB Serial to become available (with timeout)
-    // This ensures we don't miss boot messages if a terminal is attached.
-    uint32_t startWait = millis();
-    while (!Serial && millis() - startWait < 2000);
+  // Wait for USB Serial to become available (with timeout)
+  // This ensures we don't miss boot messages if a terminal is attached.
+  uint32_t startWait = millis();
+  while (!Serial && millis() - startWait < 2000) {}
 
-    // FLUSH BUFFER: Clear any old commands (e.g. from ROS buffered write)
-    while (Serial.available()) Serial.read();
-    while (Serial1.available()) Serial1.read();
+  // FLUSH BUFFER: Clear any old commands (e.g. from ROS buffered write)
+  while (Serial.available()) {Serial.read();}
+  while (Serial1.available()) {Serial1.read();}
 
-    pinMode(LED_BUILTIN, OUTPUT);
-    // Blink 3 times to signal ready status to the user
-    for (int i = 0; i < 3; i++) {
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(100);
-        digitalWrite(LED_BUILTIN, LOW);
-        delay(100);
-    }
+  pinMode(LED_BUILTIN, OUTPUT);
+  // Blink 3 times to signal ready status to the user
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+  }
 
-    // Initialize hardware (Safing everything)
-    nerf.begin();
-    Help::printStartup();
+  // Initialize hardware (Safing everything)
+  nerf.begin();
+  Help::printStartup();
 }
 
 // --- LOOP ---
@@ -68,9 +69,10 @@ void setup() {
  * 2. Updates Tilt Controller (Timed detach logic)
  * 3. Checks for new commands on USB and UART
  */
-void loop() {
-    nerf.update();
-    tiltCtrl.update();
-    commsUSB.update();
-    commsUART.update();
+void loop()
+{
+  nerf.update();
+  tiltCtrl.update();
+  commsUSB.update();
+  commsUART.update();
 }

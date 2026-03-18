@@ -16,20 +16,21 @@
 #if defined(ARDUINO_ARCH_RP2040)
 
 // Schlanke Datenstruktur für IMU-Rohdaten
-struct ImuData {
-    float ax = 0.0f;  // Beschleunigung X [g]
-    float ay = 0.0f;  // Beschleunigung Y [g]
-    float az = 0.0f;  // Beschleunigung Z [g]
-    float gx = 0.0f;  // Winkelgeschwindigkeit X [dps]
-    float gy = 0.0f;  // Winkelgeschwindigkeit Y [dps]
-    float gz = 0.0f;  // Winkelgeschwindigkeit Z [dps]
+struct ImuData
+{
+  float ax = 0.0f;    // Beschleunigung X [g]
+  float ay = 0.0f;    // Beschleunigung Y [g]
+  float az = 0.0f;    // Beschleunigung Z [g]
+  float gx = 0.0f;    // Winkelgeschwindigkeit X [dps]
+  float gy = 0.0f;    // Winkelgeschwindigkeit Y [dps]
+  float gz = 0.0f;    // Winkelgeschwindigkeit Z [dps]
 };
 
 // Initialisiert den ICM-20948 über SPI1
 void imuSetup();
 
 // Liest aktuelle Accel+Gyro-Werte. Gibt false zurück bei Fehler.
-bool imuRead(ImuData &data);
+bool imuRead(ImuData & data);
 
 // Trigger manual calibration and save to flash
 void imuCalibrate();

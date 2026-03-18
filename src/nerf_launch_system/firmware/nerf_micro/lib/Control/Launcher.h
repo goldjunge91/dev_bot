@@ -21,122 +21,128 @@
  */
 class Launcher {
 private:
-    Servo _escLeft, _escRight, _shot;
-    FiringFSM _fsm;
+  Servo _escLeft, _escRight, _shot;
+  FiringFSM _fsm;
 
-    // Static pointer for callbacks
-    static Launcher *_instance;
+  // Static pointer for callbacks
+  static Launcher * _instance;
 
-    enum class ManualState {
-        IDLE,
-        TEST_SHOT_PUSH,
-        TEST_SHOT_BRAKE,
-        TEST_SHOT_CENTER,
-        DANGEROUS_SHOT_PUSH,
-        DANGEROUS_SHOT_BRAKE,
-        DANGEROUS_SHOT_CENTER,
-        NUDGE_OUT,
-        NUDGE_CENTER
-    };
-    ManualState _manualState;
-    uint32_t _manualTimer;
+  enum class ManualState
+  {
+    IDLE,
+    TEST_SHOT_PUSH,
+    TEST_SHOT_BRAKE,
+    TEST_SHOT_CENTER,
+    DANGEROUS_SHOT_PUSH,
+    DANGEROUS_SHOT_BRAKE,
+    DANGEROUS_SHOT_CENTER,
+    NUDGE_OUT,
+    NUDGE_CENTER
+  };
+  ManualState _manualState;
+  uint32_t _manualTimer;
 
-    // Interne Hardware-Methoden (genutzt von FSM)
-    void setESCPower(int powerPercent);
+  // Interne Hardware-Methoden (genutzt von FSM)
+  void setESCPower(int powerPercent);
 
-    void setShotServo(int us);
+  void setShotServo(int us);
 
-    void attachESCs();
+  void attachESCs();
 
-    void detachESCs();
+  void detachESCs();
 
-    void attachShotServo();
+  void attachShotServo();
 
-    void detachShotServo();
+  void detachShotServo();
 
-    // Static Callbacks wrappers
-    static void callbackESCPower(int pwr);
+  // Static Callbacks wrappers
+  static void callbackESCPower(int pwr);
 
-    static void callbackShotServo(int us);
+  static void callbackShotServo(int us);
 
-    static void callbackAttachESCs();
+  static void callbackAttachESCs();
 
-    static void callbackDetachESCs();
+  static void callbackDetachESCs();
 
-    static void callbackAttachShot();
+  static void callbackAttachShot();
 
-    static void callbackDetachShot();
+  static void callbackDetachShot();
 
-    static void callbackDebug(const char *msg);
+  static void callbackDebug(const char * msg);
 
 public:
-    Launcher();
+  Launcher();
 
-    /**
-     * @brief Initialisiert die Hardware in einem sicheren (SAFE) Zustand.
-     * Löst alle Servos (detach), um unkontrollierte Bewegungen beim Start zu verhindern.
-     */
-    void begin();
+  /**
+   * @brief Initialisiert die Hardware in einem sicheren (SAFE) Zustand.
+   * Löst alle Servos (detach), um unkontrollierte Bewegungen beim Start zu verhindern.
+   */
+  void begin();
 
-    /**
-     * @brief Hauptschleifen-Update.
-     * Treibt die FSM (Übergangs- und Aktionslogik) sowie manuelle nicht-blockierende Aktionen an.
-     */
-    void update();
+  /**
+   * @brief Hauptschleifen-Update.
+   * Treibt die FSM (Übergangs- und Aktionslogik) sowie manuelle nicht-blockierende Aktionen an.
+   */
+  void update();
 
-    // Manual Hardware Actions (not FSM-controlled)
+  // Manual Hardware Actions (not FSM-controlled)
 
-    /**
-     * @brief Löst einen Testschuss ohne Einmischung der FSM aus (nur zu Debug-Zwecken).
-     * @param ms Dauer des Pusher-Ausfahrens in Millisekunden.
-     */
-    void testShot(int ms);
+  /**
+   * @brief Löst einen Testschuss ohne Einmischung der FSM aus (nur zu Debug-Zwecken).
+   * @param ms Dauer des Pusher-Ausfahrens in Millisekunden.
+   */
+  void testShot(int ms);
 
-    /**
-     * @brief Löst einen Schuss mit laufenden Flywheels aus. Im Gegensatz zu testShot greift
-     * diese Funktion nicht in den Zustand der ESCs ein.
-     * @param ms Dauer des Pusher-Ausfahrens in Millisekunden.
-     */
-    void dangerousShot(int ms);
+  /**
+   * @brief Löst einen Schuss mit laufenden Flywheels aus. Im Gegensatz zu testShot greift
+   * diese Funktion nicht in den Zustand der ESCs ein.
+   * @param ms Dauer des Pusher-Ausfahrens in Millisekunden.
+   */
+  void dangerousShot(int ms);
 
-    /**
-     * @brief Bewegt den Pusher-Servo minimal, um Ladehemmungen zu lösen oder zur Justierung.
-     * @param forward Richtung des Stupsens (wahr = vorwärts).
-     */
-    void nudge(bool forward);
+  /**
+   * @brief Bewegt den Pusher-Servo minimal, um Ladehemmungen zu lösen oder zur Justierung.
+   * @param forward Richtung des Stupsens (wahr = vorwärts).
+   */
+  void nudge(bool forward);
 
-    /**
-     * @brief Sendet rohe PWM-Signale an die ESCs (Achtung: Gefährlich!).
-     * Dies funktioniert aus Sicherheitsgründen nur im Zustand ARMED.
-     * @param us Pulsbreite in Mikrosekunden.
-     */
-    void setRawPWM(int us);
+  /**
+   * @brief Sendet rohe PWM-Signale an die ESCs (Achtung: Gefährlich!).
+   * Dies funktioniert aus Sicherheitsgründen nur im Zustand ARMED.
+   * @param us Pulsbreite in Mikrosekunden.
+   */
+  void setRawPWM(int us);
 
-    // Config with Debug Output
-    void setZS(int v);
+  // Config with Debug Output
+  void setZS(int v);
 
-    void setD(int v);
+  void setD(int v);
 
-    // Getters
-    int getShotZero() {
-        return _fsm.getShotNeutral();
-    }
-    int getShotDur() {
-        return _fsm.getShotDuration();
-    }
+  // Getters
+  int getShotZero()
+  {
+    return _fsm.getShotNeutral();
+  }
+  int getShotDur()
+  {
+    return _fsm.getShotDuration();
+  }
 
-    // FSM Access
-    FiringFSM &getFSM() {
-        return _fsm;
-    }
+  // FSM Access
+  FiringFSM & getFSM()
+  {
+    return _fsm;
+  }
 
-    // ESC Access for Debug
-    Servo &getLeftESC() {
-        return _escLeft;
-    }
-    Servo &getRightESC() {
-        return _escRight;
-    }
+  // ESC Access for Debug
+  Servo & getLeftESC()
+  {
+    return _escLeft;
+  }
+  Servo & getRightESC()
+  {
+    return _escRight;
+  }
 };
 
 #endif  // LAUNCHER_H

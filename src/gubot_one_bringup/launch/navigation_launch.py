@@ -53,10 +53,10 @@ def generate_launch_description():
         'map_subscribe_transient_local': map_subscribe_transient_local}
 
     configured_params = RewrittenYaml(
-            source_file=params_file,
-            root_key=namespace,
-            param_rewrites=param_substitutions,
-            convert_types=True)
+        source_file=params_file,
+        root_key=namespace,
+        param_rewrites=param_substitutions,
+        convert_types=True)
 
     return LaunchDescription([
         # Setze Umgebungsvariable für sofortige Ausgabe von Log-Nachrichten
@@ -94,7 +94,8 @@ def generate_launch_description():
             package='nav2_controller',
             executable='controller_server',
             output='screen',
-            parameters=[configured_params],  # Controller Server - Folgt geplanten Pfaden (z.B. DWB, TEB)
+            # Controller Server - Folgt geplanten Pfaden (z.B. DWB, TEB)
+            parameters=[configured_params],
             remappings=remappings),
 
         Node(
@@ -102,15 +103,17 @@ def generate_launch_description():
             executable='planner_server',
             name='planner_server',
             output='screen',
-            parameters=[configured_params],  # Planner Server - Berechnet globale Pfade (z.B. NavFn, Smac)
+            # Planner Server - Berechnet globale Pfade (z.B. NavFn, Smac)
+            parameters=[configured_params],
             remappings=remappings),
 
-        Node(
+        Node(/
             package='nav2_recoveries',
             executable='recoveries_server',
             name='recoveries_server',
             output='screen',
-            parameters=[configured_params],  # Recovery Server - Führt Recovery-Behaviors aus (Spin, Backup)
+            # Recovery Server - Führt Recovery-Behaviors aus (Spin, Backup)
+            parameters=[configured_params],
             remappings=remappings),
 
         Node(
@@ -118,7 +121,8 @@ def generate_launch_description():
             executable='bt_navigator',
             name='bt_navigator',
             output='screen',
-            parameters=[configured_params],  # BT Navigator - Koordiniert Navigation mit Behavior Trees
+            # BT Navigator - Koordiniert Navigation mit Behavior Trees
+            parameters=[configured_params],
             remappings=remappings),
 
         Node(

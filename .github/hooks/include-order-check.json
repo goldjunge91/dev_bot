@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "python3 scripts/check_include_order_changed.py",
+        "timeout": 20,
+        "linux": {
+          "command": "python3 scripts/check_include_order_changed.py"
+        }
+      }
+    ]
+  }
+}

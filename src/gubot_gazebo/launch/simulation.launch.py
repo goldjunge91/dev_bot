@@ -83,7 +83,7 @@ def generate_launch_description():
             ]
         ),
         launch_arguments={
-            "use_rviz": "true"
+            "use_rviz": "false"
         }.items(),
     )
 
@@ -135,6 +135,7 @@ def generate_launch_description():
             SetEnvironmentVariable("LIBGL_ALWAYS_INDIRECT", "0"),
             SetEnvironmentVariable("LIBGL_ALWAYS_SOFTWARE", "0"),
             SetEnvironmentVariable("GALLIUM_DRIVER", "d3d12"),
+            SetEnvironmentVariable("MESA_D3D12_DEFAULT_ADAPTER_NAME", "NVIDIA"),
             SetEnvironmentVariable("LIBGL_DRI3_DISABLE", "1"),
             AppendEnvironmentVariable("LD_LIBRARY_PATH", "/usr/lib/wsl/lib"),
             # DDS / Middleware fixes for WSL2 (Force local communication)

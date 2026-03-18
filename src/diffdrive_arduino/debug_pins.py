@@ -1,7 +1,9 @@
 """
-Motor Debug Script - Direkte Motor-PWM-Steuerung
-================================================
+Motor Debug Script - Direkte Motor-PWM-Steuerung.
+
 Testet Motoren direkt über serielle Verbindung zum Mikrocontroller
+
+================================================
 
 Zweck:
 - Überprüfung Motor-Verkabelung
@@ -64,9 +66,7 @@ try:
     print(f"Connected to {PORT}")
 
     def send(cmd):
-        """
-        Sendet Befehl an Mikrocontroller
-        """
+        """Sendet Befehl an Mikrocontroller"""
         ser.write(f"{cmd}\r".encode())  # \r = Carriage Return (Befehlsende)
         time.sleep(0.05)
         return ser.readline().decode().strip()

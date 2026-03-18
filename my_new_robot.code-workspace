@@ -1,33 +1,45 @@
 {
-    "folders": [
-        {
-            "path": "."
-        }
+  "folders": [
+    {
+      "path": ".",
+    },
+  ],
+  "settings": {
+    "files.associations": {
+      "*.inc": "cpp",
+      "*.repos": "yaml",
+      "*.world": "xml",
+      "*.xacro": "xml",
+    },
+    "ROS2.autoShowOutputChannel": true,
+    "python.autoComplete.extraPaths": [
+      "${workspaceFolder}/src/nerf_launch_system",
+      "${workspaceFolder}/src/face_tracker",
+      "/opt/ros/humble/lib/python3.10/site-packages",
+      "/opt/ros/humble/local/lib/python3.10/dist-packages",
     ],
-    "settings": {
-        "files.associations": {
-            "*.inc": "cpp",
-            "*.repos": "yaml",
-            "*.world": "xml",
-            "*.xacro": "xml"
-        },
-        "ROS2.distro": "humble",
-        "ROS2.autoShowOutputChannel": true,
-        "python.autoComplete.extraPaths": [
-            "${workspaceFolder}/src/nerf_launch_system",
-            "${workspaceFolder}/src/face_tracker",
-            "/opt/ros/humble/lib/python3.10/site-packages",
-            "/opt/ros/humble/local/lib/python3.10/dist-packages"
-        ],
-        "python.analysis.extraPaths": [
-            "${workspaceFolder}/src/nerf_launch_system",
-            "${workspaceFolder}/src/face_tracker",
-            "/opt/ros/humble/lib/python3.10/site-packages",
-            "/opt/ros/humble/local/lib/python3.10/dist-packages"
-        ],
-        "chat.tools.terminal.autoApprove": {
-            "true": true
-        },
-        "terminal.integrated.suggest.enabled": true
-    }
+    "python.analysis.extraPaths": [
+      "${workspaceFolder}/src/nerf_launch_system",
+      "${workspaceFolder}/src/face_tracker",
+      "/opt/ros/humble/lib/python3.10/site-packages",
+      "/opt/ros/humble/local/lib/python3.10/dist-packages",
+    ],
+    "chat.tools.terminal.autoApprove": {
+      "true": true,
+    },
+    "terminal.integrated.suggest.enabled": true,
+    "ROS2.distro": "${env:ROS_DISTRO}",
+    "editor.formatOnSave": true,
+    "files.autoSave": "onFocusChange",
+  },
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": "\\.(py|cpp|c|h|hpp|cc|cmake|xml)$",
+        "cmd": "bash ${workspaceFolder}/.vscode/run_linters.sh",
+      },
+    ],
+  },
+  "recommendations": ["emeraldwalk.runonsave"],
+  "ament-task-provider.envSetup": "source /opt/ros/${env:ROS_DISTRO}/setup.bash",
 }

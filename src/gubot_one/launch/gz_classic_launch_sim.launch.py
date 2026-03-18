@@ -7,7 +7,6 @@ from launch.actions import (
     IncludeLaunchDescription,
     DeclareLaunchArgument,
     RegisterEventHandler,
-    AppendEnvironmentVariable,
     SetEnvironmentVariable,
 )
 from launch.event_handlers import OnProcessExit
