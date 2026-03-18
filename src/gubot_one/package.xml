@@ -11,8 +11,11 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend condition="$HUSARION_ROS_BUILD_TYPE == hardware">gubot_one_bringup</depend>
-  <depend condition="$HUSARION_ROS_BUILD_TYPE == simulation">gubot_gazebo</depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <depend condition="$GUBOT_ROS_BUILD_TYPE == hardware">gubot_one_bringup</depend>
+  <depend condition="$GUBOT_ROS_BUILD_TYPE == simulation">gubot_gazebo</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
