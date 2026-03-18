@@ -66,7 +66,7 @@ void resetPID()
 }
 
 /* PID routine to compute the next motor commands */
-void doPID(SetPointInfo* p)
+void doPID(SetPointInfo * p)
 {
   int32_t Perror;
   int32_t output;
@@ -92,11 +92,9 @@ void doPID(SetPointInfo* p)
   // Stop accumulating when output saturates
   if (output >= MAX_PWM) {
     output = MAX_PWM;
-  }
-  else if (output <= -MAX_PWM) {
+  } else if (output <= -MAX_PWM) {
     output = -MAX_PWM;
-  }
-  else {
+  } else {
     /*
     * allow turning changes, see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-tuning-changes/
     */
@@ -122,7 +120,7 @@ void updatePID()
     * PrevInput is considered a good proxy to detect
     * whether reset has already happened
     */
-    if (leftPID.PrevInput != 0 || rightPID.PrevInput != 0) { resetPID(); }
+    if (leftPID.PrevInput != 0 || rightPID.PrevInput != 0) {resetPID();}
     return;
   }
 
