@@ -10,6 +10,7 @@ cd "$ROOT_DIR"
 # - Scope is restricted to src/**, excluding src/serial.
 
 if [[ -f /opt/ros/humble/setup.bash ]]; then
+  export AMENT_TRACE_SETUP_FILES="${AMENT_TRACE_SETUP_FILES-}"
   # shellcheck disable=SC1091
   source /opt/ros/humble/setup.bash
 fi

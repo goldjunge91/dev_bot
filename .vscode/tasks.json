@@ -237,6 +237,13 @@
             "problemMatcher": []
         },
         {
+            "label": "Kill gazebo processes",
+            "detail": "Kill all gazebo processes",
+            "type": "shell",
+            "command": "ps aux | grep -E 'gzserver|gzclient|gazebo' | grep -v grep",
+            "problemMatcher": []
+        },
+        {
             "label": "add submodules from .repos",
             "detail": "Create a git submodule for all repositories in your .repos file",
             "type": "shell",

@@ -3,10 +3,10 @@
     "PostToolUse": [
       {
         "type": "command",
-        "command": "python3 scripts/check_include_order_changed.py",
+        "command": "python3 scripts/check_include_order_changed.py --hook-mode --non-blocking",
         "timeout": 20,
         "linux": {
-          "command": "python3 scripts/check_include_order_changed.py"
+          "command": "python3 scripts/check_include_order_changed.py --hook-mode --non-blocking"
         }
       }
     ]

@@ -409,5 +409,12 @@
   },
   "ament-task-provider.envSetup": "source /opt/ros/${env:ROS_DISTRO}/setup.bash",
   "ROS2.distro": "${env:ROS_DISTRO}",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "python-envs.pythonProjects": [
+    {
+      "path": ".",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ]
 }

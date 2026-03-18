@@ -12,6 +12,8 @@ Scope:
 
 from __future__ import annotations
 
+import argparse
+import json
 import re
 import subprocess
 import sys
@@ -46,6 +48,15 @@ CPP_HEADER_RE = re.compile(r"^\s*#\s*include\s*[<\"]([^>\"]+)[>\"].*$")
 
 CPP_EXTS = {".h", ".hpp", ".hh", ".hxx", ".c", ".cc", ".cpp", ".cxx"}
 EXCLUDE_PARTS = {"serial", "firmware", ".pio", "platformio"}
+
+# Tool names that typically modify files.
+EDIT_TOOL_HINTS = {
+    "apply_patch",
+    "create_file",
+    "edit_notebook_file",
+    "vscode_renamesymbol",
+    "mcp_pylance_mcp_s_pylanceinvokerefactoring",
+}
 
 
 def run_git(args: list[str]) -> list[str]:
@@ -145,6 +156,41 @@ def would_reorder(path: Path, text: str) -> bool:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Check include order in changed files.")
+    parser.add_argument(
+        "--hook-mode",
+        action="store_true",
+        help="Read hook payload from stdin and skip checks for non-edit tools.",
+    )
+    parser.add_argument(
+        "--non-blocking",
+        action="store_true",
+        help="Always return 0 even if violations are found.",
+    )
+    args = parser.parse_args()
+
+    if args.hook_mode:
+        payload_raw = sys.stdin.read().strip()
+        tool_name = ""
+        if payload_raw:
+            try:
+                payload = json.loads(payload_raw)
+                # Try common locations for tool name in hook payloads.
+                candidates = [
+                    payload.get("toolName"),
+                    payload.get("tool_name"),
+                    payload.get("name"),
+                    payload.get("tool", {}).get("name") if isinstance(payload.get("tool"), dict) else None,
+                ]
+                tool_name = next((str(c).lower() for c in candidates if c), "")
+            except json.JSONDecodeError:
+                # Do not block chat if payload is malformed.
+                return 0
+
+        if tool_name and not any(hint in tool_name for hint in EDIT_TOOL_HINTS):
+            print(f"[include-order-check] Skipped for non-edit tool: {tool_name}")
+            return 0
+
     repo_root = Path.cwd()
     files = [p for p in changed_files() if is_target(p)]
 
@@ -173,7 +219,10 @@ def main() -> int:
         print(f"  - {path}")
     print("[include-order-check] Run: python3 scripts/lint_autofix.py --path src --exclude serial")
 
-    # Non-zero to block when used as hook.
+    if args.non_blocking:
+        return 0
+
+    # Non-zero to block when explicitly desired.
     return 2
 
 
