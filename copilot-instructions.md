@@ -10,6 +10,7 @@ Dieses Dokument fasst die projektweiten Konventionen und Verifikationsschritte z
 
 ## Kernaussagen (durchgesetzt)
 - Test-Driven Development (TDD): Jeder Fix oder neue Funktion hat zuerst einen fehlschlagenden Test. Erst wenn der Test existiert, wird die Implementierung geschrieben. Aufgabe gilt erst als erledigt, wenn der Test grün ist.
+- KISS-Prinzip: Halte Lösungen so einfach wie möglich. Bevorzuge die kleinste verständliche Änderung mit minimaler Komplexität und ohne unnötige Abstraktionen.
 - Verifikation: Verwende vorhandene Test-Tasks (`./test.sh`, `ament_*` Targets). CI-Checks müssen lokal reproduzierbar sein.
 - Codeänderungen: Beim Ersetzen von Code: kommentiere den bisherigen Block aus und füge den neuen Code direkt darunter ein. Kommentierter Code bleibt, bis explizite Zustimmung zur Entfernung vorliegt.
 
