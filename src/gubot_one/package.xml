@@ -4,19 +4,13 @@
   <name>gubot_one</name>
   <version>1.0.0</version>
   <description>Meta package for the GuBot One robot platform</description>
-
   <maintainer email="my_email@email.com">Josh Newans</maintainer>
-
   <license>TODO: License declaration</license>
-
   <buildtool_depend>ament_cmake</buildtool_depend>
-
   <test_depend>ament_cmake_pytest</test_depend>
   <test_depend>python3-pytest</test_depend>
-
   <depend condition="$GUBOT_ROS_BUILD_TYPE == hardware">gubot_one_bringup</depend>
   <depend condition="$GUBOT_ROS_BUILD_TYPE == simulation">gubot_gazebo</depend>
-
   <export>
     <build_type>ament_cmake</build_type>
   </export>
