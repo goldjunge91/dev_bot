@@ -158,12 +158,14 @@ class NerfJoy(Node):
                 # Tilt Up: RB (Einzeldruck/Halten)
 
                 if pressed(4):  # LB
-                    self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
+                    # Richtung konsistent zu nerf_teleop (UP)
+                    self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
                     self.publish_tilt(self.tilt_pos)
                     self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
 
                 if pressed(5):  # RB
-                    self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
+                    # Richtung konsistent zu nerf_teleop (DOWN)
+                    self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
                     self.publish_tilt(self.tilt_pos)
                     self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
 
