@@ -108,7 +108,8 @@ class NerfTeleop(Node):
 
         # Publisher: Roboter-Bewegung
         # Queue Size 10 = Puffert max. 10 Bewegungsbefehle
-        self.pub_cmd_vel = self.create_publisher(Twist, "/cmd_vel", 10)
+        # self.pub_cmd_vel = self.create_publisher(Twist, "/cmd_vel", 10)
+        self.pub_cmd_vel = self.create_publisher(Twist, "/cmd_vel_joy", 10)
 
         # Publisher: Nerf Launcher Komponenten
         # Queue Size 10 = Gut für Echtzeit-Steuerung
@@ -163,10 +164,10 @@ class NerfTeleop(Node):
             self.input_count += 1
             self.speed = 0.0
             self.turn = 0.0
-        else:
-            self.speed = 0.0
-            self.turn = 0.0
-            # Keine Erhöhung von input_count bei leeren/unbekannten Tasten
+        # else:
+        #     self.speed = 0.0
+        #     self.turn = 0.0
+        #     # Keine Erhöhung von input_count bei leeren/unbekannten Tasten
 
         # Launcher-Steuerung
         if key == "1":

@@ -38,7 +38,8 @@ install(
 )
 
 install(
-  PROGRAMS scripts/nerf_teleop.py scripts/nerf_joy.py
+  # PROGRAMS scripts/nerf_teleop.py scripts/nerf_joy.py
+    PROGRAMS scripts/nerf_teleop.py scripts/nerf_joy.py scripts/nerf_topic_compat.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

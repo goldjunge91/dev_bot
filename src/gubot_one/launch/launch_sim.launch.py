@@ -8,7 +8,6 @@ from launch.actions import (
     DeclareLaunchArgument,
     RegisterEventHandler,
     AppendEnvironmentVariable,
-    SetEnvironmentVariable,
 )
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
@@ -135,24 +134,17 @@ def generate_launch_description():
     )
 
     # 12. Nerf Launcher Controller
-    flywheel_controller_spawner = Node(
+    shooter_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["flywheel_controller"],
+        arguments=["shooter_controller"],
         output="screen",
         condition=IfCondition(LaunchConfiguration("enable_ros2_controllers")),
     )
-    trigger_controller_spawner = Node(
+    tilt_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["trigger_controller"],
-        output="screen",
-        condition=IfCondition(LaunchConfiguration("enable_ros2_controllers")),
-    )
-    pusher_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["pusher_controller"],
+        arguments=["tilt_controller"],
         output="screen",
         condition=IfCondition(LaunchConfiguration("enable_ros2_controllers")),
     )
@@ -176,14 +168,11 @@ def generate_launch_description():
     delayed_imu_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[imu_broadcaster_spawner])
     )
-    delayed_nerf_flywheel = RegisterEventHandler(
-        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[flywheel_controller_spawner])
+    delayed_nerf_shooter = RegisterEventHandler(
+        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[shooter_controller_spawner])
     )
-    delayed_nerf_trigger = RegisterEventHandler(
-        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[trigger_controller_spawner])
-    )
-    delayed_nerf_pusher = RegisterEventHandler(
-        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[pusher_controller_spawner])
+    delayed_nerf_tilt = RegisterEventHandler(
+        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[tilt_controller_spawner])
     )
     delayed_nerf_arming = RegisterEventHandler(
         event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[arming_controller_spawner])
@@ -199,17 +188,26 @@ def generate_launch_description():
         output="screen",
     )
 
+    # # 15. Kompatibilitaet fuer altes nerf_teleop Topic-Schema
+    # # /shooter_controller/commands -> /pusher_controller/commands
+    # # /tilt_controller/commands -> /trigger_controller/commands
+    # nerf_topic_compat = Node(
+    #     package="gubot_one",
+    #     executable="nerf_topic_compat.py",
+    #     name="nerf_topic_compat",
+    #     parameters=[{"use_sim_time": True}],
+    #     output="screen",
+    # )
+
 
     # --- Launch them all! (Reihenfolge wie articubot_one, gubot_one-Extras am Ende) ---
     return LaunchDescription([
 
         # gubot_one: Umgebungsvariablen
-        # FIX: SetEnvironmentVariable (nicht Append) – ueberschreibt einen bereits
-        # in der Shell gesetzten CYCLONEDDS_URI. Append wuerde zwei Pfade mit ':'
-        # verketten → CycloneDDS-Domain-Init schlaegt fehl → alle Nodes crashen.
-        # Fuer Simulation: leerer String → CycloneDDS nutzt Standard (loopback),
-        # nicht das Tailscale-Interface aus pc_cyclonedds.xml.
-        SetEnvironmentVariable("CYCLONEDDS_URI", ""),
+        # WICHTIG: CYCLONEDDS_URI hier NICHT ueberschreiben.
+        # Die Launch-Prozesse sollen die DDS-Konfiguration aus der aufrufenden
+        # Shell erben (z.B. via `ws`), damit ros2 CLI, Teleop und Simulation
+        # im selben Discovery-Netz sind.
         AppendEnvironmentVariable(
             "IGN_GAZEBO_RESOURCE_PATH",
             os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
@@ -237,14 +235,14 @@ def generate_launch_description():
         spawn_entity,
         ros_gz_bridge,
         ros_gz_image_bridge,
+        # nerf_topic_compat,
 
         # gubot_one Zusaetze
         rviz_node,
         delayed_diff_drive_spawner,
         delayed_joint_broad_spawner,
         delayed_imu_broadcaster_spawner,
-        delayed_nerf_flywheel,
-        delayed_nerf_trigger,
-        delayed_nerf_pusher,
+        delayed_nerf_shooter,
+        delayed_nerf_tilt,
         delayed_nerf_arming,
     ])

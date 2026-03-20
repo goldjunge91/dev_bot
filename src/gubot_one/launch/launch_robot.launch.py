@@ -22,9 +22,8 @@ Komponenten:
    - diff_cont: Differential Drive Controller
    - joint_broad: Joint State Broadcaster
    - Nerf Controller (nur wenn use_nerf_hardware=true):
-     * trigger_controller: Tilt Servo
-     * flywheel_controller: Flywheel Motoren
-     * pusher_controller: Dart Pusher
+         * tilt_controller: Tilt Servo
+         * shooter_controller: Dart Pusher (FSM/Firmware steuert Flywheels separat)
      * arming_controller: Sicherheitssystem
    - nerf_control_node: High-Level Nerf Control
 
@@ -147,7 +146,7 @@ def generate_launch_description():
 
     # --- Controller Spawner Sequenz ---
     # Verhindert "Thundering Herd" auf DDS durch sequenzielles Starten
-    # Kette: diff_cont -> joint_broad -> trigger -> flywheel -> pusher -> arming -> control_node
+    # Kette: diff_cont -> joint_broad -> tilt -> shooter -> arming -> control_node
     # Verwendet OnProcessExit weil Spawner nach erfolgreichem Laden beenden
 
     from launch.event_handlers import OnProcessExit
@@ -180,52 +179,37 @@ def generate_launch_description():
         )
     )
 
-    # 3. Nerf Trigger Controller (startet nach joint_broad)
-    nerf_trigger_spawner = Node(
+    # 3. Nerf Tilt Controller (startet nach joint_broad)
+    nerf_tilt_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["trigger_controller"],  # Tilt Servo
+        arguments=["tilt_controller"],  # Tilt Servo
         output="screen",
     )
 
-    delayed_nerf_trigger = RegisterEventHandler(
+    delayed_nerf_tilt = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=joint_broad_spawner,
-            on_exit=[nerf_trigger_spawner],
+            on_exit=[nerf_tilt_spawner],
         )
     )
 
-    # 4. Nerf Flywheel Controller (startet nach trigger)
-    nerf_flywheel_spawner = Node(
+    # 4. Nerf Shooter Controller (startet nach tilt)
+    nerf_shooter_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["flywheel_controller"],  # Flywheel Motoren
+        arguments=["shooter_controller"],  # Dart Pusher/FSM-Eingang
         output="screen",
     )
 
-    delayed_nerf_flywheel = RegisterEventHandler(
+    delayed_nerf_shooter = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=nerf_trigger_spawner,
-            on_exit=[nerf_flywheel_spawner],
+            target_action=nerf_tilt_spawner,
+            on_exit=[nerf_shooter_spawner],
         )
     )
 
-    # 5. Nerf Pusher Controller (startet nach flywheel)
-    nerf_pusher_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["pusher_controller"],  # Dart Pusher
-        output="screen",
-    )
-
-    delayed_nerf_pusher = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=nerf_flywheel_spawner,
-            on_exit=[nerf_pusher_spawner],
-        )
-    )
-
-    # 6. Nerf Arming Controller (startet nach pusher)
+    # 5. Nerf Arming Controller (startet nach shooter)
     nerf_arming_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -235,17 +219,21 @@ def generate_launch_description():
 
     delayed_nerf_arming = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=nerf_pusher_spawner,
+            target_action=nerf_shooter_spawner,
             on_exit=[nerf_arming_spawner],
         )
     )
 
-    # 7. Nerf Control Node (startet nach arming)
+    # 6. Nerf Control Node (startet nach arming)
     nerf_control = Node(
         package="nerf_launch_system",
         executable="nerf_control_node",
         output="screen",
         parameters=[{"auto_arm": auto_arm}],
+        remappings=[
+            ("/trigger_controller/commands", "/tilt_controller/commands"),
+            ("/pusher_controller/commands", "/shooter_controller/commands"),
+        ],
     )
 
     delayed_nerf_control = RegisterEventHandler(
@@ -260,9 +248,8 @@ def generate_launch_description():
     nerf_group = GroupAction(
         condition=IfCondition(use_nerf_hardware),
         actions=[
-            delayed_nerf_trigger,
-            delayed_nerf_flywheel,
-            delayed_nerf_pusher,
+            delayed_nerf_tilt,
+            delayed_nerf_shooter,
             delayed_nerf_arming,
             delayed_nerf_control,
         ],
