@@ -19,12 +19,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     package_name = "gubot_one"
 
-    # Declare the 'world' argument
-    # Note: For Ignition, world handling is slightly different, but ros_gz_sim accepts sdf file
-    # We will pass the world file directly to gz_sim
-    # Existing world 'obstacles.world' might need conversion to SDF or might work if compatible.
-    # Generally, it's safer to launch an empty world or checking if obstacles.world is SDF compatible.
-    # For now, let's assume we pass "-r <world_file>"
+
     world_arg = DeclareLaunchArgument(
         "world",
         default_value=os.path.join(
@@ -128,6 +123,10 @@ def generate_launch_description():
         arguments=[
             "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
             "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
+            # Bridge cmd_vel so teleop publishing to /cmd_vel reaches Ignition
+            "/cmd_vel@geometry_msgs/msg/Twist[gz.msgs.Twist",
+            # Also bridge diff_cont output used by twist_mux -> controller
+            "/diff_cont/cmd_vel_unstamped@geometry_msgs/msg/Twist[gz.msgs.Twist",
             "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
             "/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
             "/imu_sensor/imu_data@sensor_msgs/msg/Imu[gz.msgs.IMU",

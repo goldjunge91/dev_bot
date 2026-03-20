@@ -1,0 +1,11 @@
+# Disable ros2_control controller spawners for Ignition-only (bridge-first) mode
+# This file exists as a marker/config that you can use to indicate the controllers
+# should not be started by the launch system. The actual launch argument
+# `enable_ros2_controllers` controls whether spawners are launched.
+# Keep this file in the package so it's easy to find and document the bridge-first setup.
+
+# No controller definitions here — controllers will not be spawned when using
+# enable_ros2_controllers:=false
+
+# If you later want to provide overridden controller parameters for a minimal
+# controller set, add them here.
