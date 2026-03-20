@@ -30,10 +30,16 @@ def generate_launch_description():
 
     # Declare the 'use_rviz' argument (disabled by default on WSLg - no OpenGL support)
     use_rviz = LaunchConfiguration("use_rviz")
+    launch_joystick = LaunchConfiguration("launch_joystick")
     declare_use_rviz_cmd = DeclareLaunchArgument(
         "use_rviz",
         default_value="false",
         description="Launch RViz2 (requires OpenGL support, disabled by default on WSLg)",
+    )
+    declare_launch_joystick_cmd = DeclareLaunchArgument(
+        "launch_joystick",
+        default_value="false",
+        description="Start joystick/teleop/nerf_joy input pipeline",
     )
 
     # Robot State Publisher
@@ -66,6 +72,7 @@ def generate_launch_description():
             ]
         ),
         launch_arguments={"use_sim_time": "true"}.items(),
+        condition=IfCondition(launch_joystick),
     )
 
     # Twist Mux
@@ -226,6 +233,7 @@ def generate_launch_description():
         [
             declare_use_sim_time_cmd,
             declare_use_rviz_cmd,
+            declare_launch_joystick_cmd,
             rsp,
             joystick,
             twist_mux,

@@ -1,10 +1,16 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot">
     <xacro:arg name="use_gazebo_classic" default="true"/>
+    <xacro:arg name="use_nerf_hardware" default="true"/>
     <xacro:include filename="robot_core_classic.xacro" />
     <xacro:include filename="gz_classic_ros2_control_sim.xacro" />
     <xacro:arg name="integrated_mode" default="true"/>
+    <!-- VORHER:
     <xacro:include filename="nerf_launcher_classic.xacro" />
+    -->
+    <xacro:if value="$(arg use_nerf_hardware)">
+        <xacro:include filename="nerf_launcher_classic.xacro" />
+    </xacro:if>
     <xacro:include filename="camera.xacro" />
     <xacro:include filename="face.xacro" />
 </robot>

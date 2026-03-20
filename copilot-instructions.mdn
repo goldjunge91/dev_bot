@@ -1,0 +1,90 @@
+## Übersicht
+Dieses Dokument listet die notwendigen Tasks und konkreten Schritte auf, um die beiden Simulations‑Pfade (Gazebo Classic und Gazebo Ignition/Harmonic via ros_gz_sim) in diesem ROS2 Humble Projekt zu prüfen und Fehler zu beheben.
+
+## Gefundene Launch-Dateien (Analyse-Start)
+- `src/gubot_gazebo/launch/gz_classic_launch_sim.launch.py` (Classic + ros_gz_bridge / Ignition bridge)
+- `src/gubot_gazebo/launch/simulation.launch.py` (Ignition / ros_gz_sim)
+- `src/gubot_one_bringup/launch/gz_classic_launch_sim.launch.py` (Classic robot bringup)
+- `src/nerf_launch_system/launch/simulate.launch.py` (Nerf system — wahlweise Classic oder Ignition)
+
+## Empfohlene Tasks und Schritte zur Fehlerbehebung
+
+1) Analyse & Vorbereitung
+  - Dateiüberblick: Öffne oben genannte Launch-Dateien, `config/*.yaml`, und `worlds/*`.
+  - Prüfe, ob alle genannten Pakete installiert sind: `gazebo_ros`, `ros_gz_sim`, `ros_gz_bridge`, `controller_manager`, `gazebo_ros_pkgs`, `rviz2`, `twist_mux`.
+
+2) Environment / Pfade prüfen
+  - Prüfe `GAZEBO_MODEL_PATH` und `IGN_GAZEBO_RESOURCE_PATH` in Launch-Files. Stelle sicher, dass Pfade auf `install/<pkg>/share` oder `src/` verweisen, wenn Modelle dort liegen.
+  - Auf WSL: überprüfe DISPLAY/Wayland/LD_LIBRARY_PATH falls GUI nötig ist.
+
+3) Gazebo Classic testen
+  - Starte das Classic-Launch (siehe Befehle weiter unten).
+  - Beobachte `spawn_entity.py` Ausgaben; bei Fehlern: prüfe `robot_description` Parameter (XACRO → URDF) und ob `spawn_entity` das Topic findet.
+  - Prüfe, ob `controller_manager spawner` läuft und Controller geladen werden (Fehler beim `spawner` zeigen in der Regel controller config Probleme).
+
+4) Ignition / ros_gz_sim testenq
+  - Starte das Ignition-Launch (siehe Befehle weiter unten).
+  - Prüfe `ros_gz_bridge` / `ros_gz_sim` logs, Bridge-Konfiguration (`config/gz_bridge.yaml`), ob `/clock` gepublished wird.
+  - Wenn `create` nicht spawnt: prüfe, ob `robot_description` als ROS2 Parameter verfügbar ist und `ros_gz_sim` die erwarteten plugins/transport Namespaces nutzt.
+
+5) Controllers & Reihenfolge
+  - Viele Fehler entstehen durch falsche Reihenfolge: spawn_entity muss abgeschlossen sein bevor `spawner` ruft.
+  - Verwende EventHandler / OnProcessExit oder TimerAction, um Reihenfolge zu garantieren (Launch-Files verwenden das bereits an einigen Stellen).
+
+6) Tests & Linter
+  - Führe `pytest` für Python-Tests und `ament`/colcon build um C++ Tests (falls vorhanden) aus.
+  - Starte Code-Linter (flake8 / cpplint) und behebe Auffälligkeiten.
+
+7) Spezifische Hinweise für dieses Projekt
+  - `nerf_launch_system` Launch bietet ein Flag `use_gazebo_classic`. Teste beide Modi.
+  - `gubot_gazebo/simulation.launch.py` setzt `RMW_IMPLEMENTATION=rmw_fastrtps_cpp` — das ist nützlich, falls DDS Probleme auftreten.
+
+## Konkrete Änderungen, falls Probleme auftreten (Checkliste)
+- Fehlendes Paket: `sudo apt install ros-humble-gazebo-ros-pkgs ros-humble-ros-gz-sim ros-humble-ros-gz-bridge` (oder passende apt/rosdep Befehle)
+- Wenn Modelle nicht gefunden: sicherstellen, dass `install/<pkg>/share/<pkg>` existiert oder `GAZEBO_MODEL_PATH` auf `src/` zeigt.
+- Wenn `spawn_entity` kein robot_description findet: XACRO-Processing in `rsp` prüfen; temporär `ros2 param get /robot_state_publisher robot_description` überprüfen.
+- Controller-Errors: `controller_manager` logs prüfen; `controller`-YAMLs in `config/` validieren.
+
+## Terminal-Befehle zum Starten der Simulationen
+
+Hinweis: Diese Befehle werden im Workspace-Root (`/home/ros/projects/my_new_robot`) ausgeführt. Falls du eine virtuelle Umgebung benutzt, zuerst aktivieren.
+
+1) Gazebo Classic (gubot_one bringup, Classic world)
+
+```bash
+# optional: source Workspace
+source install/setup.bash || source install/local_setup.bash || true
+
+# Start Classic bringup (RViz + Gazebo Classic)
+ros2 launch gubot_one_bringup gz_classic_launch_sim.launch.py world:=$(ros2 pkg prefix gubot_one_bringup)/share/gubot_one_bringup/worlds/obstacles_classic.world
+```
+
+Alternativ (projektweit bringup inklusive nerf hardware):
+```bash
+ros2 launch gubot_gazebo gz_classic_launch_sim.launch.py use_rviz:=true gui:=true use_nerf_hardware:=true
+```
+
+2) Gazebo Ignition / ros_gz_sim (Harmonic style)
+
+```bash
+# source workspace
+source install/setup.bash || source install/local_setup.bash || true
+
+# Start Ignition (ros_gz_sim) using the project simulation.launch
+ros2 launch gubot_gazebo simulation.launch.py
+
+# Oder speziell nerf simulator (wählt Ignition per use_gazebo_classic:=false)
+ros2 launch nerf_launch_system simulate.launch.py use_gazebo_classic:=false
+```
+
+3) Tipps bei Problemen
+- Wenn GUI nicht erscheint: prüfe DISPLAY, Wayland, oder ob Gazebo läuft headless (gui:=false).
+- Bei DDS/Network-Problemen setze `RMW_IMPLEMENTATION=rmw_fastrtps_cpp` oder `ROS_LOCALHOST_ONLY=1`.
+- Logs filtern: `ros2 topic echo /rosout` oder `journalctl` für systemd services.
+
+## Nächste Schritte (empfohlen)
+1. Führe die oben genannten Launch-Befehle lokal aus und poste die Log-Fehler (Terminal-Ausgabe) falls etwas fehlschlägt.
+2. Ich prüfe dann gezielt die Fehlermeldungen und erstelle Patches für die Launch/Config-Dateien.
+
+---
+Datei erstellt/aktualisiert automatisch durch Copilot-Anweisungen. 

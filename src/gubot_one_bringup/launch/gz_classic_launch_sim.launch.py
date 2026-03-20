@@ -19,16 +19,12 @@ from launch_ros.actions import Node
 def generate_launch_description():
     package_name = "gubot_one_bringup"
 
-    # Declare the 'world' argument
-    # Note: For Ignition, world handling is slightly different, but ros_gz_sim accepts sdf file
-    # We will pass the world file directly to gz_sim
-    # Existing world 'obstacles.world' might need conversion to SDF or might work if compatible.
-    # Generally, it's safer to launch an empty world or checking if obstacles.world is SDF compatible.
-    # For now, let's assume we pass "-r <world_file>"
+    # Declare the 'world' argument.
+    # Pass the world file directly to Gazebo Classic.
     world_arg = DeclareLaunchArgument(
         "world",
         default_value=os.path.join(
-            get_package_share_directory(package_name),
+            get_package_share_directory("gubot_gazebo"),
             "worlds",
             "obstacles_classic.world",
         ),
@@ -47,16 +43,29 @@ def generate_launch_description():
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
+                # VORHER:
+                # os.path.join(
+                #     get_package_share_directory(package_name),
+                #     "launch", "rsp.launch.py"
+                # )
                 os.path.join(
-                    get_package_share_directory(package_name), "launch", "rsp.launch.py"
+                    get_package_share_directory(package_name),
+                    "launch",
+                    "rsp_classic.launch.py",
                 )
             ]
         ),
+        # VORHER:
+        # launch_arguments={
+        #     "use_sim_time": use_sim_time,
+        #     "use_ros2_control": "true",
+        #     "integrated_mode": "true",
+        #     "use_gazebo_classic": "true",
+        # }.items(),
         launch_arguments={
             "use_sim_time": use_sim_time,
-            "use_ros2_control": "true",
             "integrated_mode": "true",
-            "use_gazebo_classic": "true",
+            "use_nerf_hardware": "true",
         }.items(),
     )
 

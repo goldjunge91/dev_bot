@@ -28,9 +28,11 @@ Tastenbelegung:
     E / D - Power UP/DN (1% steps)
 """
 
+import os
 import sys
 import termios
 import tty
+from collections import deque
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
@@ -66,8 +68,17 @@ moveBindings = {
     "d": (0.0, -1.0),  # Rechts drehen: angular_z=-1.0
 }
 
+# Test-Modus: scripted key sequence ohne TTY (für Integrationstests)
+_TEST_MODE = os.environ.get("NERF_TELEOP_TEST_MODE", "0") == "1"
+_TEST_KEY_QUEUE = deque(os.environ.get("NERF_TELEOP_TEST_KEYS", ""))
+
 # Terminal-Einstellungen speichern für Wiederherstellung
-settings = termios.tcgetattr(sys.stdin)
+# VORHER:
+# settings = termios.tcgetattr(sys.stdin)
+try:
+    settings = termios.tcgetattr(sys.stdin) if sys.stdin.isatty() else None
+except termios.error:
+    settings = None
 
 
 def getKey():
@@ -75,6 +86,12 @@ def getKey():
     Liest einzelne Tastatureingabe ohne Enter
     Timeout: 0.1s (non-blocking)
     """
+    if _TEST_MODE:
+        return _TEST_KEY_QUEUE.popleft() if _TEST_KEY_QUEUE else ""
+
+    if settings is None or not sys.stdin.isatty():
+        return ""
+
     tty.setraw(sys.stdin.fileno())
     rlist, _, _ = select([sys.stdin], [], [], 0.1)
     if rlist:
@@ -253,7 +270,8 @@ def main(args=None):
         node.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+        if settings is not None and sys.stdin.isatty():
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
 
 if __name__ == "__main__":

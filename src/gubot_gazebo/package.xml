@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
-<package format="3">
   <name>gubot_gazebo</name>
-  <version>0.0.0</version>
   <description>Gazebo simulation for gubot_one</description>
   <maintainer email="my_email@email.com">Josh Newans</maintainer>
   <license>TODO: License declaration</license>

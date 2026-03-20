@@ -2,6 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="robot">
 
     <xacro:arg name="use_ros2_control" default="true"/>
+    <xacro:arg name="use_gazebo_classic" default="false"/>
     <xacro:arg name="sim_mode" default="false"/>
     <xacro:arg name="integrated_mode" default="true"/>
     <xacro:arg name="use_nerf_hardware" default="true"/>

@@ -47,14 +47,25 @@ if(BUILD_TESTING)
   endforeach()
 
   ament_add_pytest_test(test_launch_args test/test_launch_args.py
-    APPEND_ENV 
+    APPEND_ENV
       "AMENT_PREFIX_PATH=${WS_AMENT_PREFIX_PATH}:$ENV{AMENT_PREFIX_PATH}"
       "PYTHONPATH=${WS_PYTHONPATH}:$ENV{PYTHONPATH}"
   )
   ament_add_pytest_test(test_imu_orientation test/test_imu_orientation.py
-    APPEND_ENV 
+    APPEND_ENV
       "AMENT_PREFIX_PATH=${WS_AMENT_PREFIX_PATH}:$ENV{AMENT_PREFIX_PATH}"
       "PYTHONPATH=${WS_PYTHONPATH}:$ENV{PYTHONPATH}"
+  )
+  ament_add_pytest_test(test_classic_launch_args test/test_classic_launch_args.py
+    APPEND_ENV
+      "AMENT_PREFIX_PATH=${WS_AMENT_PREFIX_PATH}:$ENV{AMENT_PREFIX_PATH}"
+      "PYTHONPATH=${WS_PYTHONPATH}:$ENV{PYTHONPATH}"
+  )
+  ament_add_pytest_test(test_classic_nerf_teleop_movement test/test_classic_nerf_teleop_movement.py
+    APPEND_ENV
+      "AMENT_PREFIX_PATH=${WS_AMENT_PREFIX_PATH}:$ENV{AMENT_PREFIX_PATH}"
+      "PYTHONPATH=${WS_PYTHONPATH}:$ENV{PYTHONPATH}"
+    TIMEOUT 240
   )
 endif()
 

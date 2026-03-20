@@ -3,7 +3,12 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess
+from launch.actions import (
+    IncludeLaunchDescription,
+    DeclareLaunchArgument,
+    ExecuteProcess,
+    TimerAction,
+)
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -17,6 +22,8 @@ def generate_launch_description():
 
     use_rviz = LaunchConfiguration("use_rviz")
     launch_joystick = LaunchConfiguration("launch_joystick")
+    use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
+    gui = LaunchConfiguration("gui")
     declare_use_rviz_cmd = DeclareLaunchArgument(
         "use_rviz",
         default_value="true",
@@ -27,15 +34,32 @@ def generate_launch_description():
         default_value="false",
         description="Start joystick/teleop/nerf_joy input pipeline",
     )
+    declare_use_nerf_hardware_cmd = DeclareLaunchArgument(
+        "use_nerf_hardware",
+        default_value="true",
+        description="Enable NERF launcher links/controllers in Classic simulation",
+    )
+    declare_gui_cmd = DeclareLaunchArgument(
+        "gui",
+        default_value="true",
+        description="Set to false to run Gazebo Classic headless",
+    )
 
     cleanup_rogue_input_nodes = ExecuteProcess(
         cmd=[
             "bash",
             "-lc",
-            "pkill -f 'nerf_teleop.py' || true; "
-            "pkill -f 'nerf_joy.py' || true; "
-            "pkill -f 'teleop_twist_joy.*teleop_node' || true; "
-            "pkill -f 'joy_node' || true",
+            # VORHER:
+            # "pkill -f 'nerf_teleop.py' || true; "
+            # "pkill -f 'nerf_joy.py' || true; "
+            # "pkill -f 'teleop_twist_joy.*teleop_node' || true; "
+            # "pkill -f 'joy_node' || true",
+            "pkill -f '[n]erf_teleop.py' || true; "
+            "pkill -f '[n]erf_joy.py' || true; "
+            "pkill -f 'teleop_twist_joy.*[t]eleop_node' || true; "
+            "pkill -f '[j]oy_node' || true; "
+            "pkill -f '[g]zserver' || true; "
+            "pkill -f '[g]zclient' || true",
         ],
         output="screen",
         condition=UnlessCondition(launch_joystick),
@@ -51,7 +75,13 @@ def generate_launch_description():
                 )
             ]
         ),
-        launch_arguments={"use_sim_time": "true"}.items(),
+        # VORHER:
+        # launch_arguments={"use_sim_time": "true"}.items(),
+        launch_arguments={
+            "use_sim_time": "true",
+            "integrated_mode": "true",
+            "use_nerf_hardware": use_nerf_hardware,
+        }.items(),
     )
 
     joystick = IncludeLaunchDescription(
@@ -94,8 +124,13 @@ def generate_launch_description():
                 )
             ]
         ),
+        # VORHER:
+        # launch_arguments={
+        #     "extra_gazebo_args": "--ros-args --params-file " + gazebo_params_file,
+        # }.items(),
         launch_arguments={
             "extra_gazebo_args": "--ros-args --params-file " + gazebo_params_file,
+            "gui": gui,
         }.items(),
     )
 
@@ -127,18 +162,21 @@ def generate_launch_description():
         package="controller_manager",
         executable="spawner",
         arguments=["tilt_controller"],
+        condition=IfCondition(use_nerf_hardware),
     )
 
     shooter_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["shooter_controller"],
+        condition=IfCondition(use_nerf_hardware),
     )
 
     arming_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["arming_controller"],
+        condition=IfCondition(use_nerf_hardware),
     )
 
     rviz_node = Node(
@@ -156,11 +194,9 @@ def generate_launch_description():
         condition=IfCondition(use_rviz),
     )
 
-    return LaunchDescription(
-        [
-            declare_use_rviz_cmd,
-            declare_launch_joystick_cmd,
-            cleanup_rogue_input_nodes,
+    delayed_main_actions = TimerAction(
+        period=1.5,
+        actions=[
             rsp,
             joystick,
             twist_mux,
@@ -172,5 +208,16 @@ def generate_launch_description():
             shooter_controller_spawner,
             arming_controller_spawner,
             rviz_node,
+        ],
+    )
+
+    return LaunchDescription(
+        [
+            declare_use_rviz_cmd,
+            declare_launch_joystick_cmd,
+            declare_use_nerf_hardware_cmd,
+            declare_gui_cmd,
+            cleanup_rogue_input_nodes,
+            delayed_main_actions,
         ]
     )
