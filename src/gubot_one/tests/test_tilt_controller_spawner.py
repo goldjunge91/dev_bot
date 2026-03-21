@@ -19,7 +19,7 @@ import yaml
 
 _LAUNCHER_URDF = (
     "/home/ros/projects/my_new_robot_9e34131"
-    "/src/nerf_launch_system/description/urdf/launcher.urdf.xacro"
+    "/src/nerf_launch_system/description/urdf/nerf_launcher.urdf.xacro"
 )
 _CONTROLLERS_YAML = (
     "/home/ros/projects/my_new_robot_9e34131"
@@ -37,7 +37,7 @@ _NERF_TELEOP = (
 # Ignition Gazebo 6 (Fortress/Humble) braucht ign_ros2_control.
 # gz_ros2_control ist fuer Gazebo Garden/Harmonic (Gazebo 7+).
 _CORRECT_SIM_PLUGIN = "ign_ros2_control/IgnitionSystem"
-_WRONG_SIM_PLUGIN   = "gz_ros2_control/GazeboSimSystem"
+_WRONG_SIM_PLUGIN = "gz_ros2_control/GazeboSimSystem"
 
 
 def _trigger_joint_limits():
@@ -48,8 +48,9 @@ def _trigger_joint_limits():
     block = re.search(
         r'<joint name="trigger_joint".*?</joint>', src_no_comments, re.DOTALL
     )
-    assert block, "trigger_joint nicht in launcher.urdf.xacro gefunden"
-    m = re.search(r'<limit[^>]*lower="([^"]+)"[^>]*upper="([^"]+)"', block.group())
+    assert block, "trigger_joint nicht in nerf_launcher.urdf.xacro gefunden"
+    m = re.search(
+        r'<limit[^>]*lower="([^"]+)"[^>]*upper="([^"]+)"', block.group())
     assert m, "Kein aktiver <limit>-Tag in trigger_joint"
     return float(m.group(1)), float(m.group(2))
 

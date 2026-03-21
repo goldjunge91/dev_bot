@@ -138,11 +138,17 @@ class NerfTeleop(Node):
         self.armed = False  # Arming-Status
         self.pusher_active = False  # Pusher aktiv während Schuss
         self.pusher_timer = 0  # Timer für Pusher-Puls
-        # ALT: # Trigger-Joint laut URDF: [-1.05, 0.0] rad
-        # Trigger-Joint laut URDF: [-0.52, 0.52] rad
-        # Start in Mittelstellung, damit Bewegung in beide Richtungen sofort sichtbar ist.
-        # ALT: self.tilt_pos = -0.5
-        self.tilt_pos = 0.0
+        # Simulator-spezifische Limits
+        self.is_classic = '--classic' in sys.argv
+        if self.is_classic:
+            self.tilt_min = -1.05
+            self.tilt_max = 0.0
+            self.tilt_pos = -0.5
+        else:
+            self.tilt_min = -0.52
+            self.tilt_max = 0.52
+            self.tilt_pos = 0.0
+            
         self.tilt_step = 0.05  # Schrittweite für Tilt
         self.shot_power = 5.0  # Standard Schuss-Power (0-100)
         self.input_count = 0  # Zähler für Reprints
@@ -197,15 +203,14 @@ class NerfTeleop(Node):
 
         elif key == "t":  # Tilt UP
             self.input_count += 1
-            # In Simulation war die Richtung invertiert, daher absichtlich invertiert.
-            # ALT: self.tilt_pos = max(-1.05, self.tilt_pos - self.tilt_step)
-            self.tilt_pos = max(-0.52, self.tilt_pos - self.tilt_step)
+            # Normalisierte Richtung: UP = Positiv
+            self.tilt_pos = min(self.tilt_max, self.tilt_pos + self.tilt_step)
             self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
             self.publish_tilt(self.tilt_pos)
         elif key == "g":  # Tilt DOWN
             self.input_count += 1
-            # ALT: self.tilt_pos = min(0.0, self.tilt_pos + self.tilt_step)
-            self.tilt_pos = min(0.52, self.tilt_pos + self.tilt_step)
+            # Normalisierte Richtung: DOWN = Negativ
+            self.tilt_pos = max(self.tilt_min, self.tilt_pos - self.tilt_step)
             self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
             self.publish_tilt(self.tilt_pos)
         elif key == "r":  # Power UP 5%

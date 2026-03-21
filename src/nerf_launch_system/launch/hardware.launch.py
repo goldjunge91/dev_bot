@@ -19,7 +19,8 @@ def generate_launch_description():
     pkg_nerf = get_package_share_directory("nerf_launch_system")
 
     # Verarbeite URDF mit Hardware-Flag (use_hardware=true)
-    xacro_file = os.path.join(pkg_nerf, "description", "urdf", "launcher.urdf.xacro")
+    xacro_file = os.path.join(pkg_nerf, "description",
+                              "urdf", "nerf_launcher.urdf.xacro")
 
     # Deklariere Launch-Argumente
     from launch.actions import DeclareLaunchArgument
@@ -43,7 +44,8 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[robot_description, {"use_sim_time": False}],  # Echte Zeit verwenden
+        # Echte Zeit verwenden
+        parameters=[robot_description, {"use_sim_time": False}],
     )
 
     # Controller Manager (ros2_control_node) - Verwaltet alle Hardware-Interfaces und Controller

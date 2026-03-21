@@ -1,4 +1,4 @@
-# Refactoring-Plan: launcher.urdf.xacro – Simulation-Optimierung
+# Refactoring-Plan: nerf_launcher.urdf.xacro – Simulation-Optimierung
 
 **Ziel:** Physik-Instabilität beim Tilt-Anschlag beheben, Simulator entlasten, Tilt-Bewegung in launch_sim zuverlässig machen.
 
@@ -23,7 +23,7 @@ der sich auf den gesamten Roboter überträgt → Kippen.
 
 ## Schritt 1: Flywheel-Joints von `continuous` → `fixed`
 
-**Datei:** `src/nerf_launch_system/description/urdf/launcher.urdf.xacro`
+**Datei:** `src/nerf_launch_system/description/urdf/nerf_launcher.urdf.xacro`
 
 **Warum:** Die Flywheels haben in der Simulation keinen aktiven Controller mehr
 (in `ros2_control.xacro` bereits auskommentiert). Als `continuous`-Joints ohne
@@ -62,7 +62,7 @@ Controller treiben sie trotzdem freie Rotation an → Stabilitätsproblem.
 
 ## Schritt 2: Fixed-Links in motor_bracket mergen
 
-**Datei:** `src/nerf_launch_system/description/urdf/launcher.urdf.xacro`
+**Datei:** `src/nerf_launch_system/description/urdf/nerf_launcher.urdf.xacro`
 
 **Welche Links werden gemergt:** `motor_left`, `motor_right`, `Turret`, `magazin`
 (alle via `type="fixed"` direkt mit `motor_bracket` verbunden).
@@ -176,7 +176,7 @@ für diese vier Teile werden entfernt.
 
 ## Schritt 3: Trägheitsmomente korrigieren
 
-**Datei:** `src/nerf_launch_system/description/urdf/launcher.urdf.xacro`
+**Datei:** `src/nerf_launch_system/description/urdf/nerf_launcher.urdf.xacro`
 
 Nach dem Mergen hat `motor_bracket` die Masse von 7 ehemaligen Links übernommen
 (motor_bracket + motor_left + motor_right + Turret + magazin + flywheel_left + flywheel_right).
@@ -198,7 +198,7 @@ STL-Volumen × Dichte berechnen. Für Simulation reichen diese Werte.
 
 ## Schritt 4: dart_pusher_joint dämpfen
 
-**Datei:** `src/nerf_launch_system/description/urdf/launcher.urdf.xacro`
+**Datei:** `src/nerf_launch_system/description/urdf/nerf_launcher.urdf.xacro`
 
 Der `dart_pusher_joint` ist `continuous` mit 0 Dämpfung. Das verursacht beim
 Tilt-Anschlag ebenfalls freien Drehimpuls. Dämpfung hinzufügen:
@@ -268,10 +268,10 @@ Dieses Topic fehlt noch im Bridge:
 
 | # | Datei | Änderung | Effekt |
 |---|---|---|---|
-| 1 | `launcher.urdf.xacro` | flywheel Joints: `continuous` → `fixed` | kein freier Drehimpuls mehr |
-| 2 | `launcher.urdf.xacro` | motor_left/right/Turret/magazin/flywheel in motor_bracket mergen | 9 Physics-Objekte weniger |
-| 3 | `launcher.urdf.xacro` | motor_bracket Masse/Trägheit auf 0.7kg anpassen | realistischere Physik |
-| 4 | `launcher.urdf.xacro` | dart_pusher_joint damping 0→0.5 | stabiler beim Anschlag |
+| 1 | `nerf_launcher.urdf.xacro` | flywheel Joints: `continuous` → `fixed` | kein freier Drehimpuls mehr |
+| 2 | `nerf_launcher.urdf.xacro` | motor_left/right/Turret/magazin/flywheel in motor_bracket mergen | 9 Physics-Objekte weniger |
+| 3 | `nerf_launcher.urdf.xacro` | motor_bracket Masse/Trägheit auf 0.7kg anpassen | realistischere Physik |
+| 4 | `nerf_launcher.urdf.xacro` | dart_pusher_joint damping 0→0.5 | stabiler beim Anschlag |
 | 5 | `launch_sim.launch.py` | `tilt_controller` Spawner ergänzen | Tilt funktioniert in Sim |
 | 6 | `gz_bridge.yaml` | `tilt_controller/commands` Topic ergänzen | ROS→GZ Bridge vollständig |
 

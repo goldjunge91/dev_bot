@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:arg name="integrated_mode" default="true"/>
-    <xacro:include filename="$(find nerf_launch_system)/description/urdf/launcher.urdf.xacro" />
+    <xacro:include filename="$(find nerf_launch_system)/description/urdf/nerf_launcher.urdf.xacro" />
     <joint name="nerf_mount_joint" type="fixed">
         <parent link="chassis"/>
         <child link="bottom_plate"/>

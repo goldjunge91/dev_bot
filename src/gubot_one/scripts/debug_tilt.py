@@ -14,7 +14,7 @@ from controller_manager_msgs.srv import ListControllers, ListHardwareInterfaces
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64MultiArray
 
-OK   = "\033[92m[OK  ]\033[0m"
+OK = "\033[92m[OK  ]\033[0m"
 FAIL = "\033[91m[FAIL]\033[0m"
 WARN = "\033[93m[WARN]\033[0m"
 INFO = "\033[94m[INFO]\033[0m"
@@ -22,6 +22,7 @@ INFO = "\033[94m[INFO]\033[0m"
 
 def section(title):
     print(f"\n{'='*60}\n  {title}\n{'='*60}")
+
 
 rclpy.init()
 node = rclpy.create_node("debug_tilt")
@@ -58,7 +59,8 @@ for topic in ["/tilt_controller/commands", "/joint_states",
 
 # ── 3. Controller-Status via Service ─────────────────────────
 section("3. Controller Manager – Status")
-cli = node.create_client(ListControllers, "/controller_manager/list_controllers")
+cli = node.create_client(
+    ListControllers, "/controller_manager/list_controllers")
 if not cli.wait_for_service(timeout_sec=3.0):
     print(f"  {FAIL} Service /controller_manager/list_controllers nicht erreichbar")
 else:
@@ -75,7 +77,7 @@ else:
 # ── 4. Hardware Interfaces via Service ───────────────────────
 section("4. Hardware Interfaces (trigger_joint/position?)")
 hw_cli = node.create_client(ListHardwareInterfaces,
-                             "/controller_manager/list_hardware_interfaces")
+                            "/controller_manager/list_hardware_interfaces")
 if not hw_cli.wait_for_service(timeout_sec=3.0):
     print(f"  {FAIL} Service nicht erreichbar")
 else:
@@ -95,9 +97,11 @@ else:
 section("5. trigger_joint: Position + Reaktionstest")
 received = {}
 
+
 def cb(msg):
     for name, pos in zip(msg.name, msg.position):
         received[name] = pos
+
 
 node.create_subscription(JointState, "/joint_states", cb, 10)
 pub = node.create_publisher(Float64MultiArray, "/tilt_controller/commands", 10)
@@ -134,8 +138,8 @@ else:
         rclpy.spin_once(node, timeout_sec=0.1)
 
     end_pos = received.get("trigger_joint", start_pos)
-    delta   = abs(end_pos - start_pos)
-    moved   = delta > 0.02
+    delta = abs(end_pos - start_pos)
+    moved = delta > 0.02
     print(f"  Start : {start_pos:.4f} rad")
     print(f"  Jetzt : {end_pos:.4f} rad")
     print(f"  Delta : {delta:.4f} rad")
@@ -146,7 +150,7 @@ else:
 section("6. Zusammenfassung")
 if "trigger_joint/position" not in all_ifaces:
     print(f"  {FAIL} Hardware-Interface fehlt → ign_ros2_control nicht geladen")
-    print("       Pruefe: ros2_control.xacro nutzt ign_ros2_control/IgnitionSystem?")
+    print("       Pruefe: ros2_control_gazebo_fortress.xacro nutzt ign_ros2_control/IgnitionSystem?")
 elif names_states.get("tilt_controller") != "active":
     state = names_states.get("tilt_controller", "FEHLT")
     print(f"  {FAIL} tilt_controller nicht active (state={state})")
@@ -156,10 +160,12 @@ else:
     print(f"  {OK} tilt_controller active")
     try:
         sym = OK if moved else FAIL
-        print(f"  {sym} {'Tilt funktioniert!' if moved else 'Joint reagiert nicht auf Befehl'}")
+        print(
+            f"  {sym} {'Tilt funktioniert!' if moved else 'Joint reagiert nicht auf Befehl'}")
         if not moved:
             # ALT: print("       Pruefe: URDF-Limits vs gesendeter Wert (-0.5 in [-1.05,0.0]?)")
-            print("       Pruefe: URDF-Limits vs gesendeter Wert (0.2 in [-0.52,0.52]?)")
+            print(
+                "       Pruefe: URDF-Limits vs gesendeter Wert (0.2 in [-0.52,0.52]?)")
             print("       Pruefe: PID p-Gain > 0 in my_controllers.yaml?")
     except NameError:
         print(f"  {WARN} JointState nicht lesbar")

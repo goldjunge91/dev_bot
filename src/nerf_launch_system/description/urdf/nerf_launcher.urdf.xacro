@@ -167,7 +167,14 @@
         <parent link="bottom_plate" />
         <child link="motor_bracket" />
         <axis xyz="1.1287570791617654e-07 2.227474133869779e-15 1.0000000021779938" />
-        <limit lower="-0.52" upper="0.52" effort="10.0" velocity="5.0" />
+        <xacro:if value="$(arg use_gazebo_classic)">
+            <!-- Classic Simulation parser requires the original bounds -->
+            <limit lower="-1.05" upper="0.0" effort="10.0" velocity="5.0" />
+        </xacro:if>
+        <xacro:unless value="$(arg use_gazebo_classic)">
+            <!-- Ignition Simulation bounds (symmetrical) -->
+            <limit lower="-0.52" upper="0.52" effort="10.0" velocity="5.0" />
+        </xacro:unless>
         <dynamics damping="0.2" friction="0.05"/>
     </joint>
     <joint name="motor_bracket_motor_left_fix_motor_bracket" type="fixed">
@@ -235,7 +242,7 @@
     <xacro:arg name="use_hardware" default="false"/>
     <xacro:arg name="port" default="/dev/ttyACM0"/>
     <xacro:if value="$(arg use_hardware)">
-        <xacro:include filename="ros2_control_hardware.xacro" />
+        <xacro:include filename="ros2_control_hardware_nerf.xacro" />
         <xacro:nerf_ros2_control_hardware port="$(arg port)"/>
     </xacro:if>
     <xacro:unless value="$(arg use_hardware)">
@@ -255,10 +262,10 @@
         <xacro:unless value="$(arg integrated_mode)">
             <xacro:arg name="use_gazebo_classic" default="false"/>
             <xacro:if value="$(arg use_gazebo_classic)">
-                <xacro:include filename="gz_classic_ros2_control.xacro" />
+                <xacro:include filename="ros2_control_gazebo_classic.xacro" />
             </xacro:if>
             <xacro:unless value="$(arg use_gazebo_classic)">
-                <xacro:include filename="ros2_control.xacro" />
+                <xacro:include filename="ros2_control_gazebo_fortress.xacro" />
             </xacro:unless>
             <xacro:nerf_ros2_control />
         </xacro:unless>

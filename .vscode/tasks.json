@@ -237,10 +237,16 @@
             "problemMatcher": []
         },
         {
-            "label": "Kill gazebo processes",
-            "detail": "Kill all gazebo processes",
+            "label": "Kill Gazebo and RViz processes",
+            "detail": "Terminate all Gazebo and RViz processes (TERM, fallback to KILL)",
             "type": "shell",
-            "command": "ps aux | grep -E 'gzserver|gzclient|gazebo' | grep -v grep",
+            "command": "bash -lc \"pids=$(pgrep -f 'gzserver|gzclient|gazebo|rviz2|rviz' || true); if [ -n \\\"$pids\\\" ]; then echo 'Killing:' $pids; kill -TERM $pids || kill -9 $pids; else echo 'No gazebo or rviz processes found'; fi\"",
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "always",
+                "focus": true,
+                "clear": false
+            },
             "problemMatcher": []
         },
         {

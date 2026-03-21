@@ -34,7 +34,8 @@ def generate_launch_description():
     )
 
     # Verarbeite URDF für Simulation (use_hardware=false ist Standard)
-    xacro_file = os.path.join(pkg_nerf, "description", "urdf", "launcher.urdf.xacro")
+    xacro_file = os.path.join(pkg_nerf, "description",
+                              "urdf", "nerf_launcher.urdf.xacro")
     robot_description_config = xacro.process_file(xacro_file)
     robot_description = {"robot_description": robot_description_config.toxml()}
 
@@ -52,7 +53,8 @@ def generate_launch_description():
 
     # Gazebo - Physik-Simulator mit ROS2-Integration
     gazebo_params_file = os.path.join(
-        get_package_share_directory(package_name), "config", "gazebo_params.yaml"
+        get_package_share_directory(
+            package_name), "config", "gazebo_params.yaml"
     )
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

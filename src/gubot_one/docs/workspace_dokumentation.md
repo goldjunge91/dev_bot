@@ -537,7 +537,7 @@ robot.urdf.xacro  ← verarbeitet von: rsp.launch.py, launch_robot.launch.py
   ├── camera.xacro
   ├── face.xacro
   ├── nerf_launcher.xacro
-  │     └── nerf_launch_system/.../launcher.urdf.xacro
+  │     └── nerf_launch_system/.../nerf_launcher.urdf.xacro
   ├── [lidar.xacro]                   (auskommentiert)
   └── [depth_camera.xacro]            (auskommentiert)
 ```
