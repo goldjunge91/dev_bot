@@ -53,14 +53,6 @@
                 <command_interface name="velocity"/>
                 <state_interface name="velocity"/>
             </joint>
-            <joint name="flywheel_left_joint">
-                <command_interface name="velocity"/>
-                <state_interface name="velocity"/>
-            </joint>
-            <joint name="flywheel_right_joint">
-                <command_interface name="velocity"/>
-                <state_interface name="velocity"/>
-            </joint>
             <joint name="system_arming_joint">
                 <command_interface name="position"/>
             </joint>
