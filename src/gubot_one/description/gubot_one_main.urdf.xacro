@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="gubot_one">
+
+    <xacro:arg name="use_ros2_control" default="true"/>
+    <xacro:arg name="sim_mode" default="false"/>
+    <xacro:arg name="use_gazebo_classic" default="false"/>
+
+    <xacro:include filename="gubot_one_geometry.xacro" />
+
+    <xacro:if value="$(arg use_ros2_control)">
+        <xacro:if value="$(arg sim_mode)">
+            <xacro:if value="$(arg use_gazebo_classic)">
+                <xacro:include filename="ros2_control_gazebo_classic.xacro" />
+            </xacro:if>
+            <xacro:unless value="$(arg use_gazebo_classic)">
+                <xacro:include filename="ros2_control_gazebo_ign_fortress.xacro" />
+            </xacro:unless>
+        </xacro:if>
+        <xacro:unless value="$(arg sim_mode)">
+            <xacro:include filename="ros2_control_hardware.xacro" />
+        </xacro:unless>
+    </xacro:if>
+    <xacro:unless value="$(arg use_ros2_control)">
+        <xacro:include filename="control_gazebo_diff_drive.xacro" />
+    </xacro:unless>
+
+    <!-- <xacro:include filename="sensor_lidar.xacro" /> -->
+    <xacro:include filename="sensor_camera.xacro" />
+    <!-- <xacro:include filename="sensor_depth_camera.xacro" /> -->
+    <xacro:include filename="visual_face.xacro" />
+    <xacro:include filename="nerf_launch_system.xacro" />
+
+</robot>

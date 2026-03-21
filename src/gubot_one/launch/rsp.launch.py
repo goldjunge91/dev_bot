@@ -4,7 +4,7 @@ Robot State Publisher (RSP) Launch
 Publiziert die Roboter-Beschreibung (URDF) und TF-Transformationen
 
 Was macht diese Datei:
-1. Lädt URDF/Xacro Datei (robot.urdf.xacro)
+1. Lädt URDF/Xacro Datei (gubot_one_main.urdf.xacro)
 2. Verarbeitet Xacro mit Parametern
 3. Startet robot_state_publisher Node
 4. Publiziert /robot_description Topic
@@ -54,7 +54,7 @@ def generate_launch_description():
     # URDF Datei verarbeiten
     # Xacro wird zu URDF konvertiert mit den angegebenen Parametern
     pkg_path = os.path.join(get_package_share_directory("gubot_one"))
-    xacro_file = os.path.join(pkg_path, "description", "robot.urdf.xacro")
+    xacro_file = os.path.join(pkg_path, "description", "gubot_one_main.urdf.xacro")
 
     # Command() führt xacro zur Laufzeit aus
     robot_description_config = Command(

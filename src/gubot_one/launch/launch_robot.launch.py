@@ -114,7 +114,7 @@ def generate_launch_description():
 
     # Robot Description für Controller Manager
     pkg_path = os.path.join(get_package_share_directory(package_name))
-    xacro_file = os.path.join(pkg_path, "description", "robot.urdf.xacro")
+    xacro_file = os.path.join(pkg_path, "description", "gubot_one_main.urdf.xacro")
     robot_description = Command(
         [
             "xacro ",
