@@ -23,13 +23,15 @@ find_package(ament_cmake REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # uncomment the line when a copyright and license is not present in all source files
   #set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # uncomment the line when this package is not in a git repo
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_tilt_controller_spawner
+    tests/test_tilt_controller_spawner.py
+    TIMEOUT 30
+  )
 endif()
 
 install(
@@ -38,9 +40,15 @@ install(
 )
 
 install(
-  # PROGRAMS scripts/nerf_teleop.py scripts/nerf_joy.py
-    PROGRAMS scripts/nerf_teleop.py scripts/nerf_joy.py scripts/nerf_topic_compat.py
+  PROGRAMS
+    scripts/nerf_teleop.py
+    scripts/nerf_joy.py
+    scripts/debug_tilt.py
   DESTINATION lib/${PROJECT_NAME}
+  PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE
 )
 
 ament_package()

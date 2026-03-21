@@ -36,6 +36,7 @@ def generate_launch_description():
     # Launch Configuration Variablen
     use_sim_time = LaunchConfiguration("use_sim_time")
     launch_joy_node = LaunchConfiguration("launch_joy_node")
+    tilt_command_topic = LaunchConfiguration("tilt_command_topic")
 
     # Lade Joystick-Parameter aus YAML
     joy_params = os.path.join(
@@ -47,7 +48,8 @@ def generate_launch_description():
         package="joy",
         executable="joy_node",
         parameters=[joy_params, {"use_sim_time": use_sim_time}],
-        condition=if_condition.IfCondition(launch_joy_node),  # Nur starten wenn launch_joy_node=true
+        # Nur starten wenn launch_joy_node=true
+        condition=if_condition.IfCondition(launch_joy_node),
     )
 
     # Node 2: teleop_node - Konvertiert Joy-Nachrichten zu Twist (Roboter-Bewegung)
@@ -56,7 +58,8 @@ def generate_launch_description():
         executable="teleop_node",
         name="teleop_node",
         parameters=[joy_params, {"use_sim_time": use_sim_time}],
-        remappings=[("/cmd_vel", "/cmd_vel_joy")],  # Output zu /cmd_vel_joy (für twist_mux)
+        # Output zu /cmd_vel_joy (für twist_mux)
+        remappings=[("/cmd_vel", "/cmd_vel_joy")],
     )
 
     # DEAKTIVIERT: twist_stamper - Fügt Timestamp zu Twist hinzu
@@ -74,6 +77,7 @@ def generate_launch_description():
         executable="nerf_joy.py",
         name="nerf_joy",
         parameters=[{"use_sim_time": use_sim_time}],
+        remappings=[("/tilt_controller/commands", tilt_command_topic)],
     )
 
     return LaunchDescription(
@@ -88,6 +92,11 @@ def generate_launch_description():
                 "launch_joy_node",
                 default_value="true",
                 description="Whether to run joy_node locally",
+            ),
+            DeclareLaunchArgument(
+                "tilt_command_topic",
+                default_value="/tilt_controller/commands",
+                description="Target topic for tilt commands (can be remapped for sim adapters)",
             ),
             # Nodes
             joy_node,

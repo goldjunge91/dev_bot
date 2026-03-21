@@ -138,9 +138,11 @@ class NerfTeleop(Node):
         self.armed = False  # Arming-Status
         self.pusher_active = False  # Pusher aktiv während Schuss
         self.pusher_timer = 0  # Timer für Pusher-Puls
-        # Trigger-Joint laut URDF: [5.23, 6.28] rad
+        # ALT: # Trigger-Joint laut URDF: [-1.05, 0.0] rad
+        # Trigger-Joint laut URDF: [-0.52, 0.52] rad
         # Start in Mittelstellung, damit Bewegung in beide Richtungen sofort sichtbar ist.
-        self.tilt_pos = 5.75
+        # ALT: self.tilt_pos = -0.5
+        self.tilt_pos = 0.0
         self.tilt_step = 0.05  # Schrittweite für Tilt
         self.shot_power = 5.0  # Standard Schuss-Power (0-100)
         self.input_count = 0  # Zähler für Reprints
@@ -196,12 +198,14 @@ class NerfTeleop(Node):
         elif key == "t":  # Tilt UP
             self.input_count += 1
             # In Simulation war die Richtung invertiert, daher absichtlich invertiert.
-            self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
+            # ALT: self.tilt_pos = max(-1.05, self.tilt_pos - self.tilt_step)
+            self.tilt_pos = max(-0.52, self.tilt_pos - self.tilt_step)
             self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
             self.publish_tilt(self.tilt_pos)
         elif key == "g":  # Tilt DOWN
             self.input_count += 1
-            self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
+            # ALT: self.tilt_pos = min(0.0, self.tilt_pos + self.tilt_step)
+            self.tilt_pos = min(0.52, self.tilt_pos + self.tilt_step)
             self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
             self.publish_tilt(self.tilt_pos)
         elif key == "r":  # Power UP 5%

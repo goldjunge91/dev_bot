@@ -6,11 +6,10 @@ from launch import LaunchDescription
 from launch.actions import (
     IncludeLaunchDescription,
     DeclareLaunchArgument,
-    RegisterEventHandler,
     AppendEnvironmentVariable,
+    TimerAction,
 )
 from launch.conditions import IfCondition
-from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
@@ -21,8 +20,6 @@ def generate_launch_description():
 
     package_name = "gubot_one"
 
-    # --- Gleiche Reihenfolge wie articubot_one/launch/launch_sim.launch.py ---
-
     # 1. Robot State Publisher
     rsp = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
@@ -31,10 +28,9 @@ def generate_launch_description():
         launch_arguments={
             "use_sim_time": "true",
             "use_ros2_control": "true",
-            "integrated_mode": "true",  # gubot_one: Nerf + Basis als ein System
+            "integrated_mode": "true",
         }.items(),
     )
-
 
     # 2. Joystick
     joystick = IncludeLaunchDescription(
@@ -60,14 +56,8 @@ def generate_launch_description():
         get_package_share_directory(package_name), "worlds", "obstacles.world"
     )
     world = LaunchConfiguration("world")
-    world_arg = DeclareLaunchArgument(
-        "world",
-        default_value=default_world,
-        description="World to load",
-    )
 
     # 5. Gazebo (Ignition)
-    # on_exit_shutdown: beendet alle Nodes wenn Gazebo geschlossen wird
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory("ros_gz_sim"), "launch", "gz_sim.launch.py"
@@ -78,7 +68,6 @@ def generate_launch_description():
         }.items(),
     )
 
-
     # 6. Spawn Entity
     spawn_entity = Node(
         package="ros_gz_sim",
@@ -87,23 +76,67 @@ def generate_launch_description():
         output="screen",
     )
 
-    # 7. diff_drive_spawner (wie articubot_one, condition ist gubot_one-Zusatz)
+    # 7-12. Controller Spawner
+    # ign_ros2_control laedt Controller aus my_controllers.yaml automatisch beim
+    # Plugin-Start. Die Hardware-Interfaces werden aber erst registriert wenn
+    # Ignition das Modell vollstaendig geladen hat. Spawner die sofort starten
+    # treffen auf noch-nicht-bereite Hardware → configure schlaegt fehl.
+    # Fix: TimerAction(5s) gibt ign_ros2_control genuegend Zeit.
+    enable = LaunchConfiguration("enable_ros2_controllers")
+
     diff_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["diff_cont"],
-        condition=IfCondition(LaunchConfiguration("enable_ros2_controllers")),
+        condition=IfCondition(enable),
     )
-
-    # 8. joint_broad_spawner
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["joint_broad"],
-        condition=IfCondition(LaunchConfiguration("enable_ros2_controllers")),
+        condition=IfCondition(enable),
+    )
+    imu_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["imu_broadcaster"],
+        condition=IfCondition(enable),
+    )
+    shooter_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["shooter_controller"],
+        output="screen",
+        condition=IfCondition(enable),
+    )
+    tilt_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["tilt_controller"],
+        output="screen",
+        condition=IfCondition(enable),
+    )
+    arming_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["arming_controller"],
+        output="screen",
+        condition=IfCondition(enable),
     )
 
-    # 9. ROS <-> GZ Bridge (parameter_bridge fuer alle non-image Topics)
+    delayed_spawners = TimerAction(
+        period=5.0,
+        actions=[
+            diff_drive_spawner,
+            joint_broad_spawner,
+            imu_broadcaster_spawner,
+            shooter_controller_spawner,
+            tilt_controller_spawner,
+            arming_controller_spawner,
+        ],
+    )
+
+    # 13. ROS <-> GZ Bridge
     bridge_params = os.path.join(
         get_package_share_directory(package_name), "config", "gz_bridge.yaml"
     )
@@ -114,7 +147,7 @@ def generate_launch_description():
         output="screen",
     )
 
-    # 10. Image Bridge (separater Node fuer /camera/image_raw – zuverlaessiger als parameter_bridge)
+    # 14. Image Bridge
     ros_gz_image_bridge = Node(
         package="ros_gz_image",
         executable="image_bridge",
@@ -122,63 +155,7 @@ def generate_launch_description():
         output="screen",
     )
 
-
-    # --- gubot_one Zusaetze (alles was articubot_one nicht hat) ---
-
-    # 11. IMU Broadcaster
-    imu_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["imu_broadcaster"],
-        condition=IfCondition(LaunchConfiguration("enable_ros2_controllers")),
-    )
-
-    # 12. Nerf Launcher Controller
-    shooter_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["shooter_controller"],
-        output="screen",
-        condition=IfCondition(LaunchConfiguration("enable_ros2_controllers")),
-    )
-    tilt_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["tilt_controller"],
-        output="screen",
-        condition=IfCondition(LaunchConfiguration("enable_ros2_controllers")),
-    )
-    arming_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["arming_controller"],
-        output="screen",
-        condition=IfCondition(LaunchConfiguration("enable_ros2_controllers")),
-    )
-
-
-    # 13. Event Handler – alle Spawner warten auf spawn_entity
-    # condition= sitzt auf dem Node (siehe oben), NICHT auf RegisterEventHandler
-    delayed_diff_drive_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[diff_drive_spawner])
-    )
-    delayed_joint_broad_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[joint_broad_spawner])
-    )
-    delayed_imu_broadcaster_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[imu_broadcaster_spawner])
-    )
-    delayed_nerf_shooter = RegisterEventHandler(
-        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[shooter_controller_spawner])
-    )
-    delayed_nerf_tilt = RegisterEventHandler(
-        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[tilt_controller_spawner])
-    )
-    delayed_nerf_arming = RegisterEventHandler(
-        event_handler=OnProcessExit(target_action=spawn_entity, on_exit=[arming_controller_spawner])
-    )
-
-    # 14. RViz
+    # 15. RViz
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -188,26 +165,7 @@ def generate_launch_description():
         output="screen",
     )
 
-    # # 15. Kompatibilitaet fuer altes nerf_teleop Topic-Schema
-    # # /shooter_controller/commands -> /pusher_controller/commands
-    # # /tilt_controller/commands -> /trigger_controller/commands
-    # nerf_topic_compat = Node(
-    #     package="gubot_one",
-    #     executable="nerf_topic_compat.py",
-    #     name="nerf_topic_compat",
-    #     parameters=[{"use_sim_time": True}],
-    #     output="screen",
-    # )
-
-
-    # --- Launch them all! (Reihenfolge wie articubot_one, gubot_one-Extras am Ende) ---
     return LaunchDescription([
-
-        # gubot_one: Umgebungsvariablen
-        # WICHTIG: CYCLONEDDS_URI hier NICHT ueberschreiben.
-        # Die Launch-Prozesse sollen die DDS-Konfiguration aus der aufrufenden
-        # Shell erben (z.B. via `ws`), damit ros2 CLI, Teleop und Simulation
-        # im selben Discovery-Netz sind.
         AppendEnvironmentVariable(
             "IGN_GAZEBO_RESOURCE_PATH",
             os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
@@ -219,30 +177,21 @@ def generate_launch_description():
         AppendEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
         AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
         AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
-
-        # gubot_one: Launch Arguments
         DeclareLaunchArgument("use_sim_time", default_value="true",
                               description="Use sim time if true"),
+        DeclareLaunchArgument("world", default_value=default_world,
+                              description="World to load"),
         DeclareLaunchArgument("enable_ros2_controllers", default_value="true",
-                              description="Spawn ros2_control controllers after entity spawn"),
-
+                              description="Spawn ros2_control controllers"),
         # articubot_one Reihenfolge
         rsp,
         joystick,
         twist_mux,
-        world_arg,
         gazebo,
         spawn_entity,
         ros_gz_bridge,
         ros_gz_image_bridge,
-        # nerf_topic_compat,
-
         # gubot_one Zusaetze
         rviz_node,
-        delayed_diff_drive_spawner,
-        delayed_joint_broad_spawner,
-        delayed_imu_broadcaster_spawner,
-        delayed_nerf_shooter,
-        delayed_nerf_tilt,
-        delayed_nerf_arming,
+        delayed_spawners,
     ])

@@ -82,6 +82,11 @@ tilt_controller:
   ros__parameters:
     joints:
       - trigger_joint
+    gains:
+      trigger_joint:
+        p: 50.0
+        i: 0.0
+        d: 1.0
 
 arming_controller:
   ros__parameters:

@@ -37,3 +37,5 @@ Diese Regeln ergänzen `copilot-instructions.md` um ROS2-spezifische Anforderung
 ## Sicherheits- und Betriebsaspekte
 - Bei Hardware-/Serial-Code Timeouts, Fehlerpfade und Wiederanlaufverhalten explizit behandeln.
 - Keine Secrets/API-Keys im Code; falls erforderlich, über Umgebungsvariablen und dokumentierte Platzhalter arbeiten.
+- Bei Terminal-Befehlen keine Dateien außerhalb des Workspaces schreiben (z. B. nicht nach `/tmp`), da die Umgebung externe Writes blockieren kann.
+- Für Probe-/Health-Checks Ausgaben auf `stdout` bevorzugen oder Dateien nur innerhalb des Workspace-Pfads (z. B. unter `.vscode/` oder `./`) erzeugen.

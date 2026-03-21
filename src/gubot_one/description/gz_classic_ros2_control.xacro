@@ -95,7 +95,8 @@
             <joint name="trigger_joint">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">6.28</param>
+                  <!-- ALT: <param name="initial_value">6.28</param> -->
+                  <param name="initial_value">0.0</param>
                 </state_interface>
             </joint>
             <joint name="dart_pusher_joint">

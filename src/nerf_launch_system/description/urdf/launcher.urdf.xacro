@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="nerf_launch_system">
-
     <link name="bottom_plate">
         <inertial>
             <origin xyz="0.07506008367977571 0.06788755296524361 -0.015949194976296238" rpy="0.0 0.0 0.0" />
@@ -14,9 +13,9 @@
             </geometry>
         </visual>
         <collision name="bottom_plate_collision">
-            <origin xyz="0.08 0.05 0.05" rpy="0.0 0.0 0.0" />
+            <origin xyz="0.075 0.0 -0.015" rpy="0.0 0.0 0.0" />
             <geometry>
-                 <box size="0.25 0.20 0.20"/>
+                <box size="0.17 0.12 0.03"/>
             </geometry>
         </collision>
     </link>
@@ -32,7 +31,6 @@
                 <mesh filename="file://$(find nerf_launch_system)/description/meshes/motor_bracket.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
-
     </link>
     <link name="magazin">
         <inertial>
@@ -169,8 +167,11 @@
         <parent link="bottom_plate" />
         <child link="motor_bracket" />
         <axis xyz="1.1287570791617654e-07 2.227474133869779e-15 1.0000000021779938" />
-        <limit lower="5.23" upper="6.28" effort="1.0" velocity="5.0" />
-        <dynamics damping="10.0" friction="5.0"/>
+        <!-- ALT: <limit lower="-1.05" upper="0.0" effort="10.0" velocity="5.0" /> -->
+        <!-- ALT: <limit lower="5.23" upper="6.28" effort="10.0" velocity="5.0" /> -->
+        <!-- ALT: <limit lower="-1.05" upper="0.0" effort="10.0" velocity="5.0" /> -->
+        <limit lower="-0.52" upper="0.52" effort="10.0" velocity="5.0" />
+        <dynamics damping="0.2" friction="0.05"/>
     </joint>
     <joint name="motor_bracket_motor_left_fix_motor_bracket" type="fixed">
         <origin xyz="0.09699999040378247 -4.326999672626883e-05 0.008800001069511083" rpy="1.5707963268286462 -1.5707304396707 3.141592653589793" />
@@ -182,21 +183,15 @@
         <parent link="motor_bracket" />
         <child link="motor_right" />
     </joint>
-    <joint name="flywheel_right_joint" type="continuous">
+    <joint name="flywheel_right_joint" type="fixed">
         <origin xyz="0.0 -7.800000000000029e-06 -0.0175" rpy="1.5707963267948966 -7.224685652388453e-18 -2.3543024464062444e-21" />
         <parent link="motor_right" />
         <child link="flywheel_right" />
-        <axis xyz="-7.22468811426675e-18 -1.0 0.0004460000000000001" />
-        <limit effort="10.0" velocity="100.0"/>
-        <dynamics damping="0.0" friction="0.0"/>
     </joint>
-    <joint name="flywheel_left_joint" type="continuous">
+    <joint name="flywheel_left_joint" type="fixed">
         <origin xyz="0.0 -7.810000000000317e-06 -0.0175" rpy="1.5707963267948966 -1.0870161501361781e-16 -2.35430244640625e-21" />
         <parent link="motor_left" />
         <child link="flywheel_left" />
-        <axis xyz="-1.0870161747549608e-16 -0.9999999999999999 0.000446" />
-        <limit effort="10.0" velocity="100.0"/>
-        <dynamics damping="0.0" friction="0.0"/>
     </joint>
     <joint name="motor_bracket_torret_on_motor_bracket" type="fixed">
         <origin xyz="0.11710034290805325 0.0007477600039520603 -0.01370000462490558" rpy="-1.570796326761147 -1.5707304396707 3.141592653589793" />
@@ -219,7 +214,7 @@
         <child link="pusher_servo_part" />
         <axis xyz="-2.7546953265439552e-21 1.0 -0.000446" />
         <limit effort="0.1" velocity="20.0"/>
-        <dynamics damping="0.0" friction="0.0"/>
+        <dynamics damping="0.05" friction="0.01"/>
     </joint>
     <joint name="bottom_plate_servo_fix_bottom_plate" type="fixed">
         <origin xyz="0.06821931 0.04425035 -0.01359223" rpy="-1.5707963267948966 -4.855375361027351e-14 -1.5707963267978802" />
@@ -231,7 +226,6 @@
         <parent link="Nerf-Dart-Launcher_Servo-MG-v1" />
         <child link="Servoarm-v1" />
     </joint>
-    
     <xacro:arg name="integrated_mode" default="false"/>
     <xacro:unless value="$(arg integrated_mode)">
         <link name="world"/>
@@ -241,11 +235,8 @@
             <origin xyz="0 0 0.5" rpy="0 0 0"/>
         </joint>
     </xacro:unless>
-
     <xacro:arg name="use_hardware" default="false"/>
     <xacro:arg name="port" default="/dev/ttyACM0"/>
-
-
     <xacro:if value="$(arg use_hardware)">
         <xacro:include filename="ros2_control_hardware.xacro" />
         <xacro:nerf_ros2_control_hardware port="$(arg port)"/>
@@ -257,24 +248,22 @@
                 <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0.0" iyz="0.0" ixz="0.0" />
             </inertial>
         </link>
-    <joint name="system_arming_joint" type="revolute">
-        <parent link="bottom_plate"/>
-        <child link="arming_switch_link"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <limit lower="0" upper="1" effort="1" velocity="1"/>
-        <axis xyz="0 0 1"/>
-    </joint>
-
-    <xacro:unless value="$(arg integrated_mode)">
-        <xacro:arg name="use_gazebo_classic" default="false"/>
-        <xacro:if value="$(arg use_gazebo_classic)">
-            <xacro:include filename="gz_classic_ros2_control.xacro" />
-        </xacro:if>
-        <xacro:unless value="$(arg use_gazebo_classic)">
-            <xacro:include filename="ros2_control.xacro" />
+        <joint name="system_arming_joint" type="revolute">
+            <parent link="bottom_plate"/>
+            <child link="arming_switch_link"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <limit lower="0" upper="1" effort="1" velocity="1"/>
+            <axis xyz="0 0 1"/>
+        </joint>
+        <xacro:unless value="$(arg integrated_mode)">
+            <xacro:arg name="use_gazebo_classic" default="false"/>
+            <xacro:if value="$(arg use_gazebo_classic)">
+                <xacro:include filename="gz_classic_ros2_control.xacro" />
+            </xacro:if>
+            <xacro:unless value="$(arg use_gazebo_classic)">
+                <xacro:include filename="ros2_control.xacro" />
+            </xacro:unless>
+            <xacro:nerf_ros2_control />
         </xacro:unless>
-        <xacro:nerf_ros2_control />
     </xacro:unless>
-    </xacro:unless>
-
 </robot>

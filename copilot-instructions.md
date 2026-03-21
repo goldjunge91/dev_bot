@@ -13,6 +13,8 @@ Dieses Dokument fasst die projektweiten Konventionen und Verifikationsschritte z
 - KISS-Prinzip: Halte Lösungen so einfach wie möglich. Bevorzuge die kleinste verständliche Änderung mit minimaler Komplexität und ohne unnötige Abstraktionen.
 - Verifikation: Verwende vorhandene Test-Tasks (`./test.sh`, `ament_*` Targets). CI-Checks müssen lokal reproduzierbar sein.
 - Codeänderungen: Beim Ersetzen von Code: kommentiere den bisherigen Block aus und füge den neuen Code direkt darunter ein. Kommentierter Code bleibt, bis explizite Zustimmung zur Entfernung vorliegt.
+- Terminal-/Agent-Commands dürfen keine Dateien außerhalb des Workspace schreiben (z. B. nicht nach `/tmp`), weil die Umgebung solche Writes blockieren kann.
+- Für Probe-/Health-Checks bevorzugt `stdout` verwenden oder nur innerhalb des Workspace-Pfads schreiben (z. B. `.vscode/`, `./`).
 
 ## Codestandards (ROS2 / C++ / Python)
 - Namenskonventionen: Klassen `PascalCase`, Funktionen/Variablen `snake_case`, Konstanten `SCREAMING_SNAKE_CASE`, Dateinamen `snake_case`.
