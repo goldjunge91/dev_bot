@@ -71,10 +71,7 @@
     <xacro:if value="$(arg sim_mode)">
         <ros2_control name="IgnitionSystem" type="system">
             <hardware>
-                <!-- ALT: <plugin>gz_ros2_control/GazeboSimSystem</plugin> -->
                 <plugin>ign_ros2_control/IgnitionSystem</plugin>
-                <!-- ALT: In GZ Sim war der Default (0.1) zu schwach fuer sichtbare Tilt-Bewegung -->
-                <!-- ALT: <param name="position_proportional_gain">8.0</param> -->
                 <param name="position_proportional_gain">20.0</param>
             </hardware>
             <joint name="left_wheel_joint">
@@ -95,13 +92,10 @@
             </joint>
             <joint name="trigger_joint">
                 <command_interface name="position">
-                    <!-- ADDED FOR IGN_ROS2_CONTROL PID POSITION TRACKING -->
                     <param name="p">50.0</param>
                     <param name="d">1.0</param>
                 </command_interface>
                 <state_interface name="position">
-                    <!-- ALT: <param name="initial_value">0.0</param> -->
-                    <!-- ALT: <param name="initial_value">6.28</param> -->
                     <param name="initial_value">0.0</param>
                 </state_interface>
             </joint>
@@ -139,7 +133,6 @@
         </ros2_control>
     </xacro:if>
     <gazebo>
-        <!-- ALT: <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
         <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
             <parameters>$(find gubot_one)/config/my_controllers.yaml</parameters>
             <parameters>$(find gubot_one)/config/gaz_ros2_ctl_use_sim.yaml</parameters>

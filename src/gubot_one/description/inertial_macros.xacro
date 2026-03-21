@@ -8,9 +8,7 @@
                     iyy="${(2/5) * mass * (radius*radius)}" iyz="0.0"
                     izz="${(2/5) * mass * (radius*radius)}" />
         </inertial>
-    </xacro:macro>  
-
-
+    </xacro:macro>
     <xacro:macro name="inertial_box" params="mass x y z *origin">
         <inertial>
             <xacro:insert_block name="origin"/>
@@ -20,8 +18,6 @@
                     izz="${(1/12) * mass * (x*x+y*y)}" />
         </inertial>
     </xacro:macro>
-
-
     <xacro:macro name="inertial_cylinder" params="mass length radius *origin">
         <inertial>
             <xacro:insert_block name="origin"/>
@@ -31,6 +27,4 @@
                     izz="${(1/2) * mass * (radius*radius)}" />
         </inertial>
     </xacro:macro>
-
-
 </robot>

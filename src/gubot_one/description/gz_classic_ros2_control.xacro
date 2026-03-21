@@ -2,7 +2,6 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:arg name="use_nerf_hardware" default="true"/>
     <xacro:arg name="nerf_port" default="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00"/>
-
     <xacro:unless value="$(arg sim_mode)">
         <ros2_control name="RealRobot" type="system">
             <hardware>
@@ -40,7 +39,6 @@
                 <state_interface name="angular_velocity.z"/>
             </sensor>
         </ros2_control>
-
         <xacro:if value="$(arg use_nerf_hardware)">
             <ros2_control name="NerfSystem" type="system">
                 <hardware>
@@ -70,7 +68,6 @@
             </ros2_control>
         </xacro:if>
     </xacro:unless>
-
     <xacro:if value="$(arg sim_mode)">
         <ros2_control name="GazeboSystem" type="system">
             <hardware>
@@ -86,7 +83,7 @@
             </joint>
             <joint name="right_wheel_joint">
                 <command_interface name="velocity">
-                    <param name="min">-10</param>   
+                    <param name="min">-10</param>
                     <param name="max">10</param>
                 </command_interface>
                 <state_interface name="velocity"/>
@@ -95,8 +92,7 @@
             <joint name="trigger_joint">
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <!-- ALT: <param name="initial_value">6.28</param> -->
-                  <param name="initial_value">0.0</param>
+                    <param name="initial_value">0.0</param>
                 </state_interface>
             </joint>
             <joint name="dart_pusher_joint">
@@ -132,12 +128,10 @@
             </sensor>
         </ros2_control>
     </xacro:if>
-
- <gazebo>
+    <gazebo>
         <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
             <parameters>$(find gubot_one)/config/my_controllers.yaml</parameters>
             <parameters>$(find gubot_one)/config/gaz_ros2_ctl_use_sim.yaml</parameters>
         </plugin>
     </gazebo>
-
 </robot>
