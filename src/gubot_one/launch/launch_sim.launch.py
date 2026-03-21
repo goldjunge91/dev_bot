@@ -176,6 +176,9 @@ def generate_launch_description():
         ),
         AppendEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
         AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
+        # vironmentVariable("MESA_D3D12_DEFAULT_ADAPTER_NAME", "NVIDIA"),
+        AppendEnvironmentVariable("QT_QPA_PLATFORM", "xcb"),
+        AppendEnvironmentVariable("MESA_D3D12_DEFAULT_ADAPTER_NAME", "NVIDIA"),
         AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
         DeclareLaunchArgument("use_sim_time", default_value="true",
                               description="Use sim time if true"),
@@ -183,7 +186,7 @@ def generate_launch_description():
                               description="World to load"),
         DeclareLaunchArgument("enable_ros2_controllers", default_value="true",
                               description="Spawn ros2_control controllers"),
-        # articubot_one Reihenfolge
+        # correct order is importend
         rsp,
         joystick,
         twist_mux,
@@ -191,7 +194,6 @@ def generate_launch_description():
         spawn_entity,
         ros_gz_bridge,
         ros_gz_image_bridge,
-        # gubot_one Zusaetze
         rviz_node,
         delayed_spawners,
     ])
