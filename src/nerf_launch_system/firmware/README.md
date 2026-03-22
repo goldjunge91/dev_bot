@@ -1,4 +1,4 @@
-# Nerf Launcher Firmware (Arduino Pro Micro)
+   # Nerf Launcher Firmware (Arduino Pro Micro)
 
 Arduino firmware for controlling a Nerf dart launcher. This firmware runs on an Arduino Pro Micro (or compatible) and interfaces via USB Serial or UART.
 

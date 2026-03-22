@@ -12,7 +12,7 @@
 
 #include "../include/Config.h"
 #include "Comms.h"
-// #include "ESCCalibration.h"  // Include Debug Class
+ // #include "ESCCalibration.h"  // Include Debug Class
 #include "Help.h"
 #include "Launcher.h"
 #include "SerialOutput.h"
@@ -57,7 +57,7 @@ void setup() {
 
     // Initialize hardware (Safing everything)
     nerf.begin();
-    Help::printStartup();
+    Help::printStartup(nerf.getShotZero(), tiltCtrl.getNeutral(), nerf.getShotDur());
 }
 
 // --- LOOP ---

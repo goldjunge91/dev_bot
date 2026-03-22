@@ -35,7 +35,7 @@ protected:
     std::string lastDebugMsg;
 
     // Static Instanz für Callbacks (GoogleTest Fixture Workaround)
-    static FiringFSMTest *instance;
+    static FiringFSMTest* instance;
 
     // Static Callback Forwarder
     static void cbFlywheelPower(int pwr) {
@@ -58,12 +58,12 @@ protected:
     static void cbDetachShot() {
         instance->detachShotCalls++;
     }
-    static void cbDebug(const char *msg) {
+    static void cbDebug(const char* msg) {
         instance->debugCalls++;
         instance->lastDebugMsg = msg;
     }
 
-    FiringFSM *fsm;
+    FiringFSM* fsm;
 
     void SetUp() override {
         instance = this;
@@ -110,7 +110,7 @@ protected:
     }
 };
 
-FiringFSMTest *FiringFSMTest::instance = nullptr;
+FiringFSMTest* FiringFSMTest::instance = nullptr;
 
 // ============================================================================
 // TEST 1: Initialzustand
@@ -125,24 +125,18 @@ TEST_F(FiringFSMTest, InitialState_IsIDLE) {
 // TEST 2: IDLE -> ARMING -> ARMED
 // ============================================================================
 TEST_F(FiringFSMTest, ArmingSequence_IdleToArmed) {
-    // Trigger ARM
     fsm->triggerArming();
     runCycle();
     EXPECT_EQ(fsm->getCurrentState(), FiringState::ARMING);
     EXPECT_FALSE(fsm->isArmed());
-    EXPECT_EQ(attachESCsCalls, 1);  // ESCs werden angehängt
+    EXPECT_EQ(attachESCsCalls, 0);  // attachESCs passiert erst in ARMED-entry
 
-    // Zu früh: noch nicht ARM_DELAY_MS vergangen
-    advanceMillis(Config::ARM_DELAY_MS - 1);
-    runCycle();
-    EXPECT_EQ(fsm->getCurrentState(), FiringState::ARMING);  // Bleibt ARMING
-
-    // Jetzt ist die Zeit abgelaufen
-    advanceMillis(1);
+    // Naechster Zyklus -> ARMED (kein Timer, delay() ist entry-Aktion)
     runCycle();
     EXPECT_EQ(fsm->getCurrentState(), FiringState::ARMED);
     EXPECT_TRUE(fsm->isArmed());
     EXPECT_TRUE(fsm->canFire());
+    EXPECT_EQ(attachESCsCalls, 1);  // attachESCs jetzt in ARMED-entry
 }
 
 // ============================================================================
@@ -183,22 +177,13 @@ TEST_F(FiringFSMTest, FullFireSequence) {
     runCycle();
     EXPECT_EQ(fsm->getCurrentState(), FiringState::PUSHING);
     EXPECT_EQ(attachShotCalls, 1);
-    // Servo-Position: neutral + SHOT_SPEED_OFFSET
     EXPECT_EQ(lastShotServoUs, (int)(Config::SHOT_NEUTRAL_DEFAULT + Config::SHOT_SPEED_OFFSET));
 
-    // SHOT_DURATION_DEFAULT warten -> BRAKING
+    // SHOT_DURATION_DEFAULT warten -> COOLDOWN (kein auto-BRAKING mehr)
     advanceMillis(Config::SHOT_DURATION_DEFAULT);
     runCycle();
-    EXPECT_EQ(fsm->getCurrentState(), FiringState::BRAKING);
-    // Servo-Position: neutral - BRAKE_OFFSET
-    EXPECT_EQ(lastShotServoUs, (int)(Config::SHOT_NEUTRAL_DEFAULT - Config::BRAKE_OFFSET));
-
-    // BRAKE_MS warten -> COOLDOWN
-    advanceMillis(Config::BRAKE_MS);
-    runCycle();
     EXPECT_EQ(fsm->getCurrentState(), FiringState::COOLDOWN);
-    EXPECT_EQ(lastFlywheelPower, 0);  // Motoren aus
-    // Servo-Position: neutral
+    EXPECT_EQ(lastFlywheelPower, 0);
     EXPECT_EQ(lastShotServoUs, (int)Config::SHOT_NEUTRAL_DEFAULT);
 
     // 100ms warten -> ARMED
@@ -354,17 +339,17 @@ TEST_F(FiringFSMTest, CooldownReturnsToArmed) {
 // TEST 13: Callback-Verifizierung (Entry Actions)
 // ============================================================================
 TEST_F(FiringFSMTest, CallbacksVerification) {
-    // ARMING -> attachESCs aufgerufen
+    // ARMING entry -> noch kein attachESCs (passiert erst in ARMED)
     fsm->triggerArming();
     runCycle();
+    EXPECT_EQ(fsm->getCurrentState(), FiringState::ARMING);
+    EXPECT_EQ(attachESCsCalls, 0);
+
+    // ARMED entry -> attachESCs wird aufgerufen
+    runCycle();
+    EXPECT_EQ(fsm->getCurrentState(), FiringState::ARMED);
     EXPECT_EQ(attachESCsCalls, 1);
     EXPECT_EQ(detachESCsCalls, 0);
-
-    // ARMED -> kein Servo/ESC Callback
-    int prevAttach = attachESCsCalls;
-    advanceMillis(Config::ARM_DELAY_MS);
-    runCycle();
-    EXPECT_EQ(attachESCsCalls, prevAttach);  // Nicht nochmal attach
 
     // DISARMING -> isArmed wird false
     fsm->triggerDisarming();
@@ -379,7 +364,7 @@ TEST_F(FiringFSMTest, CallbacksVerification) {
 }
 
 // === GoogleTest Entry Point ===
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
