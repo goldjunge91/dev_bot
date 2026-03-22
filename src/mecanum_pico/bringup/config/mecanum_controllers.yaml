@@ -1,13 +1,6 @@
-# MIGRATION STATUS: COMPLETE (Sprint 3)
-# mecanum_pico controller configuration for ROS 2 Humble.
-#
-# mecanum_drive_controller handles the mecanum kinematics.
-# If not available via apt (ros-humble-mecanum-drive-controller), build from source:
-#   https://github.com/ros-controls/ros2_controllers
-
 controller_manager:
   ros__parameters:
-    update_rate: 30  # Hz — must match loop_rate in ros2_control.xacro
+    update_rate: 30
 
     mecanum_drive_controller:
       type: mecanum_drive_controller/MecanumDriveController
@@ -15,35 +8,54 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-# ------------------------------------------------------------------------------
-# mecanum_drive_controller parameters
-# All kinematic values marked "MEASURE YOUR ROBOT" must be calibrated (Sprint 7).
-# ------------------------------------------------------------------------------
 mecanum_drive_controller:
   ros__parameters:
-    # Joint name mapping — must match URDF exactly
+    # -------------------------------------------------------------------------
+    # Command joint names (velocity command interfaces)
+    # -------------------------------------------------------------------------
     front_left_wheel_command_joint_name:  front_left_wheel_joint
     front_right_wheel_command_joint_name: front_right_wheel_joint
     rear_left_wheel_command_joint_name:   rear_left_wheel_joint
     rear_right_wheel_command_joint_name:  rear_right_wheel_joint
 
+    # -------------------------------------------------------------------------
+    # State joint names (velocity state interfaces for odometry)
+    # Required — without these, y-velocity and angular odometry are wrong.
+    # -------------------------------------------------------------------------
+    front_left_wheel_state_joint_name:  front_left_wheel_joint
+    front_right_wheel_state_joint_name: front_right_wheel_joint
+    rear_left_wheel_state_joint_name:   rear_left_wheel_joint
+    rear_right_wheel_state_joint_name:  rear_right_wheel_joint
+
+    # -------------------------------------------------------------------------
+    # CRITICAL: use_stamped_vel must be false for teleop_twist_keyboard.
+    # true  (default) → subscribes to ~/reference        (TwistStamped)
+    # false           → subscribes to ~/reference_unstamped (Twist)
+    # teleop_twist_keyboard publishes Twist → needs false.
+    # -------------------------------------------------------------------------
+    use_stamped_vel: false
+
+    # -------------------------------------------------------------------------
+    # Kinematics — MEASURE YOUR ROBOT (Sprint 7)
+    # base_length=0.25m → lx=0.125  |  base_width=0.20m → ly=0.10
+    # sum = lx + ly = 0.225 m
+    # -------------------------------------------------------------------------
     kinematics:
       base_frame_offset:
         x: 0.0
         y: 0.0
         theta: 0.0
-      # MEASURE YOUR ROBOT: measure actual wheel radius with calipers
-      wheels_radius: 0.05  # [m]
-      # MEASURE YOUR ROBOT: lx + ly where lx = half wheelbase, ly = half track width
-      # Procedure: command pure rotation, adjust until /odom shows ~0 translation.
-      sum_of_robot_center_projection_on_X_Y_axis: 0.30  # [m]
+      wheels_radius: 0.05   # [m] — measure with calipers
+      sum_of_robot_center_projection_on_X_Y_axis: 0.225  # lx+ly [m]
 
     base_frame_id: base_link
     odom_frame_id: odom
     enable_odom_tf: true
-    reference_timeout: 0.5  # [s] — stop if no cmd_vel received
+    reference_timeout: 0.5  # [s]
 
-    # Velocity and acceleration limits
+    # -------------------------------------------------------------------------
+    # Velocity limits
+    # -------------------------------------------------------------------------
     linear.x.has_velocity_limits: true
     linear.x.has_acceleration_limits: true
     linear.x.max_velocity: 1.0
