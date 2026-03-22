@@ -1,0 +1,63 @@
+# MIGRATION STATUS: COMPLETE (Sprint 3)
+# mecanum_pico controller configuration for ROS 2 Humble.
+#
+# mecanum_drive_controller handles the mecanum kinematics.
+# If not available via apt (ros-humble-mecanum-drive-controller), build from source:
+#   https://github.com/ros-controls/ros2_controllers
+
+controller_manager:
+  ros__parameters:
+    update_rate: 30  # Hz — must match loop_rate in ros2_control.xacro
+
+    mecanum_drive_controller:
+      type: mecanum_drive_controller/MecanumDriveController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+# ------------------------------------------------------------------------------
+# mecanum_drive_controller parameters
+# All kinematic values marked "MEASURE YOUR ROBOT" must be calibrated (Sprint 7).
+# ------------------------------------------------------------------------------
+mecanum_drive_controller:
+  ros__parameters:
+    # Joint name mapping — must match URDF exactly
+    front_left_wheel_command_joint_name:  front_left_wheel_joint
+    front_right_wheel_command_joint_name: front_right_wheel_joint
+    rear_left_wheel_command_joint_name:   rear_left_wheel_joint
+    rear_right_wheel_command_joint_name:  rear_right_wheel_joint
+
+    kinematics:
+      base_frame_offset:
+        x: 0.0
+        y: 0.0
+        theta: 0.0
+      # MEASURE YOUR ROBOT: measure actual wheel radius with calipers
+      wheels_radius: 0.05  # [m]
+      # MEASURE YOUR ROBOT: lx + ly where lx = half wheelbase, ly = half track width
+      # Procedure: command pure rotation, adjust until /odom shows ~0 translation.
+      sum_of_robot_center_projection_on_X_Y_axis: 0.30  # [m]
+
+    base_frame_id: base_link
+    odom_frame_id: odom
+    enable_odom_tf: true
+    reference_timeout: 0.5  # [s] — stop if no cmd_vel received
+
+    # Velocity and acceleration limits
+    linear.x.has_velocity_limits: true
+    linear.x.has_acceleration_limits: true
+    linear.x.max_velocity: 1.0
+    linear.x.min_velocity: -1.0
+    linear.x.max_acceleration: 1.0
+
+    linear.y.has_velocity_limits: true
+    linear.y.has_acceleration_limits: true
+    linear.y.max_velocity: 1.0
+    linear.y.min_velocity: -1.0
+    linear.y.max_acceleration: 1.0
+
+    angular.z.has_velocity_limits: true
+    angular.z.has_acceleration_limits: true
+    angular.z.max_velocity: 1.0
+    angular.z.min_velocity: -1.0
+    angular.z.max_acceleration: 1.0

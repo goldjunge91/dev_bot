@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!-- MIGRATION STATUS: COMPLETE (Sprint 3) -->
+<!-- ros2_control hardware descriptor for MecanumPicoHardware.                -->
+<!-- Declares 4 mecanum wheel joints with velocity command + position/velocity state. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="mecanum_pico_ros2_control" params="name prefix use_mock_hardware:=false">
+
+    <!-- ================================================================== -->
+    <!-- Real hardware block (default)                                        -->
+    <!-- ================================================================== -->
+    <xacro:unless value="${use_mock_hardware}">
+      <ros2_control name="${name}" type="system">
+        <hardware>
+          <plugin>mecanum_pico/MecanumPicoHardware</plugin>
+          <param name="front_left_wheel_name">front_left_wheel_joint</param>
+          <param name="front_right_wheel_name">front_right_wheel_joint</param>
+          <param name="rear_left_wheel_name">rear_left_wheel_joint</param>
+          <param name="rear_right_wheel_name">rear_right_wheel_joint</param>
+          <param name="loop_rate">30</param>
+          <!-- udev symlink recommended: SUBSYSTEM=="tty", ATTRS{idVendor}=="2e8a", SYMLINK+="pico_mecanum" -->
+          <param name="device">/dev/pico_mecanum</param>
+          <param name="baud_rate">115200</param>
+          <param name="timeout_ms">1000</param>
+          <!-- MEASURE YOUR ROBOT: rotate each wheel one full revolution, record tick count -->
+          <param name="enc_counts_per_rev">1440</param>
+        </hardware>
+
+        <joint name="${prefix}front_left_wheel_joint">
+          <command_interface name="velocity">
+            <param name="min">-10</param>
+            <param name="max">10</param>
+          </command_interface>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+        </joint>
+
+        <joint name="${prefix}front_right_wheel_joint">
+          <command_interface name="velocity">
+            <param name="min">-10</param>
+            <param name="max">10</param>
+          </command_interface>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+        </joint>
+
+        <joint name="${prefix}rear_left_wheel_joint">
+          <command_interface name="velocity">
+            <param name="min">-10</param>
+            <param name="max">10</param>
+          </command_interface>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+        </joint>
+
+        <joint name="${prefix}rear_right_wheel_joint">
+          <command_interface name="velocity">
+            <param name="min">-10</param>
+            <param name="max">10</param>
+          </command_interface>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+        </joint>
+      </ros2_control>
+    </xacro:unless>
+
+    <!-- ================================================================== -->
+    <!-- Simulation / mock hardware block (use_mock_hardware:=true)          -->
+    <!-- Sprint 6: used for CI and algorithm development without a Pico.     -->
+    <!-- ================================================================== -->
+    <xacro:if value="${use_mock_hardware}">
+      <ros2_control name="MecanumMockHardware" type="system">
+        <hardware>
+          <plugin>mock_components/GenericSystem</plugin>
+        </hardware>
+
+        <joint name="${prefix}front_left_wheel_joint">
+          <command_interface name="velocity"/>
+          <state_interface name="velocity"><param name="initial_value">0.0</param></state_interface>
+          <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+        </joint>
+
+        <joint name="${prefix}front_right_wheel_joint">
+          <command_interface name="velocity"/>
+          <state_interface name="velocity"><param name="initial_value">0.0</param></state_interface>
+          <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+        </joint>
+
+        <joint name="${prefix}rear_left_wheel_joint">
+          <command_interface name="velocity"/>
+          <state_interface name="velocity"><param name="initial_value">0.0</param></state_interface>
+          <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+        </joint>
+
+        <joint name="${prefix}rear_right_wheel_joint">
+          <command_interface name="velocity"/>
+          <state_interface name="velocity"><param name="initial_value">0.0</param></state_interface>
+          <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+        </joint>
+      </ros2_control>
+    </xacro:if>
+
+  </xacro:macro>
+
+</robot>

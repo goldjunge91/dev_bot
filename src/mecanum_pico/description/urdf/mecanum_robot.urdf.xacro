@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!-- MIGRATION STATUS: COMPLETE (Sprint 3)                                    -->
+<!-- mecanum_robot.urdf.xacro — top-level robot description.                  -->
+<!-- Assembles: chassis description + materials + ros2_control hardware block. -->
+<!-- Ported from diffbot.urdf.xacro: 2-wheel diff → 4-wheel mecanum.          -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mecanum_robot">
+
+  <xacro:arg name="prefix"           default=""/>
+  <xacro:arg name="use_mock_hardware" default="false"/>
+
+  <!-- Robot description (chassis + 4 wheel joints) -->
+  <xacro:include filename="$(find mecanum_pico)/urdf/mecanum_robot_description.urdf.xacro"/>
+
+  <!-- RViz materials -->
+  <xacro:include filename="$(find mecanum_pico)/urdf/mecanum_robot.materials.xacro"/>
+
+  <!-- ros2_control hardware block (real Pico or mock) -->
+  <xacro:include filename="$(find mecanum_pico)/ros2_control/mecanum_pico.ros2_control.xacro"/>
+
+  <!-- Instantiate the robot macro -->
+  <xacro:mecanum_robot prefix="$(arg prefix)"/>
+
+  <!-- Instantiate the ros2_control hardware interface -->
+  <xacro:mecanum_pico_ros2_control
+    name="MecanumPicoHardware"
+    prefix="$(arg prefix)"
+    use_mock_hardware="$(arg use_mock_hardware)"/>
+
+</robot>

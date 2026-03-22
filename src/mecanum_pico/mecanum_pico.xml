@@ -1,0 +1,11 @@
+<library path="mecanum_pico">
+  <class name="mecanum_pico/MecanumPicoHardware"
+         type="mecanum_pico::MecanumPicoHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Mecanum drive hardware interface for a Raspberry Pi Pico connected via USB-CDC serial.
+      Controls 4 independent mecanum wheels (front_left, front_right, rear_left, rear_right).
+      Serial protocol: "m fl fr rl rr\r" for commands, "e fl fr rl rr\r" for encoder feedback.
+    </description>
+  </class>
+</library>

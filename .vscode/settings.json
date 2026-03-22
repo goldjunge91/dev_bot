@@ -27,4 +27,11 @@
     "ament-task-provider.envSetup": "source /opt/ros/${env:ROS_DISTRO}/setup.bash",
     "ROS2.distro": "${env:ROS_DISTRO}",
     "editor.formatOnSave": true,
+    "python.analysis.extraPaths": [
+        "/home/ros/projects/my_new_robot_9e34131/install/nerf_launch_system/local/lib/python3.10/dist-packages",
+        "/home/ros/projects/my_new_robot_9e34131/build/face_tracker",
+        "/home/ros/projects/my_new_robot_9e34131/install/face_tracker/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
 }
