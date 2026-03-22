@@ -14,7 +14,9 @@ Launcher::Launcher() :
          callbackDetachESCs,
          callbackAttachShot,
          callbackDetachShot,
-         callbackDebug) {
+         callbackDebug),
+    _manualState(ManualState::IDLE),
+    _manualTimer(0) {
     _instance = this;  // Registered for static callbacks
 }
 

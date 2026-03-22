@@ -40,7 +40,7 @@ typedef void (*EscCallback)(int powerPercent);
 typedef void (*ServoCallback)(int microseconds);
 
 /** @brief Callback zur Ausgabe von System-/Debug-Textnachrichten. */
-typedef void (*DebugCallback)(const char *msg);
+typedef void (*DebugCallback)(const char* msg);
 
 /**
  * @brief Zustandsautomat (FSM) für den Nerf-Launcher.
@@ -110,6 +110,8 @@ public:
     void triggerDisarming();
 
     void triggerFire(int power);
+
+    void triggerBraking();
 
     void triggerCalibration();
 

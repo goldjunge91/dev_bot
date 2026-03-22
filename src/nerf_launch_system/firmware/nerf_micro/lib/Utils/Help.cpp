@@ -29,28 +29,20 @@ void Help::printHelp() {
  * Fragt die aktuellen Variablen aus den Controllern ab (z.B. Servo-Neutralpositionen)
  * und gibt sie formatiert zusammen mit Hardware-Konstanten aus.
  */
-void Help::printConfig() {
-    SerialOutput::print(F("\n--- CONFIGURATION ---"));
-    SerialOutput::printf(" > PIN_TILT: %d", Config::PIN_TILT);
-    SerialOutput::printf(" > TILT_NEUTRAL_DEFAULT: %d", Config::TILT_NEUTRAL_DEFAULT);
-    SerialOutput::print(F("--------------------\n"));
+void Help::printConfig(int shotZero, int tiltNeutral, int shotDur) {
     SerialOutput::print(F("\n--- CURRENT CONFIG ---"));
-    SerialOutput::printf("Shot Zero:     %ld us", (long)nerf.getShotZero());
-    SerialOutput::printf("Tilt Zero:     %ld us", (long)tiltCtrl.getNeutral());
-    SerialOutput::printf("Shot Duration: %ld ms", (long)nerf.getShotDur());
-    SerialOutput::print(F("----------------------"));
-    SerialOutput::print(F("--------------------\n"));
+    SerialOutput::printf("Shot Zero:     %ld us", (long)shotZero);
+    SerialOutput::printf("Tilt Zero:     %ld us", (long)tiltNeutral);
+    SerialOutput::printf("Shot Duration: %ld ms", (long)shotDur);
+    SerialOutput::print(F("----------------------\n"));
 }
 
-/**
- * Druckt den Startbildschirm des NERF OS PRO. Wird einmalig in `setup()` aufgerufen.
- */
-void Help::printStartup() {
+void Help::printStartup(int shotZero, int tiltNeutral, int shotDur) {
     SerialOutput::print(F("================================"));
     SerialOutput::print(F("      NERF OS PRO ONLINE        "));
     SerialOutput::print(F("================================"));
     SerialOutput::printf("Baudrate:      %ld", (long)Config::BAUD_RATE);
-    printConfig();
+    printConfig(shotZero, tiltNeutral, shotDur);
     SerialOutput::print(F("Type 'HELP' for commands."));
     SerialOutput::print(F("================================"));
 }

@@ -36,75 +36,74 @@ FiringFSM::FiringFSM(EscCallback onFlywheelPower,
  */
 void FiringFSM::evalTransition() {
     uint32_t now = millis();  // millis() aus der Arduino-Bibliothek: Gibt die Zeit in Millisekunden
-                              // seit Systemstart zurück
+    // seit Systemstart zurück
 
     // Nur wenn nicht bereits durch externe Befehle (z.B. Serial) ein Statuswechsel
     // angefordert wurde, evaluieren wir die internen (zeit-basierten) Timer:
-    if (_nextState == _currentState) {
-        // === 1. Automatisches Entschärfen (Auto-Disarm) ===
-        // Wenn das System scharf (ARMED) oder im Leerlauf (IDLE) ist, aber zu lange
-        // nichts passiert (= Inaktivität), wird es aus Sicherheitsgründen entschärft.
-        if (_isArmed &&
-            (_currentState == FiringState::ARMED || _currentState == FiringState::IDLE) &&
-            (now - _lastActivityTime > Config::AUTO_DISARM_MS)) {
-            _nextState = FiringState::DISARMING;
-            return;
-        }
+    // Guard: trigger*()-Methoden setzen _nextState direkt.
+    // evalTransition() darf das NICHT überschreiben.
+    if (_nextState != _currentState) return;
 
-        // State-spezifische Transitions
-        switch (_currentState) {
-            case FiringState::ARMING:
-                // Nach Ablauf der Sicherheitsverzögerung wird das System SCHARF geschaltet.
-                if (now - _stateStartTime >= Config::ARM_DELAY_MS) {
-                    _nextState = FiringState::ARMED;
-                }
-                break;
+    // State-spezifische Transitions (nur zeit-basiert)
+    switch (_currentState) {
+        case FiringState::IDLE:
+            // Kein automatischer Übergang — nur via triggerArming()
+            break;
 
-            case FiringState::DISARMING:
-                // Nach dem Lösen der Motoren ist das System sicher (DISARMED).
-                _nextState = FiringState::DISARMED;
-                break;
+        case FiringState::ARMING:
+            // Kein Timer: Übergang sofort im nächsten Zyklus.
+            // Die Verzögerung ist entry-Aktion in evalState() via delay().
+            _nextState = FiringState::ARMED;
+            break;
 
-            case FiringState::SPINNING_UP:
-                // Motoren haben lange genug beschleunigt, jetzt Dart in die Räder schieben
-                // (PUSHING).
-                if (now - _stateStartTime >= Config::SPINUP_MS) {
-                    _nextState = FiringState::PUSHING;
-                }
-                break;
+        case FiringState::ARMED:
+            // Auto-Disarm nach Inaktivität
+            if (now - _lastActivityTime >= Config::AUTO_DISARM_MS) {
+                _nextState = FiringState::DISARMING;
+            }
+            break;
 
-            case FiringState::PUSHING:
-                // Pusher-Servo macht eine volle 360 grad umdrehung
-                // (BRAKING).
-                if (now - _stateStartTime >= (uint32_t)_shotDuration) {
-                    _nextState = FiringState::BRAKING;
-                }
-                break;
+        case FiringState::DISARMING:
+            // Nach dem Lösen der Motoren ist das System sicher (DISARMED).
+            _nextState = FiringState::DISARMED;
+            break;
 
-            case FiringState::BRAKING:
-                // Pusher ist auf home pisition, kurze Pause zur Abkühlung (COOLDOWN).
-                if (now - _stateStartTime >= Config::BRAKE_MS) {
-                    _nextState = FiringState::COOLDOWN;
-                }
-                break;
+        case FiringState::SPINNING_UP:
+            // Quick SPINUP-Phase
+            if (now - _stateStartTime >= Config::SPINUP_MS) {
+                _nextState = FiringState::PUSHING;
+            }
+            break;
 
-            case FiringState::COOLDOWN:
-                // Schusssequenz beendet, System ist wieder bereit für den nächsten Schuss (ARMED).
-                if (now - _stateStartTime >= 100) {
-                    _nextState = FiringState::ARMED;
-                }
-                break;
+        case FiringState::PUSHING:
+            // Nach shotDuration direkt in COOLDOWN — BRAKING ist ein extra Trigger.
+            if (now - _stateStartTime >= (uint32_t)_shotDuration) {
+                _nextState = FiringState::COOLDOWN;
+            }
+            break;
 
-            default:
-                break;
-        }
+        case FiringState::BRAKING:
+            // BRAKING wird via triggerBraking() betreten, Timer läuft danach normal.
+            if (now - _stateStartTime >= Config::BRAKE_MS) {
+                _nextState = FiringState::COOLDOWN;
+            }
+            break;
+        case FiringState::COOLDOWN:
+            // Schusssequenz beendet, System ist wieder bereit für den nächsten Schuss (ARMED).
+            if (now - _stateStartTime >= Config::COOLDOWN_TIME) {
+                _nextState = FiringState::ARMED;
+            }
+            break;
+
+        default:
+            break;
     }
 }
 
 /**
  * @brief Führt Eingangsaktionen (Entry) und kontinuierliche Aktionen aus.
  *
- * Behandelt das Ansteuern der Schwungräder und Servos sowie das
+ * Behandelt das Ansteuern der Motoren und Servos sowie das
  * Senden von Debug-Status-Updates bei einem Zustandswechsel.
  */
 void FiringFSM::evalState() {
@@ -121,34 +120,44 @@ void FiringFSM::evalState() {
 
         // === Aktionen, die EINMALIG beim Eintritt in einen Zustand ausgeführt werden ===
         switch (_currentState) {
+            case FiringState::IDLE:
+                // IDLE start case
+                // if (oldState == FiringState::COOLDOWN) {
+                //     _onDetachShot();
+                //     _onDebug("OK: SHOT COMPLETE");
+                // }
+                break;
+
             case FiringState::ARMING:
-                // ESCs am Arduino "anmelden" und 2 Sekunden warten, um plötzlichen Start zu
-                // verhindern
-                _onAttachESCs();
-                _onDebug("STATUS: ARMING sequence started (2s)...");
+                _onDebug("STATUS: ARMING...");
+                delay(Config::ARM_DELAY_MS);
                 break;
 
             case FiringState::ARMED:
-                // System ist nun feuereit
+                _onAttachESCs();
                 _isArmed = true;
+                if (oldState == FiringState::COOLDOWN) {
+                    _onDetachShot();
+                    _onDebug("OK: SHOT COMPLETE");
+                }
                 _onDebug("OK: SYSTEM ARMED");
                 break;
 
             case FiringState::DISARMING:
+                // entry / isArmed=false, debug. Hardware-Trennung erst in DISARMED.
                 _isArmed = false;
                 _onDebug("STATUS: DISARMING sequence started...");
                 break;
 
             case FiringState::DISARMED:
-                // Aus Sicherheitsgründen wird die Verbindung zu ESCs und Pusher-Servo
-                // hardwareseitig getrennt
+                // entry / ESCs und Servo hardwareseitig trennen
                 _onDetachESCs();
                 _onDetachShot();
-                _onDebug("OK: SYSTEM DISARMED (Signal Cut)");
+                _onDebug("OK: SYSTEM IS DISARMED");
                 break;
 
             case FiringState::SPINNING_UP:
-                // Den Motoren den Befehl geben, Gas zu geben (%-Wert)
+                // entry / Schwungräder auf Zielleistung bringen
                 _onFlywheelPower(_targetPower);
                 _onDebug("STATUS: Spinning up...");
                 break;
@@ -170,15 +179,6 @@ void FiringFSM::evalState() {
                 _onFlywheelPower(0);
                 break;
 
-            case FiringState::IDLE:
-                // Wenn wir aus dem Cooldown (nach einem Schuss) kommen, können wir den Servo sicher
-                // trennen
-                if (oldState == FiringState::COOLDOWN) {
-                    _onDetachShot();
-                    _onDebug("OK: SHOT COMPLETE");
-                }
-                break;
-
             case FiringState::ESC_TEST:
                 _onFlywheelPower(_targetPower);
                 {
@@ -198,18 +198,29 @@ void FiringFSM::evalState() {
 }
 
 /**
- * @brief Auslöser: Startet die Scharfschalt-Sequenz (Arming).
+ * @brief Auslöser: Startet die ARMEDschalt-Sequenz (Arming).
  */
 void FiringFSM::triggerArming() {
     _lastActivityTime = millis();
     if (_isArmed || _currentState == FiringState::ARMING) return;
-    _nextState = FiringState::ARMING;
-    _stateStartTime = millis();
+    if (_currentState == FiringState::IDLE || _currentState == FiringState::DISARMED) {
+        _nextState = FiringState::ARMING;
+        _stateStartTime = millis();
+    }
 }
 
 /**
  * @brief Auslöser: Sofortiges Entschärfen (Not-Stopp / Safety Stop).
  */
+void FiringFSM::triggerBraking() {
+    if (_currentState != FiringState::PUSHING) {
+        _onDebug("ERR: triggerBraking() nur aus PUSHING erlaubt!");
+        return;
+    }
+    _nextState = FiringState::BRAKING;
+    _stateStartTime = millis();
+}
+
 void FiringFSM::triggerDisarming() {
     if (_currentState == FiringState::CALIBRATING) {
         _currentState = FiringState::IDLE;
@@ -233,15 +244,14 @@ void FiringFSM::triggerFire(int power) {
     if (!_isArmed) {
         _onDebug("ERR: Arm first!");  // Nur schiessen, wenn das System auf ARMED steht.
         return;
-    }
-    // Verhindert, dass wir einen Schuss starten, obwohl wir gerade schon schiessen (FSM blockiert)
+    }  // Block shoting without arming first.
     if (_currentState != FiringState::ARMED && _currentState != FiringState::IDLE) return;
-
-    // Wechsel in die erste Phase der Schusssequenz
-    _targetPower = power;
-    _nextState = FiringState::SPINNING_UP;
-    _stateStartTime = millis();
-    recordActivity();  // Inaktivitäts-Timer zurücksetzen
+    if (_currentState == FiringState::ARMED) {
+        _targetPower = power;
+        _nextState = FiringState::SPINNING_UP;
+        _stateStartTime = millis();
+        recordActivity();  // Inaktivitäts-Timer zurücksetzen
+    }
 }
 
 void FiringFSM::triggerCalibration() {

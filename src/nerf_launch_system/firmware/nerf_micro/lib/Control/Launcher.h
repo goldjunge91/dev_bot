@@ -7,7 +7,7 @@
 
 #include "../../include/Config.h"
 #include "../Utils/SerialOutput.h"
-#include "FiringFSM.h"
+#include "../FSM/FiringFSM.h"
 
 #include <Arduino.h>  // Basis-Header der Arduino-Bibliothek
 #include <Servo.h>    // Arduino-Bibliothek zur Ansteuerung von Servomotoren
@@ -25,7 +25,7 @@ private:
     FiringFSM _fsm;
 
     // Static pointer for callbacks
-    static Launcher *_instance;
+    static Launcher* _instance;
 
     enum class ManualState {
         IDLE,
@@ -67,7 +67,7 @@ private:
 
     static void callbackDetachShot();
 
-    static void callbackDebug(const char *msg);
+    static void callbackDebug(const char* msg);
 
 public:
     Launcher();
@@ -126,15 +126,15 @@ public:
     }
 
     // FSM Access
-    FiringFSM &getFSM() {
+    FiringFSM& getFSM() {
         return _fsm;
     }
 
     // ESC Access for Debug
-    Servo &getLeftESC() {
+    Servo& getLeftESC() {
         return _escLeft;
     }
-    Servo &getRightESC() {
+    Servo& getRightESC() {
         return _escRight;
     }
 };

@@ -4,15 +4,17 @@
 
 #include "Comms.h"
 
+#include "../Utils/Help.h"
+
 // #include "../Debug/ESCCalibration.h"
 
 // 'Stream' aus der Arduino-Bibliothek (Datenstrom, z.B. Serial)
-Comms::Comms(Launcher &launcher, TiltController &tiltController, Stream &serialStream) :
+Comms::Comms(Launcher& launcher, TiltController& tiltController, Stream& serialStream) :
     _launcher(launcher), _tilt(tiltController), _stream(serialStream) {
     _buffer.reserve(32);
 }
 
-void Comms::broadcast(const char *msg) {
+void Comms::broadcast(const char* msg) {
     _stream.println(msg);
     // Wenn diese Instanz Serial ist, sende auch an Serial1 (und umgekehrt)
     if (&_stream == &Serial)
@@ -21,7 +23,7 @@ void Comms::broadcast(const char *msg) {
         Serial.println(msg);
 }
 
-void Comms::broadcast(const __FlashStringHelper *msg) {
+void Comms::broadcast(const __FlashStringHelper* msg) {
     _stream.println(msg);
     if (&_stream == &Serial)
         Serial1.println(msg);
@@ -48,7 +50,8 @@ void Comms::update() {
                 execute(_buffer);
                 _buffer = "";
             }
-        } else if (c >= 32 && c <= 126) {
+        }
+        else if (c >= 32 && c <= 126) {
             _buffer += c;
         }
     }
@@ -100,11 +103,13 @@ void Comms::execute(String line) {
         _launcher.getFSM().triggerDisarming();
     else if (cmd == "STOP")
         _launcher.getFSM().triggerDisarming();
+    else if (cmd == "BRAKE")
+        _launcher.getFSM().triggerBraking();
     else if (cmd == "SHOT")
-        _launcher.getFSM().triggerFire(val > 0 ? val : 40);
+        _launcher.getFSM().triggerFire(val > 0 ? val : 5);
+
     else if (cmd == "TEST_ESC")
         _launcher.getFSM().triggerEscTest(val >= 0 ? val : 20);
-
     else if (cmd == "PWM")
         _launcher.setRawPWM(val);
     else if (cmd == "CAL")
@@ -113,7 +118,8 @@ void Comms::execute(String line) {
     // Calibration & Test shortcuts handled via FSM now
     else if (cmd == "CAL_MAX" || cmd == "CAL_MIN" || cmd == "CAL_TEST") {
         broadcast(F("ERR: Obsolete commands. Use 'CAL' state via FSM instead."));
-    } else if (cmd == "NF")
+    }
+    else if (cmd == "NF")
         _launcher.nudge(true);
     else if (cmd == "NB")
         _launcher.nudge(false);
@@ -136,7 +142,7 @@ void Comms::execute(String line) {
         _tilt.nudge(false);
 
     else if (cmd == "SAVE" || cmd == "SAVE_OLD")
-        Help::printConfig();
+        Help::printConfig(_launcher.getShotZero(), _launcher.getFSM().getShotNeutral(), _launcher.getShotDur());
 
     else if (cmd == "ZERO_T")
         _tilt.setNeutral(val);
@@ -145,9 +151,11 @@ void Comms::execute(String line) {
 
     else if (cmd == "STATUS") {
         _stream.println(_launcher.getFSM().isArmed() ? F("STATUS: ARMED") : F("STATUS: DISARMED"));
-    } else if (cmd == "HELP") {
+    }
+    else if (cmd == "HELP") {
         Help::printHelp();
-    } else {
+    }
+    else {
         if (cmd.length() > 1) {
             _stream.print(F("ERR: Unknown "));
             _stream.println(cmd);
