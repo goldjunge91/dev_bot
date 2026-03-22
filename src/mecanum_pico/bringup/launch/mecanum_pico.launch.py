@@ -39,17 +39,14 @@ def generate_launch_description():
 
     # --------------------------------------------------------------------------
     # ros2_control_node
-    # use_stamped_vel: false  →  controller topic = ~/reference_unstamped (Twist)
-    # Remapping here (on the node that OWNS the topic) routes /cmd_vel into the
-    # controller so that teleop_twist_keyboard works without extra arguments.
+    # Husarion mecanum_drive_controller mit use_stamped_vel: false
+    # subscribt bei use_stamped_vel=false direkt auf /cmd_vel (Twist).
+    # Kein Remapping nötig — teleop_twist_keyboard funktioniert out-of-the-box.
     # --------------------------------------------------------------------------
     control_node = Node(
         package='controller_manager',
         executable='ros2_control_node',
         parameters=[robot_description, robot_controllers],
-        remappings=[
-            ('/mecanum_drive_controller/reference_unstamped', '/cmd_vel'),
-        ],
         output='both',
     )
 

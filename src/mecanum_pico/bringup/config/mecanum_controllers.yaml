@@ -11,65 +11,74 @@ controller_manager:
 mecanum_drive_controller:
   ros__parameters:
     # -------------------------------------------------------------------------
-    # Command joint names (velocity command interfaces)
+    # Wheel joint names — Husarion style (no _command_ suffix)
     # -------------------------------------------------------------------------
-    front_left_wheel_command_joint_name:  front_left_wheel_joint
-    front_right_wheel_command_joint_name: front_right_wheel_joint
-    rear_left_wheel_command_joint_name:   rear_left_wheel_joint
-    rear_right_wheel_command_joint_name:  rear_right_wheel_joint
+    front_left_wheel_name:  front_left_wheel_joint
+    front_right_wheel_name: front_right_wheel_joint
+    rear_left_wheel_name:   rear_left_wheel_joint
+    rear_right_wheel_name:  rear_right_wheel_joint
 
     # -------------------------------------------------------------------------
-    # State joint names (velocity state interfaces for odometry)
-    # Required — without these, y-velocity and angular odometry are wrong.
+    # Geometry — MEASURE YOUR ROBOT (Sprint 7)
+    # wheel_separation_x = wheelbase   (front-to-rear distance between wheel centres) = 0.25 m
+    # wheel_separation_y = track width (left-to-right distance between wheel centres) = 0.20 m
+    # wheel_radius                                                                     = 0.05 m
     # -------------------------------------------------------------------------
-    front_left_wheel_state_joint_name:  front_left_wheel_joint
-    front_right_wheel_state_joint_name: front_right_wheel_joint
-    rear_left_wheel_state_joint_name:   rear_left_wheel_joint
-    rear_right_wheel_state_joint_name:  rear_right_wheel_joint
+    wheel_separation_x: 0.25
+    wheel_separation_y: 0.20
+    wheel_radius:       0.05
+
+    wheel_separation_x_multiplier: 1.0
+    wheel_separation_y_multiplier: 1.0
+    wheel_radius_multiplier:       1.0
 
     # -------------------------------------------------------------------------
-    # CRITICAL: use_stamped_vel must be false for teleop_twist_keyboard.
-    # true  (default) → subscribes to ~/reference        (TwistStamped)
-    # false           → subscribes to ~/reference_unstamped (Twist)
-    # teleop_twist_keyboard publishes Twist → needs false.
+    # Odometry mode
+    # open_loop: true  = integrate cmd_vel (no encoder feedback needed, good for testing)
+    # open_loop: false = use wheel velocity feedback (real hardware, Sprint 7)
+    # position_feedback: false = velocity state interface (our hardware interface)
+    # -------------------------------------------------------------------------
+    open_loop: true
+    position_feedback: false
+
+    # -------------------------------------------------------------------------
+    # use_stamped_vel: false → subscribes to ~/cmd_vel_unstamped (Twist)
+    # Required for teleop_twist_keyboard
     # -------------------------------------------------------------------------
     use_stamped_vel: false
 
-    # -------------------------------------------------------------------------
-    # Kinematics — MEASURE YOUR ROBOT (Sprint 7)
-    # base_length=0.25m → lx=0.125  |  base_width=0.20m → ly=0.10
-    # sum = lx + ly = 0.225 m
-    # -------------------------------------------------------------------------
-    kinematics:
-      base_frame_offset:
-        x: 0.0
-        y: 0.0
-        theta: 0.0
-      wheels_radius: 0.05   # [m] — measure with calipers
-      sum_of_robot_center_projection_on_X_Y_axis: 0.225  # lx+ly [m]
+    cmd_vel_timeout: 0.5
+    publish_rate: 50.0
 
     base_frame_id: base_link
     odom_frame_id: odom
     enable_odom_tf: true
-    reference_timeout: 0.5  # [s]
+
+    pose_covariance_diagonal:  [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+
+    velocity_rolling_window_size: 10
 
     # -------------------------------------------------------------------------
     # Velocity limits
     # -------------------------------------------------------------------------
-    linear.x.has_velocity_limits: true
+    linear.x.has_velocity_limits:     true
     linear.x.has_acceleration_limits: true
-    linear.x.max_velocity: 1.0
-    linear.x.min_velocity: -1.0
+    linear.x.max_velocity:    1.0
+    linear.x.min_velocity:   -1.0
     linear.x.max_acceleration: 1.0
+    linear.x.min_acceleration: -1.0
 
-    linear.y.has_velocity_limits: true
+    linear.y.has_velocity_limits:     true
     linear.y.has_acceleration_limits: true
-    linear.y.max_velocity: 1.0
-    linear.y.min_velocity: -1.0
+    linear.y.max_velocity:    1.0
+    linear.y.min_velocity:   -1.0
     linear.y.max_acceleration: 1.0
+    linear.y.min_acceleration: -1.0
 
-    angular.z.has_velocity_limits: true
+    angular.z.has_velocity_limits:     true
     angular.z.has_acceleration_limits: true
-    angular.z.max_velocity: 1.0
-    angular.z.min_velocity: -1.0
+    angular.z.max_velocity:    1.0
+    angular.z.min_velocity:   -1.0
     angular.z.max_acceleration: 1.0
+    angular.z.min_acceleration: -1.0
