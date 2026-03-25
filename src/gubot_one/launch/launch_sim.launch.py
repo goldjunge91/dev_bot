@@ -7,6 +7,7 @@ from launch.actions import (
     IncludeLaunchDescription,
     DeclareLaunchArgument,
     AppendEnvironmentVariable,
+    SetEnvironmentVariable,
     TimerAction,
 )
 from launch.conditions import IfCondition
@@ -29,6 +30,7 @@ def generate_launch_description():
             "use_sim_time": "true",
             "use_ros2_control": "true",
             "integrated_mode": "true",
+            "drive_type": LaunchConfiguration("drive_type"),
         }.items(),
     )
 
@@ -48,7 +50,7 @@ def generate_launch_description():
         package="twist_mux",
         executable="twist_mux",
         parameters=[twist_mux_params, {"use_sim_time": True}],
-        remappings=[("/cmd_vel_out", "/diff_cont/cmd_vel_unstamped")],
+        remappings=[("/cmd_vel_out", "/mecanum_cont/reference_unstamped")],
     )
 
     # 4. World
@@ -84,10 +86,10 @@ def generate_launch_description():
     # Fix: TimerAction(5s) gibt ign_ros2_control genuegend Zeit.
     enable = LaunchConfiguration("enable_ros2_controllers")
 
-    diff_drive_spawner = Node(
+    drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["diff_cont"],
+        arguments=["mecanum_cont"],
         condition=IfCondition(enable),
     )
     joint_broad_spawner = Node(
@@ -127,7 +129,7 @@ def generate_launch_description():
     delayed_spawners = TimerAction(
         period=5.0,
         actions=[
-            diff_drive_spawner,
+            drive_spawner,
             joint_broad_spawner,
             imu_broadcaster_spawner,
             shooter_controller_spawner,
@@ -176,9 +178,14 @@ def generate_launch_description():
         ),
         AppendEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
         AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
-        # vironmentVariable("MESA_D3D12_DEFAULT_ADAPTER_NAME", "NVIDIA"),
+        
+        # --- GPU Acceleration für WSL (Erzwingt Nvidia bei Hybrid-Systemen) ---
+        SetEnvironmentVariable("LIBGL_ALWAYS_SOFTWARE", "0"),
+        SetEnvironmentVariable("GALLIUM_DRIVER", "d3d12"),
+        # Da du beides hast, zwingen wir WSL hier, die starke Nvidia-GPU zu nutzen!
+        SetEnvironmentVariable("MESA_D3D12_DEFAULT_ADAPTER_NAME", "NVIDIA"),
+        
         AppendEnvironmentVariable("QT_QPA_PLATFORM", "xcb"),
-        AppendEnvironmentVariable("MESA_D3D12_DEFAULT_ADAPTER_NAME", "NVIDIA"),
         AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
         DeclareLaunchArgument("use_sim_time", default_value="true",
                               description="Use sim time if true"),
@@ -186,6 +193,8 @@ def generate_launch_description():
                               description="World to load"),
         DeclareLaunchArgument("enable_ros2_controllers", default_value="true",
                               description="Spawn ros2_control controllers"),
+        DeclareLaunchArgument("drive_type", default_value="mecanum",
+                              description="Drive type: diffdrive or mecanum"),
         # correct order is importend
         rsp,
         joystick,

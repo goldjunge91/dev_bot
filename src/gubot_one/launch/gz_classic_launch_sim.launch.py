@@ -1,5 +1,6 @@
 import os
 
+import launch # Added this line
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
@@ -11,7 +12,7 @@ from launch.actions import (
 )
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression # Modified this line
 
 from launch_ros.actions import Node
 
@@ -35,12 +36,12 @@ def generate_launch_description():
         description="Path to the gazebo world file",
     )
 
-    # Declare the 'use_sim_time' argument
-    use_sim_time = LaunchConfiguration("use_sim_time")
-    declare_use_sim_time_cmd = DeclareLaunchArgument(
-        "use_sim_time",
-        default_value="true",
-        description="Use sim time if true",
+    # Declare the 'drive_type' argument
+    drive_type = LaunchConfiguration("drive_type")
+    declare_drive_type_cmd = DeclareLaunchArgument(
+        "drive_type",
+        default_value="mecanum",
+        description="Drive type: 'diffdrive' or 'mecanum'",
     )
 
     # Robot State Publisher
@@ -54,10 +55,11 @@ def generate_launch_description():
             ]
         ),
         launch_arguments={
-            "use_sim_time": use_sim_time,
+            "use_sim_time": "true",
             "use_ros2_control": "true",
             "integrated_mode": "true",
             "use_gazebo_classic": "true",
+            "drive_type": drive_type,
         }.items(),
     )
 
@@ -79,11 +81,17 @@ def generate_launch_description():
     twist_mux_params = os.path.join(
         get_package_share_directory(package_name), "config", "twist_mux.yaml"
     )
+
+    # Remapping Logic based on drive_type
+    # Note: We use dynamic Python inside the launch function or substitutions
+    # Using LaunchConfiguration in remappings requires care
+    cmd_vel_out = "/mecanum_cont/reference_unstamped" # Default or based on type
+
     twist_mux = Node(
         package="twist_mux",
         executable="twist_mux",
         parameters=[twist_mux_params, {"use_sim_time": True}],
-        remappings=[("/cmd_vel_out", "/diff_cont/cmd_vel_unstamped")],
+        remappings=[("/cmd_vel_out", cmd_vel_out)],
     )
 
     # Gazebo Sim (Classic)
@@ -124,6 +132,18 @@ def generate_launch_description():
         package="controller_manager",
         executable="spawner",
         arguments=["diff_cont"],
+        condition=launch.conditions.IfCondition(
+            PythonExpression(["'", drive_type, "' == 'diffdrive'"])
+        ),
+    )
+
+    mecanum_drive_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["mecanum_cont"],
+        condition=launch.conditions.IfCondition(
+            PythonExpression(["'", drive_type, "' == 'mecanum'"])
+        ),
     )
 
     joint_broad_spawner = Node(
@@ -141,7 +161,7 @@ def generate_launch_description():
     delayed_diff_drive_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_entity,
-            on_exit=[diff_drive_spawner],
+            on_exit=[diff_drive_spawner, mecanum_drive_spawner],
         )
     )
 
@@ -232,7 +252,7 @@ def generate_launch_description():
             AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
             AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
             world_arg,
-            declare_use_sim_time_cmd,
+            declare_drive_type_cmd,
             rsp,
             joystick,
             twist_mux,

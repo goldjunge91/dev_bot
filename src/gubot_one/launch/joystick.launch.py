@@ -21,11 +21,11 @@ Verwendung:
   ros2 launch gubot_one joystick.launch.py
   ros2 launch gubot_one joystick.launch.py launch_joy_node:=false  # Wenn joy_node woanders läuft
 """
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition
 import launch.conditions as if_condition
 
 import os
@@ -74,7 +74,7 @@ def generate_launch_description():
     # Node 3: nerf_joy - Steuert Nerf Launcher über Controller
     nerf_joy_node = Node(
         package="gubot_one",
-        executable="nerf_joy.py",
+        executable="teleop__nerf_joystick.py",
         name="nerf_joy",
         parameters=[{"use_sim_time": use_sim_time}],
         remappings=[("/tilt_controller/commands", tilt_command_topic)],

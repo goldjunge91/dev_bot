@@ -41,8 +41,8 @@ install(
 
 install(
   PROGRAMS
-    scripts/nerf_teleop.py
-    scripts/nerf_joy.py
+    scripts/teleop_twist_nerf_keyboard.py
+    scripts/teleop__nerf_joystick.py
     scripts/debug_tilt.py
   DESTINATION lib/${PROJECT_NAME}
   PERMISSIONS

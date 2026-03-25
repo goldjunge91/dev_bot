@@ -44,7 +44,7 @@ Control Gubot One + Nerf Launcher!
 ---------------------------
 Moving around:
         w
-   a    s    d
+   a    s    d       (A/D + Shift = Strafe Left/Right)
 
 Launcher Controls:
    1 : Disarm System
@@ -62,10 +62,12 @@ Launcher Controls:
 """
 
 moveBindings = {
-    "w": (0.5, 0.0),  # Vorwärts: linear_x=0.5, angular_z=0.0
-    "s": (-0.5, 0.0),  # Rückwärts: linear_x=-0.5
-    "a": (0.0, 1.0),  # Links drehen: angular_z=1.0
-    "d": (0.0, -1.0),  # Rechts drehen: angular_z=-1.0
+    "w": (0.5, 0.0, 0.0),  # Vorwärts: x=0.5
+    "s": (-0.5, 0.0, 0.0), # Rückwärts: x=-0.5
+    "a": (0.0, 0.0, 1.0),  # Links drehen: z=1.0
+    "d": (0.0, 0.0, -1.0), # Rechts drehen: z=-1.0
+    "A": (0.0, 0.5, 0.0),  # Links strafen: y=0.5
+    "D": (0.0, -0.5, 0.0), # Rechts strafen: y=-0.5
 }
 
 # Test-Modus: scripted key sequence ohne TTY (für Integrationstests)
@@ -133,7 +135,8 @@ class NerfTeleop(Node):
         self.timer = self.create_timer(0.1, self.loop)
 
         # Zustandsvariablen
-        self.speed = 0.0  # Linear-Geschwindigkeit
+        self.speed = 0.0  # Linear-Geschwindigkeit X
+        self.strafe = 0.0 # Linear-Geschwindigkeit Y (Mecanum)
         self.turn = 0.0  # Winkel-Geschwindigkeit
         self.armed = False  # Arming-Status
         self.pusher_active = False  # Pusher aktiv während Schuss
@@ -167,12 +170,14 @@ class NerfTeleop(Node):
         if key in moveBindings.keys():
             self.input_count += 1
             self.speed = moveBindings[key][0]
-            self.turn = moveBindings[key][1]
+            self.strafe = moveBindings[key][1]
+            self.turn = moveBindings[key][2]
         elif key == " ":  # SPACE wird unten für Schuss/Stopp behandelt
             pass
         elif key == "k":
             self.input_count += 1
             self.speed = 0.0
+            self.strafe = 0.0
             self.turn = 0.0
         # else:
         #     self.speed = 0.0
@@ -199,6 +204,7 @@ class NerfTeleop(Node):
 
             # Stoppe Bewegung bei SPACE
             self.speed = 0.0
+            self.strafe = 0.0
             self.turn = 0.0
 
         elif key == "t":  # Tilt UP
@@ -237,11 +243,11 @@ class NerfTeleop(Node):
             self.input_count = 0
 
         elif key == "\x03":  # CTRL-C = Beenden
-            self.publish_twist(0.0, 0.0)
+            self.publish_twist(0.0, 0.0, 0.0)
             sys.exit()
 
         # Kontinuierliches Publizieren der Bewegung
-        self.publish_twist(self.speed, self.turn)
+        self.publish_twist(self.speed, self.strafe, self.turn)
 
         # Verwalte Pusher-Puls
         if self.pusher_active:
@@ -250,9 +256,10 @@ class NerfTeleop(Node):
                 self.pusher_active = False
                 self.publish_shooter(0.0)  # Stoppe Pusher/Sequenz reset
 
-    def publish_twist(self, linear, angular):
+    def publish_twist(self, linear_x, linear_y, angular):
         twist = Twist()
-        twist.linear.x = float(linear)
+        twist.linear.x = float(linear_x)
+        twist.linear.y = float(linear_y)
         twist.angular.z = float(angular)
         self.pub_cmd_vel.publish(twist)
 
@@ -280,7 +287,7 @@ def main(args=None):
     except Exception as e:
         print(e)
     finally:
-        node.publish_twist(0.0, 0.0)
+        node.publish_twist(0.0, 0.0, 0.0)
         node.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
