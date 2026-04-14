@@ -32,6 +32,18 @@ if(BUILD_TESTING)
     tests/test_tilt_controller_spawner.py
     TIMEOUT 30
   )
+  ament_add_pytest_test(test_controller_yaml
+    tests/test_controller_yaml.py
+    TIMEOUT 30
+  )
+  ament_add_pytest_test(test_urdf_geometry
+    tests/test_urdf_geometry.py
+    TIMEOUT 30
+  )
+  ament_add_pytest_test(test_launch_robot
+    tests/test_launch_robot.py
+    TIMEOUT 30
+  )
 endif()
 
 install(

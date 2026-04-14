@@ -23,16 +23,20 @@ controller_manager:
 
 mecanum_cont:
   ros__parameters:
-    # Joint name mapping — providing both common variants for robustness
-    front_left_wheel_command_joint_name:  front_left_wheel_joint
-    front_right_wheel_command_joint_name: front_right_wheel_joint
-    rear_left_wheel_command_joint_name:   rear_left_wheel_joint
-    rear_right_wheel_command_joint_name:  rear_right_wheel_joint
-
+    # Schema: mecanum_drive_controller (ROS2 Humble) — verified via official docs
+    # https://control.ros.org/humble/doc/ros2_controllers/mecanum_drive_controller/doc/userdoc.html
+    # ROS2 Humble: Pflichtparameter ist front_left_wheel_name (NICHT _command_joint_name)
+    # _command_joint_name ist ab Rolling/Jazzy gültig
     front_left_wheel_name:  front_left_wheel_joint
     front_right_wheel_name: front_right_wheel_joint
     rear_left_wheel_name:   rear_left_wheel_joint
     rear_right_wheel_name:  rear_right_wheel_joint
+
+    # ALT (Rolling/Jazzy API — auf Humble nicht unterstützt):
+    # front_left_wheel_command_joint_name:  front_left_wheel_joint
+    # front_right_wheel_command_joint_name: front_right_wheel_joint
+    # rear_left_wheel_command_joint_name:   rear_left_wheel_joint
+    # rear_right_wheel_command_joint_name:  rear_right_wheel_joint
 
     use_stamped_vel: false
 
@@ -45,8 +49,9 @@ mecanum_cont:
       wheels_radius: 0.033
       sum_of_robot_center_projection_on_X_Y_axis: 0.2615
 
-    wheels_radius: 0.033
-    sum_of_robot_center_projection_on_X_Y_axis: 0.2615
+    # ALT: Kinematik-Parameter auf Controller-Toplevel (auskommentiert)
+    # wheels_radius: 0.033
+    # sum_of_robot_center_projection_on_X_Y_axis: 0.2615
 
     base_frame_id: base_link
     odom_frame_id: odom
