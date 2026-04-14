@@ -37,7 +37,10 @@ void pid_reset(void)
 
 // ---------------------------------------------------------------------------
 // doPID — one PID step for a single motor (internal)
-// Matches ROSArduinoBridge logic exactly; output is PWM magnitude.
+// Standard Positional PID — Output = (Kp*e + Ki*∑e - Kd*d(input)) / Ko
+// FIX: Removed `output += p->output` which caused runaway accumulation.
+//      The old ROSArduinoBridge code accumulated the PID output into itself,
+//      effectively making it an integrating controller on top of the PID.
 // ---------------------------------------------------------------------------
 static void do_pid(SetPointInfo* p)
 {
@@ -47,7 +50,9 @@ static void do_pid(SetPointInfo* p)
     // Brett Beauregard derivative-kick fix: use -Kd*(input - PrevInput)
     long output = (Kp * perror - Kd * (input - p->prev_input) + p->iterm) / Ko;
     p->prev_enc = p->encoder;
-    output += p->output;
+
+    // ALT (BUG — Akkumulation des Outputs): output += p->output;
+    // FIX: Direktzuweisung statt Akkumulation
 
     // Clamp and conditional integral accumulation (anti-windup)
     if (output >= MAX_PWM) {
@@ -61,6 +66,7 @@ static void do_pid(SetPointInfo* p)
         p->iterm += Ki * perror;
     }
 
+    // Direct assignment — NOT accumulation (p->output = output, NOT +=)
     p->output = output;
     p->prev_input = input;
 }
