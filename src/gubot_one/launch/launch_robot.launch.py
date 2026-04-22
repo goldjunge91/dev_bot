@@ -112,7 +112,8 @@ def generate_launch_description():
         executable="twist_mux",
         parameters=[twist_mux_params],
         # ALT: remappings=[("/cmd_vel_out", "/diff_cont/cmd_vel_unstamped")],
-        remappings=[("/cmd_vel_out", "/mecanum_cont/reference_unstamped")],
+        # ALT: remappings=[("/cmd_vel_out", "/mecanum_cont/reference_unstamped")],
+        remappings=[("/cmd_vel_out", "/mecanum_cont/cmd_vel_unstamped")],
     )
 
     # Robot Description für Controller Manager
@@ -188,7 +189,8 @@ def generate_launch_description():
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_broad"],  # Joint State Broadcaster
+        # ALT: arguments=["joint_broad"],
+        arguments=["joint_state_broadcaster"],  # Vereinheitlicht: joint_state_broadcaster
     )
 
     # ALT: delayed_joint_broad_spawner = RegisterEventHandler(

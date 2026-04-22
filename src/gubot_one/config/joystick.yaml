@@ -1,7 +1,7 @@
 joy_node:
   ros__parameters:
     device_id: 0
-    deadzone: 0.05
+    deadzone: 0.15  # ALT: 0.05 — zu klein, Hardware-Drift kam durch
     autorepeat_rate: 20.0
 
 teleop_node:
@@ -23,8 +23,11 @@ teleop_node:
     scale_angular_turbo:
       yaw: 1.0
 
-    # disable require/enable buttons: set to -1 to disable
-    enable_button: -1
-    enable_turbo_button: -1
+    # Enable-Button: Roboter faehrt NUR wenn dieser Button gehalten wird
+    # Button 0 = A (Xbox) / Cross (PS) / B (Switch)
+    # ALT: enable_button: -1  — war deaktiviert, Roboter fuhr unkontrolliert
+    enable_button: 0
+    enable_turbo_button: 1  # Button 1 = B (Xbox) / Circle (PS) fuer Vollgas
 
-    require_enable_button: false
+    # ALT: require_enable_button: false  — hat unkontrolliertes Vorwaertsfahren verursacht
+    require_enable_button: true

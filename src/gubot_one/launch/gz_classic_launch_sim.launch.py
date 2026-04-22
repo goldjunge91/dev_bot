@@ -85,7 +85,8 @@ def generate_launch_description():
     # Remapping Logic based on drive_type
     # Note: We use dynamic Python inside the launch function or substitutions
     # Using LaunchConfiguration in remappings requires care
-    cmd_vel_out = "/mecanum_cont/reference_unstamped" # Default or based on type
+    # ALT: cmd_vel_out = "/mecanum_cont/reference_unstamped"
+    cmd_vel_out = "/mecanum_cont/cmd_vel_unstamped"  # Korrekter Topic-Name des mecanum_drive_controller
 
     twist_mux = Node(
         package="twist_mux",
@@ -149,7 +150,8 @@ def generate_launch_description():
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_broad"],
+        # ALT: arguments=["joint_broad"],
+        arguments=["joint_state_broadcaster"],
     )
 
     imu_broadcaster_spawner = Node(

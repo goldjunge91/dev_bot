@@ -35,9 +35,13 @@ hardware_interface::CallbackReturn NerfSystem::on_init(
     for (const hardware_interface::ComponentInfo &joint : info_.joints) {
         RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Joint found: %s", joint.name.c_str());
 
-        if (joint.name != "tilt_joint" &&
-            joint.name != "trigger_joint" &&  // Fallback falls URDF noch nicht aktualisiert
-            joint.name != "shooter_joint" && joint.name != "system_arming_joint") {
+        // Erlaubte Joints laut URDF (gubot_one/ros2_control_hardware.xacro):
+        // trigger_joint (Tilt), dart_pusher_joint (Shooter), system_arming_joint (Arming)
+        // ALT: tilt_joint und shooter_joint waren Legacy-Aliase vor URDF-Umbenennung
+        if (joint.name != "trigger_joint" &&
+            // joint.name != "tilt_joint" &&    // ALT: Legacy-Alias, URDF nutzt trigger_joint
+            // joint.name != "shooter_joint" && // ALT: Legacy-Alias, URDF nutzt dart_pusher_joint
+            joint.name != "dart_pusher_joint" && joint.name != "system_arming_joint") {
             RCLCPP_FATAL(
                 rclcpp::get_logger("NerfSystem"), "Unsupported joint '%s'", joint.name.c_str());
             return hardware_interface::CallbackReturn::ERROR;
@@ -243,14 +247,21 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
 double *NerfSystem::get_state_ptr(const std::string &joint_name,
                                   const std::string &interface_name) {
     if (interface_name == hardware_interface::HW_IF_POSITION) {
-        if (joint_name == "trigger_joint" || joint_name == "tilt_joint") {
+        // trigger_joint ist der aktuelle URDF-Name (gubot_one/ros2_control_hardware.xacro)
+        // ALT: tilt_joint war der Legacy-Name vor der URDF-Umbenennung
+        if (joint_name == "trigger_joint" /* || joint_name == "tilt_joint" */) {
             return &hw_states_.tilt_pos;
-        }
-        if (joint_name == "shooter_joint") {
-            return &hw_states_.shooter_pos;
         }
         if (joint_name == "system_arming_joint") {
             return &hw_states_.arming_pos;
+        }
+    }
+    // dart_pusher_joint hat velocity command_interface in der URDF
+    if (interface_name == hardware_interface::HW_IF_VELOCITY) {
+        // dart_pusher_joint ist der aktuelle URDF-Name (velocity interface)
+        // ALT: shooter_joint war der Legacy-Name
+        if (joint_name == "dart_pusher_joint" /* || joint_name == "shooter_joint" */) {
+            return &hw_states_.shooter_pos;
         }
     }
 
@@ -259,12 +270,17 @@ double *NerfSystem::get_state_ptr(const std::string &joint_name,
 
 double *NerfSystem::get_command_ptr(const std::string &joint_name,
                                     const std::string &interface_name) {
-    if ((joint_name == "trigger_joint" || joint_name == "tilt_joint") &&
+    // trigger_joint ist der aktuelle URDF-Name (gubot_one/ros2_control_hardware.xacro)
+    // ALT: tilt_joint war der Legacy-Name vor der URDF-Umbenennung
+    if ((joint_name == "trigger_joint" /* || joint_name == "tilt_joint" */) &&
         interface_name == hardware_interface::HW_IF_POSITION) {
         return &hw_commands_.tilt_pos;
     }
 
-    if (joint_name == "shooter_joint" && interface_name == hardware_interface::HW_IF_POSITION) {
+    // dart_pusher_joint hat velocity command_interface laut URDF (ros2_control_hardware.xacro)
+    // ALT: shooter_joint war der Legacy-Name
+    if ((joint_name == "dart_pusher_joint" /* || joint_name == "shooter_joint" */) &&
+        interface_name == hardware_interface::HW_IF_VELOCITY) {
         return &hw_commands_.shooter_pos;
     }
 

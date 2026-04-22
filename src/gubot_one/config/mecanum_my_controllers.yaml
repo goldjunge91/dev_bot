@@ -6,7 +6,8 @@ controller_manager:
     mecanum_cont:
       type: mecanum_drive_controller/MecanumDriveController
 
-    joint_broad:
+    # ALT: joint_broad:
+    joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
     shooter_controller:
@@ -16,7 +17,8 @@ controller_manager:
       type: position_controllers/JointGroupPositionController
 
     arming_controller:
-      type: position_controllers/JointGroupPositionController
+      # ALT: type: position_controllers/JointGroupPositionController
+      type: forward_command_controller/ForwardCommandController
 
     imu_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
@@ -38,6 +40,7 @@ mecanum_cont:
     # rear_left_wheel_command_joint_name:   rear_left_wheel_joint
     # rear_right_wheel_command_joint_name:  rear_right_wheel_joint
 
+    cmd_vel_timeout: 0.5
     use_stamped_vel: false
 
     # Kinematics — providing both nested and flat variants
@@ -49,9 +52,19 @@ mecanum_cont:
       wheels_radius: 0.033
       sum_of_robot_center_projection_on_X_Y_axis: 0.2615
 
-    # ALT: Kinematik-Parameter auf Controller-Toplevel (auskommentiert)
-    # wheels_radius: 0.033
-    # sum_of_robot_center_projection_on_X_Y_axis: 0.2615
+    # ALT: Kinematik-Parameter auf Controller-Toplevel
+    # In vielen ROS 2 Humble Versionen sind dies die korrekten, benötigten Parameter!
+    wheels_radius: 0.033
+    sum_of_robot_center_projection_on_X_Y_axis: 0.2615
+
+    # Aktuelle Humble / Rolling / Jazzy Versionen verwenden diese Parameter:
+    # Werte stammen aus gubot_one_geometry.xacro:
+    #   wheel_radius    = wheel_radius   = 0.033
+    #   wheel_sep_x     = 2 * wheel_offset_x = 2 * 0.113 = 0.226
+    #   wheel_sep_y     = 2 * wheel_offset_y = 2 * 0.1485 = 0.297
+    wheel_radius: 0.033
+    wheel_separation_x: 0.226
+    wheel_separation_y: 0.297
 
     base_frame_id: base_link
     odom_frame_id: odom
@@ -75,7 +88,8 @@ mecanum_cont:
     angular.z.min_velocity: -1.0
     angular.z.max_acceleration: 1.0
 
-joint_broad:
+# ALT: joint_broad:
+joint_state_broadcaster:
   ros__parameters: {}
 
 shooter_controller:
@@ -97,6 +111,7 @@ arming_controller:
   ros__parameters:
     joints:
       - system_arming_joint
+    interface_name: position
 
 imu_broadcaster:
   ros__parameters:

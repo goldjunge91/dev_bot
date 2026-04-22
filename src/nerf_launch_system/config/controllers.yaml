@@ -38,4 +38,4 @@ arming_controller:
   ros__parameters:
     joints:
       - system_arming_joint
-    interface_name: position
+    interface_name: position  # ForwardCommandController: position interface (passend zu URDF command_interface="position")

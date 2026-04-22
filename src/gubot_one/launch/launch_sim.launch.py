@@ -31,6 +31,9 @@ def generate_launch_description():
             "use_ros2_control": "true",
             "integrated_mode": "true",
             "drive_type": LaunchConfiguration("drive_type"),
+            # ALT: use_nerf_hardware wurde nicht übergeben → default 'true' aus rsp.launch.py
+            # Das führte dazu dass Nerf-Joints immer im GazeboSimSystem registriert wurden
+            "use_nerf_hardware": "false",
         }.items(),
     )
 
@@ -50,7 +53,8 @@ def generate_launch_description():
         package="twist_mux",
         executable="twist_mux",
         parameters=[twist_mux_params, {"use_sim_time": True}],
-        remappings=[("/cmd_vel_out", "/mecanum_cont/reference_unstamped")],
+        # ALT: remappings=[("/cmd_vel_out", "/mecanum_cont/reference_unstamped")],
+        remappings=[("/cmd_vel_out", "/mecanum_cont/cmd_vel_unstamped")],
     )
 
     # 4. World
@@ -95,7 +99,8 @@ def generate_launch_description():
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_broad"],
+        # ALT: arguments=["joint_broad"],
+        arguments=["joint_state_broadcaster"],
         condition=IfCondition(enable),
     )
     imu_broadcaster_spawner = Node(
