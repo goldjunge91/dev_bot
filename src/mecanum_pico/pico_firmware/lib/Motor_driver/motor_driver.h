@@ -8,21 +8,21 @@
 extern "C" {
 #endif
 
-    /** Initialise all 4 motor channels (PWM + direction GPIO + optional STBY). */
-    void motor_init_all(void);
+/** Initialise all 4 motor channels (PWM + direction GPIO + optional STBY). */
+void motor_init_all(void);
 
-    /**
+/**
      * @brief Set speed for one motor.
      * @param idx   0=FL  1=FR  2=RL  3=RR
      * @param speed -255..+255  (0 = coast stop)
      */
-    void motor_set_speed(int idx, int speed);
+void motor_set_speed(int idx, int speed);
 
-    /** Convenience: set all 4 motors in one call. */
-    void motor_set_all(int fl, int fr, int rl, int rr);
+/** Convenience: set all 4 motors in one call. */
+void motor_set_all(int fl, int fr, int rl, int rr);
 
-    /** Stop all motors immediately (coast). */
-    void motor_stop_all(void);
+/** Stop all motors immediately (coast). */
+void motor_stop_all(void);
 
 #ifdef __cplusplus
 }

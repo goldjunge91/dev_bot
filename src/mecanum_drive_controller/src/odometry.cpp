@@ -26,7 +26,7 @@
 namespace mecanum_drive_controller
 {
 Odometry::Odometry(size_t velocity_rolling_window_size)
-  : timestamp_(0.0)
+: timestamp_(0.0)
   , x_(0.0)
   , y_(0.0)
   , heading_(0.0)
@@ -47,20 +47,20 @@ Odometry::Odometry(size_t velocity_rolling_window_size)
 {
 }
 
-void Odometry::init(const rclcpp::Time& time)
+void Odometry::init(const rclcpp::Time & time)
 {
   // Reset accumulators and timestamp:
   resetAccumulators();
   timestamp_ = time;
 }
 
-bool Odometry::update(double front_left_pos, double front_right_pos, double rear_left_pos, double rear_right_pos,
-                      const rclcpp::Time& time)
+bool Odometry::update(
+  double front_left_pos, double front_right_pos, double rear_left_pos, double rear_right_pos,
+  const rclcpp::Time & time)
 {
   // We cannot estimate the speed with very small time intervals:
   const double dt = time.seconds() - timestamp_.seconds();
-  if (dt < 0.0001)
-  {
+  if (dt < 0.0001) {
     return false;  // Interval too small to integrate with
   }
 
@@ -82,21 +82,23 @@ bool Odometry::update(double front_left_pos, double front_right_pos, double rear
   rear_left_wheel_old_pos_ = rear_left_wheel_cur_pos;
   rear_right_wheel_old_pos_ = rear_right_wheel_cur_pos;
 
-  updateFromVelocity(front_left_wheel_est_vel, front_right_wheel_est_vel, rear_left_wheel_est_vel,
-                     rear_right_wheel_est_vel, time);
+  updateFromVelocity(
+    front_left_wheel_est_vel, front_right_wheel_est_vel, rear_left_wheel_est_vel,
+    rear_right_wheel_est_vel, time);
 
   return true;
 }
 
-bool Odometry::updateFromVelocity(double front_left_vel, double front_right_vel, double rear_left_vel,
-                                  double rear_right_vel, const rclcpp::Time& time)
+bool Odometry::updateFromVelocity(
+  double front_left_vel, double front_right_vel, double rear_left_vel,
+  double rear_right_vel, const rclcpp::Time & time)
 {
   const double dt = time.seconds() - timestamp_.seconds();
 
   const double linear_x = (front_left_vel + front_right_vel + rear_left_vel + rear_right_vel) / 4.;
   const double linear_y = (-front_left_vel + front_right_vel + rear_left_vel - rear_right_vel) / 4.;
   const double angular = (-front_left_vel + front_right_vel - rear_left_vel + rear_right_vel) /
-                         (4. * (wheel_separation_x_ + wheel_separation_y_) / 2.);
+    (4. * (wheel_separation_x_ + wheel_separation_y_) / 2.);
 
   // Integrate odometry:
   integrateExact(linear_x, linear_y, angular);
@@ -115,7 +117,9 @@ bool Odometry::updateFromVelocity(double front_left_vel, double front_right_vel,
   return true;
 }
 
-void Odometry::updateOpenLoop(double linear_x, double linear_y, double angular, const rclcpp::Time& time)
+void Odometry::updateOpenLoop(
+  double linear_x, double linear_y, double angular,
+  const rclcpp::Time & time)
 {
   /// Save last linear and angular velocity:
   linear_x_ = linear_x;
@@ -135,7 +139,9 @@ void Odometry::resetOdometry()
   heading_ = 0.0;
 }
 
-void Odometry::setWheelParams(double wheel_separation_x, double wheel_separation_y, double wheel_radius)
+void Odometry::setWheelParams(
+  double wheel_separation_x, double wheel_separation_y,
+  double wheel_radius)
 {
   wheel_separation_x_ = wheel_separation_x;
   wheel_separation_y_ = wheel_separation_y;
@@ -161,12 +167,9 @@ void Odometry::integrateRungeKutta2(double linear_x, double linear_y, double ang
 
 void Odometry::integrateExact(double linear_x, double linear_y, double angular)
 {
-  if (fabs(angular) < 1e-6)
-  {
+  if (fabs(angular) < 1e-6) {
     integrateRungeKutta2(linear_x, linear_y, angular);
-  }
-  else
-  {
+  } else {
     /// Exact integration (should solve problems when angular is zero):
     const double heading_old = heading_;
     const double r_x = linear_x / angular;

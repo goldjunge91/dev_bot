@@ -14,7 +14,7 @@ class MockPicoComms : public PicoComms
 public:
   std::string last_sent;
 
-  std::string send_msg(const std::string& msg_to_send, bool /*print_output*/ = false) override
+  std::string send_msg(const std::string & msg_to_send, bool /*print_output*/ = false) override
   {
     last_sent = msg_to_send;
     return "";  // No real response in unit tests

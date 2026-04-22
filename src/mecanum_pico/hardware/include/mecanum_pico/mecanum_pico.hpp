@@ -36,18 +36,19 @@ public:
   // -------------------------------------------------------------------------
   // Hardware parameters loaded from URDF / ros2_control.xacro
   // -------------------------------------------------------------------------
-  struct Config {
+  struct Config
+  {
     /// Joint names — must match the URDF joint declarations exactly.
-    std::string front_left_wheel_name  = "front_left_wheel_joint";
+    std::string front_left_wheel_name = "front_left_wheel_joint";
     std::string front_right_wheel_name = "front_right_wheel_joint";
-    std::string rear_left_wheel_name   = "rear_left_wheel_joint";
-    std::string rear_right_wheel_name  = "rear_right_wheel_joint";
+    std::string rear_left_wheel_name = "rear_left_wheel_joint";
+    std::string rear_right_wheel_name = "rear_right_wheel_joint";
 
-    float       loop_rate          = 30.0f;  ///< Controller update rate [Hz]
-    std::string device             = "/dev/ttyACM0";  ///< Serial device path
-    int         baud_rate          = 115200;
-    int         timeout_ms         = 1000;
-    int         enc_counts_per_rev = 1440;  ///< Encoder resolution [ticks/rev] — MEASURE YOUR ROBOT
+    float loop_rate = 30.0f;                 ///< Controller update rate [Hz]
+    std::string device = "/dev/ttyACM0";              ///< Serial device path
+    int baud_rate = 115200;
+    int timeout_ms = 1000;
+    int enc_counts_per_rev = 1440;          ///< Encoder resolution [ticks/rev] — MEASURE YOUR ROBOT
   };
 
   RCLCPP_SHARED_PTR_DEFINITIONS(MecanumPicoHardware)
@@ -92,7 +93,7 @@ public:
 
 private:
   PicoComms comms_;  ///< USB-CDC serial communication to the Pico
-  Config    cfg_;    ///< Parameters loaded from URDF hardware parameters
+  Config cfg_;       ///< Parameters loaded from URDF hardware parameters
 
   // Four independent mecanum wheels.
   Wheel wheel_fl_;  ///< Front-left  wheel — positive cmd = forward-left contribution

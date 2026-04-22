@@ -13,7 +13,8 @@
  * @brief Describes one motor channel: PWM output, H-bridge direction pins,
  *        and quadrature encoder inputs.
  */
-typedef struct {
+typedef struct
+{
   uint pwm_pin;       ///< GPIO pin connected to motor driver PWM input
   uint dir_pin_a;     ///< GPIO pin connected to H-bridge IN1 (direction A)
   uint dir_pin_b;     ///< GPIO pin connected to H-bridge IN2 (direction B)
@@ -25,8 +26,8 @@ typedef struct {
   uint enc_pin_b;  ///< Encoder channel B (direction sense, polled in IRQ)
 
   int32_t target_ticks_per_loop;  ///< Velocity setpoint sent by the host [ticks/loop]
-  float   integral;               ///< PID integral accumulator
-  float   prev_error;             ///< PID derivative term memory
+  float integral;                 ///< PID integral accumulator
+  float prev_error;               ///< PID derivative term memory
 } Motor;
 
 #endif  // MOTOR_H

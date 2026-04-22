@@ -157,7 +157,7 @@ public:
   {
     char prefix = 0;
     int parsed = std::sscanf(line.c_str(), "%c %d %d %d %d", &prefix, &fl, &fr, &rl, &rr);
-    return (parsed == 5 && prefix == 'e');
+    return parsed == 5 && prefix == 'e';
   }
 
   // -------------------------------------------------------------------------

@@ -14,13 +14,14 @@
 // ---------------------------------------------------------------------------
 // PID state for one motor (matches original SetPointInfo)
 // ---------------------------------------------------------------------------
-typedef struct {
-    double target;      ///< Target ticks per PID frame
-    int32_t encoder;    ///< Current encoder reading
-    int32_t prev_enc;   ///< Encoder reading last frame
-    int    prev_input;  ///< Last input (enc delta) — derivative-kick fix
-    int    iterm;       ///< Integrated term — tuning-change fix
-    long   output;      ///< Last PWM output
+typedef struct
+{
+  double target;        ///< Target ticks per PID frame
+  int32_t encoder;      ///< Current encoder reading
+  int32_t prev_enc;     ///< Encoder reading last frame
+  int prev_input;       ///< Last input (enc delta) — derivative-kick fix
+  int iterm;            ///< Integrated term — tuning-change fix
+  long output;          ///< Last PWM output
 } SetPointInfo;
 
 // Global PID state for 4 motors

@@ -25,28 +25,28 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_init(
   const hardware_interface::HardwareInfo & info)
 {
   if (hardware_interface::SystemInterface::on_init(info) !=
-      hardware_interface::CallbackReturn::SUCCESS)
+    hardware_interface::CallbackReturn::SUCCESS)
   {
     return hardware_interface::CallbackReturn::ERROR;
   }
 
   // --- Load hardware parameters from URDF --------------------------------
-  cfg_.front_left_wheel_name  = info_.hardware_parameters.at("front_left_wheel_name");
+  cfg_.front_left_wheel_name = info_.hardware_parameters.at("front_left_wheel_name");
   cfg_.front_right_wheel_name = info_.hardware_parameters.at("front_right_wheel_name");
-  cfg_.rear_left_wheel_name   = info_.hardware_parameters.at("rear_left_wheel_name");
-  cfg_.rear_right_wheel_name  = info_.hardware_parameters.at("rear_right_wheel_name");
+  cfg_.rear_left_wheel_name = info_.hardware_parameters.at("rear_left_wheel_name");
+  cfg_.rear_right_wheel_name = info_.hardware_parameters.at("rear_right_wheel_name");
 
-  cfg_.loop_rate          = std::stof(info_.hardware_parameters.at("loop_rate"));
-  cfg_.device             = info_.hardware_parameters.at("device");
-  cfg_.baud_rate          = std::stoi(info_.hardware_parameters.at("baud_rate"));
-  cfg_.timeout_ms         = std::stoi(info_.hardware_parameters.at("timeout_ms"));
+  cfg_.loop_rate = std::stof(info_.hardware_parameters.at("loop_rate"));
+  cfg_.device = info_.hardware_parameters.at("device");
+  cfg_.baud_rate = std::stoi(info_.hardware_parameters.at("baud_rate"));
+  cfg_.timeout_ms = std::stoi(info_.hardware_parameters.at("timeout_ms"));
   cfg_.enc_counts_per_rev = std::stoi(info_.hardware_parameters.at("enc_counts_per_rev"));
 
   // --- Configure wheel data structures -----------------------------------
-  wheel_fl_.setup(cfg_.front_left_wheel_name,  cfg_.enc_counts_per_rev);
+  wheel_fl_.setup(cfg_.front_left_wheel_name, cfg_.enc_counts_per_rev);
   wheel_fr_.setup(cfg_.front_right_wheel_name, cfg_.enc_counts_per_rev);
-  wheel_rl_.setup(cfg_.rear_left_wheel_name,   cfg_.enc_counts_per_rev);
-  wheel_rr_.setup(cfg_.rear_right_wheel_name,  cfg_.enc_counts_per_rev);
+  wheel_rl_.setup(cfg_.rear_left_wheel_name, cfg_.enc_counts_per_rev);
+  wheel_rr_.setup(cfg_.rear_right_wheel_name, cfg_.enc_counts_per_rev);
 
   // --- Validate joint declarations in URDF --------------------------------
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
@@ -171,8 +171,9 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_activate(
 {
   RCLCPP_INFO(rclcpp::get_logger("MecanumPicoHardware"), "Activating...");
   if (!comms_.connected()) {
-    RCLCPP_ERROR(rclcpp::get_logger("MecanumPicoHardware"),
-                 "Cannot activate — serial port not connected.");
+    RCLCPP_ERROR(
+      rclcpp::get_logger("MecanumPicoHardware"),
+      "Cannot activate — serial port not connected.");
     return hardware_interface::CallbackReturn::ERROR;
   }
   comms_.send_empty_msg();  // Wake up the Pico
@@ -217,11 +218,11 @@ hardware_interface::return_type MecanumPicoHardware::read(
 
   // Lambda: update position and velocity for one wheel
   auto update_wheel = [&](Wheel & w, int new_enc) {
-    const double prev_pos = w.pos;
-    w.enc = new_enc;
-    w.pos = w.calc_enc_angle();
-    w.vel = (dt > 0.0) ? ((w.pos - prev_pos) / dt) : 0.0;
-  };
+      const double prev_pos = w.pos;
+      w.enc = new_enc;
+      w.pos = w.calc_enc_angle();
+      w.vel = (dt > 0.0) ? ((w.pos - prev_pos) / dt) : 0.0;
+    };
 
   update_wheel(wheel_fl_, fl_enc);
   update_wheel(wheel_fr_, fr_enc);
@@ -245,10 +246,10 @@ hardware_interface::return_type MecanumPicoHardware::write(
   // ticks_per_s = rad/s / rads_per_count
   // ticks_per_loop = ticks_per_s / loop_rate
   auto to_ticks_per_loop = [&](const Wheel & w) -> int {
-    if (w.rads_per_count <= 0.0) { return 0; }
-    const double ticks_per_s = w.cmd / w.rads_per_count;
-    return static_cast<int>(ticks_per_s / cfg_.loop_rate);
-  };
+      if (w.rads_per_count <= 0.0) {return 0;}
+      const double ticks_per_s = w.cmd / w.rads_per_count;
+      return static_cast<int>(ticks_per_s / cfg_.loop_rate);
+    };
 
   comms_.set_motor_values(
     to_ticks_per_loop(wheel_fl_),
