@@ -20,6 +20,9 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     package_name = "gubot_one"
+    
+    use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
+    drive_type = LaunchConfiguration("drive_type")
 
     # 1. Robot State Publisher
     rsp = IncludeLaunchDescription(
@@ -30,10 +33,8 @@ def generate_launch_description():
             "use_sim_time": "true",
             "use_ros2_control": "true",
             "integrated_mode": "true",
-            "drive_type": LaunchConfiguration("drive_type"),
-            # ALT: use_nerf_hardware wurde nicht übergeben → default 'true' aus rsp.launch.py
-            # Das führte dazu dass Nerf-Joints immer im GazeboSimSystem registriert wurden
-            "use_nerf_hardware": "false",
+            "drive_type": drive_type,
+            "use_nerf_hardware": use_nerf_hardware,
         }.items(),
     )
 
@@ -109,27 +110,26 @@ def generate_launch_description():
         arguments=["imu_broadcaster"],
         condition=IfCondition(enable),
     )
+    # Nerf-Controller: Nur wenn use_nerf_hardware=true
     shooter_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["shooter_controller"],
-        output="screen",
-        condition=IfCondition(enable),
+        condition=IfCondition(use_nerf_hardware),
     )
     tilt_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["tilt_controller"],
-        output="screen",
-        condition=IfCondition(enable),
+        condition=IfCondition(use_nerf_hardware),
     )
     arming_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["arming_controller"],
-        output="screen",
-        condition=IfCondition(enable),
+        condition=IfCondition(use_nerf_hardware),
     )
+
 
     delayed_spawners = TimerAction(
         period=5.0,
@@ -200,6 +200,8 @@ def generate_launch_description():
                               description="Spawn ros2_control controllers"),
         DeclareLaunchArgument("drive_type", default_value="mecanum",
                               description="Drive type: diffdrive or mecanum"),
+        DeclareLaunchArgument("use_nerf_hardware", default_value="false",
+                              description="Enable nerf hardware if true"),
         # correct order is importend
         rsp,
         joystick,

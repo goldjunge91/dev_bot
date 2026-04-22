@@ -25,10 +25,15 @@
         <xacro:include filename="control_gazebo_diff_drive.xacro" />
     </xacro:unless>
 
+    <xacro:arg name="use_nerf_hardware" default="true"/>
+
     <!-- <xacro:include filename="sensor_lidar.xacro" /> -->
     <xacro:include filename="sensor_camera.xacro" />
     <!-- <xacro:include filename="sensor_depth_camera.xacro" /> -->
     <xacro:include filename="visual_face.xacro" />
-    <xacro:include filename="nerf_launch_system.xacro" />
+    
+    <xacro:if value="$(arg use_nerf_hardware)">
+        <xacro:include filename="nerf_launch_system.xacro" />
+    </xacro:if>
 
 </robot>
