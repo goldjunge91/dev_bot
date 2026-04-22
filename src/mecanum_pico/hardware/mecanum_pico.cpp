@@ -3,20 +3,16 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // MecanumPicoHardware — full ros2_control SystemInterface implementation.
-// Refactored from diffdrive_arduino::DiffDriveArduinoHardware:
-//   - 2 wheels (left/right) → 4 wheels (fl, fr, rl, rr)
-//   - arduino_comms.hpp     → pico_comms.hpp
-//   - PID params removed    → PID runs on-Pico; host sends ticks-per-loop targets
+// Handles 4 wheels (front_left, front_right, rear_left, rear_right)
+// and communicates with the Raspberry Pi Pico via USB-CDC.
+// Host sends velocity targets; PID loops run on-Pico.
 
 #include "mecanum_pico/mecanum_pico.hpp"
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include "rclcpp/logging.hpp"
 
-#include <chrono>
 #include <cmath>
-#include <limits>
-#include <memory>
 #include <vector>
 
 namespace mecanum_pico

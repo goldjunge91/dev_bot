@@ -5,8 +5,8 @@
   <version>0.1.0</version>
   <description>
     ROS 2 hardware interface for a mecanum-wheel robot driven by a Raspberry Pi Pico
-    via USB-CDC serial. Extends diffdrive_arduino from 2 wheels to 4 independent
-    mecanum wheels (front_left, front_right, rear_left, rear_right).
+    via USB-CDC serial. Provides control for 4 independent mecanum wheels
+    (front_left, front_right, rear_left, rear_right).
   </description>
 
   <maintainer email="your@email.com">Your Name</maintainer>

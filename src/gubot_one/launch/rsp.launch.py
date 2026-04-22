@@ -50,7 +50,6 @@ def generate_launch_description():
     integrated_mode = LaunchConfiguration("integrated_mode")
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
     use_gazebo_classic = LaunchConfiguration("use_gazebo_classic")
-    drive_type = LaunchConfiguration("drive_type")
 
     # URDF Datei verarbeiten
     # Xacro wird zu URDF konvertiert mit den angegebenen Parametern
@@ -72,8 +71,6 @@ def generate_launch_description():
             use_nerf_hardware,
             " use_gazebo_classic:=",
             use_gazebo_classic,
-            " drive_type:=",
-            drive_type,
         ]
     )
 
@@ -119,11 +116,6 @@ def generate_launch_description():
                 "use_gazebo_classic",
                 default_value="false",
                 description="Use Gazebo Classic if true",
-            ),
-            DeclareLaunchArgument(
-                "drive_type",
-                default_value="mecanum",
-                description="Drive type: diffdrive or mecanum",
             ),
             # Nodes
             node_robot_state_publisher,

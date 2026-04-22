@@ -196,6 +196,9 @@
     </link>
     <gazebo reference="left_wheel">
         <material>Gazebo/Blue</material>
+        <mu1>1.0</mu1>
+        <mu2>0.0</mu2>
+        <fdir1>1 -1 0</fdir1>
     </gazebo>
     <!-- RIGHT WHEEL LINK -->
     <joint name="front_right_wheel_joint" type="continuous">
@@ -224,39 +227,11 @@
     </link>
     <gazebo reference="right_wheel">
         <material>Gazebo/Blue</material>
+        <mu1>1.0</mu1>
+        <mu2>0.0</mu2>
+        <fdir1>1 1 0</fdir1>
     </gazebo>
-    <!-- CASTER WHEEL LINK (Diffdrive only) -->
-    <xacro:if value="${'$(arg drive_type)' == 'diffdrive'}">
-        <joint name="caster_wheel_joint" type="fixed">
-            <parent link="chassis"/>
-            <child link="caster_wheel"/>
-            <origin xyz="${caster_wheel_offset_x} 0 ${caster_wheel_offset_z}"/>
-        </joint>
-        <link name="caster_wheel">
-            <visual>
-                <geometry>
-                    <sphere radius="${caster_wheel_radius}"/>
-                </geometry>
-                <material name="white"/>
-            </visual>
-            <collision>
-                <geometry>
-                    <sphere radius="${caster_wheel_radius}"/>
-                </geometry>
-            </collision>
-            <xacro:inertial_sphere mass="${caster_wheel_mass}" radius="${caster_wheel_radius}">
-                <origin xyz="0 0 0" rpy="0 0 0"/>
-            </xacro:inertial_sphere>
-        </link>
-        <gazebo reference="caster_wheel">
-            <material>Gazebo/White</material>
-            <mu1 value="0.001"/>
-            <mu2 value="0.001"/>
-        </gazebo>
-    </xacro:if>
-
-    <!-- REAR WHEELS (Mecanum only) -->
-    <xacro:if value="${'$(arg drive_type)' == 'mecanum'}">
+    <!-- REAR WHEELS -->
         <!-- REAR LEFT WHEEL LINK -->
         <joint name="rear_left_wheel_joint" type="continuous">
             <parent link="base_link"/>
@@ -283,6 +258,9 @@
         </link>
         <gazebo reference="rear_left_wheel">
             <material>Gazebo/Blue</material>
+            <mu1>1.0</mu1>
+            <mu2>0.0</mu2>
+            <fdir1>1 1 0</fdir1>
         </gazebo>
 
         <!-- REAR RIGHT WHEEL LINK -->
@@ -311,6 +289,8 @@
         </link>
         <gazebo reference="rear_right_wheel">
             <material>Gazebo/Blue</material>
+            <mu1>1.0</mu1>
+            <mu2>0.0</mu2>
+            <fdir1>1 -1 0</fdir1>
         </gazebo>
-    </xacro:if>
 </robot>

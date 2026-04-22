@@ -13,7 +13,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": "$gcc"
+            "problemMatcher": "$colcon-gcc"
         },
         {
             "label": "debug",
@@ -26,7 +26,7 @@
                 }
             },
             "group": "build",
-            "problemMatcher": "$gcc"
+            "problemMatcher": "$colcon-gcc"
         },
         // Test tasks
         {
@@ -45,7 +45,7 @@
             "detail": "Run the clean target",
             "type": "shell",
             "command": "colcon build --cmake-target clean",
-            "problemMatcher": "$gcc"
+            "problemMatcher": "$colcon-gcc"
         },
         {
             "label": "purge",
@@ -102,7 +102,7 @@
             "type": "ament",
             "task": "cpplint",
             "path": "src/",
-            "problemMatcher": "$ament_cpplint",
+            "problemMatcher": "$colcon-gcc",
             "presentation": {
                 "panel": "dedicated",
                 "reveal": "silent",
@@ -115,7 +115,7 @@
             "type": "ament",
             "task": "cppcheck",
             "path": "src/",
-            "problemMatcher": "$ament_cppcheck",
+            "problemMatcher": "$colcon-gcc",
             "presentation": {
                 "panel": "dedicated",
                 "reveal": "silent",
@@ -133,7 +133,7 @@
             "type": "ament",
             "task": "lint_cmake",
             "path": "src/",
-            "problemMatcher": "$ament_lint_cmake",
+            "problemMatcher": [],
             "presentation": {
                 "panel": "dedicated",
                 "reveal": "silent",
@@ -146,7 +146,7 @@
             "type": "ament",
             "task": "flake8",
             "path": "src/",
-            "problemMatcher": "$ament_flake8",
+            "problemMatcher": [],
             "presentation": {
                 "panel": "dedicated",
                 "reveal": "silent",
@@ -159,7 +159,7 @@
             "type": "ament",
             "task": "pep257",
             "path": "src/",
-            "problemMatcher": "$ament_pep257",
+            "problemMatcher": [],
             "presentation": {
                 "panel": "dedicated",
                 "reveal": "silent",
@@ -172,7 +172,7 @@
             "type": "ament",
             "task": "xmllint",
             "path": "src/",
-            "problemMatcher": "$ament_xmllint",
+            "problemMatcher": [],
             "presentation": {
                 "panel": "dedicated",
                 "reveal": "silent",

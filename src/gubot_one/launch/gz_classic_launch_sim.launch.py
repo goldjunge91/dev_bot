@@ -36,13 +36,7 @@ def generate_launch_description():
         description="Path to the gazebo world file",
     )
 
-    # Declare the 'drive_type' argument
-    drive_type = LaunchConfiguration("drive_type")
-    declare_drive_type_cmd = DeclareLaunchArgument(
-        "drive_type",
-        default_value="mecanum",
-        description="Drive type: 'diffdrive' or 'mecanum'",
-    )
+
 
     # Robot State Publisher
     rsp = IncludeLaunchDescription(
@@ -59,7 +53,6 @@ def generate_launch_description():
             "use_ros2_control": "true",
             "integrated_mode": "true",
             "use_gazebo_classic": "true",
-            "drive_type": drive_type,
         }.items(),
     )
 
@@ -85,7 +78,6 @@ def generate_launch_description():
     # Remapping Logic based on drive_type
     # Note: We use dynamic Python inside the launch function or substitutions
     # Using LaunchConfiguration in remappings requires care
-    # ALT: cmd_vel_out = "/mecanum_cont/reference_unstamped"
     cmd_vel_out = "/mecanum_cont/cmd_vel_unstamped"  # Korrekter Topic-Name des mecanum_drive_controller
 
     twist_mux = Node(
@@ -129,28 +121,15 @@ def generate_launch_description():
 
     # Controller Spawners - Must wait for spawn_entity to complete
     # In Ignition, we just wait for spawn.
-    diff_drive_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["diff_cont"],
-        condition=launch.conditions.IfCondition(
-            PythonExpression(["'", drive_type, "' == 'diffdrive'"])
-        ),
-    )
-
     mecanum_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["mecanum_cont"],
-        condition=launch.conditions.IfCondition(
-            PythonExpression(["'", drive_type, "' == 'mecanum'"])
-        ),
     )
 
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        # ALT: arguments=["joint_broad"],
         arguments=["joint_state_broadcaster"],
     )
 
@@ -160,10 +139,10 @@ def generate_launch_description():
         arguments=["imu_broadcaster"],
     )
 
-    delayed_diff_drive_spawner = RegisterEventHandler(
+    delayed_drive_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_entity,
-            on_exit=[diff_drive_spawner, mecanum_drive_spawner],
+            on_exit=[mecanum_drive_spawner],
         )
     )
 
@@ -254,13 +233,12 @@ def generate_launch_description():
             AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
             AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
             world_arg,
-            declare_drive_type_cmd,
             rsp,
             joystick,
             twist_mux,
             gazebo,
             spawn_entity,
-            delayed_diff_drive_spawner,
+            delayed_drive_spawner,
             delayed_joint_broad_spawner,
             delayed_imu_broadcaster_spawner,
             delayed_nerf_shooter,

@@ -4,10 +4,8 @@
     <xacro:arg name="use_ros2_control" default="true"/>
     <xacro:arg name="sim_mode" default="false"/>
     <xacro:arg name="use_gazebo_classic" default="false"/>
-    <xacro:arg name="drive_type" default="mecanum"/>
 
     <xacro:include filename="gubot_one_geometry.xacro" />
-
     <xacro:if value="$(arg use_ros2_control)">
         <xacro:if value="$(arg sim_mode)">
             <xacro:if value="$(arg use_gazebo_classic)">
@@ -21,9 +19,6 @@
             <xacro:include filename="ros2_control_hardware.xacro" />
         </xacro:unless>
     </xacro:if>
-    <xacro:unless value="$(arg use_ros2_control)">
-        <xacro:include filename="control_gazebo_diff_drive.xacro" />
-    </xacro:unless>
 
     <xacro:arg name="use_nerf_hardware" default="true"/>
 

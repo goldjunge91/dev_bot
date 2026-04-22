@@ -22,7 +22,6 @@ def generate_launch_description():
     package_name = "gubot_one"
     
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
-    drive_type = LaunchConfiguration("drive_type")
 
     # 1. Robot State Publisher
     rsp = IncludeLaunchDescription(
@@ -33,7 +32,6 @@ def generate_launch_description():
             "use_sim_time": "true",
             "use_ros2_control": "true",
             "integrated_mode": "true",
-            "drive_type": drive_type,
             "use_nerf_hardware": use_nerf_hardware,
         }.items(),
     )
@@ -198,8 +196,6 @@ def generate_launch_description():
                               description="World to load"),
         DeclareLaunchArgument("enable_ros2_controllers", default_value="true",
                               description="Spawn ros2_control controllers"),
-        DeclareLaunchArgument("drive_type", default_value="mecanum",
-                              description="Drive type: diffdrive or mecanum"),
         DeclareLaunchArgument("use_nerf_hardware", default_value="false",
                               description="Enable nerf hardware if true"),
         # correct order is importend

@@ -179,10 +179,11 @@ class NerfTeleop(Node):
             self.speed = 0.0
             self.strafe = 0.0
             self.turn = 0.0
-        # else:
-        #     self.speed = 0.0
-        #     self.turn = 0.0
-        #     # Keine Erhöhung von input_count bei leeren/unbekannten Tasten
+        else:
+            self.speed = 0.0
+            self.strafe = 0.0
+            self.turn = 0.0
+            # Keine Erhöhung von input_count bei leeren/unbekannten Tasten
 
         # Launcher-Steuerung
         if key == "1":

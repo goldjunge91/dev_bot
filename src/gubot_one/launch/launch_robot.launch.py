@@ -65,7 +65,6 @@ def generate_launch_description():
     # Launch Configuration
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
     auto_arm = LaunchConfiguration("auto_arm")
-    drive_type = LaunchConfiguration("drive_type")
 
     # 1. Robot State Publisher
     # Publiziert URDF und TF-Transformationen
@@ -82,7 +81,6 @@ def generate_launch_description():
             "use_ros2_control": "true",  # ros2_control aktivieren
             "integrated_mode": "true",  # Integrierter Modus (Nerf + Basis zusammen)
             "use_nerf_hardware": use_nerf_hardware,
-            "drive_type": drive_type,
         }.items(),
     )
 
@@ -111,8 +109,6 @@ def generate_launch_description():
         package="twist_mux",
         executable="twist_mux",
         parameters=[twist_mux_params],
-        # ALT: remappings=[("/cmd_vel_out", "/diff_cont/cmd_vel_unstamped")],
-        # ALT: remappings=[("/cmd_vel_out", "/mecanum_cont/reference_unstamped")],
         remappings=[("/cmd_vel_out", "/mecanum_cont/cmd_vel_unstamped")],
     )
 
@@ -128,17 +124,12 @@ def generate_launch_description():
             " integrated_mode:=true",
             " use_nerf_hardware:=",
             use_nerf_hardware,
-            " drive_type:=",
-            drive_type,
         ]
     )
 
     # Controller Parameter
-    # ALT: controller_params_file = os.path.join(
-    # ALT:     get_package_share_directory(package_name), "config", "my_controllers.yaml"
-    # ALT: )
     controller_params_file = os.path.join(
-        get_package_share_directory(package_name), "config", "mecanum_my_controllers.yaml"
+        get_package_share_directory(package_name), "config", "my_controllers.yaml"
     )
 
     # 4. Controller Manager
@@ -189,16 +180,9 @@ def generate_launch_description():
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        # ALT: arguments=["joint_broad"],
         arguments=["joint_state_broadcaster"],  # Vereinheitlicht: joint_state_broadcaster
     )
 
-    # ALT: delayed_joint_broad_spawner = RegisterEventHandler(
-    # ALT:     event_handler=OnProcessExit(
-    # ALT:         target_action=diff_drive_spawner,
-    # ALT:         on_exit=[joint_broad_spawner],
-    # ALT:     )
-    # ALT: )
     delayed_joint_broad_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=mecanum_drive_spawner,
@@ -297,16 +281,10 @@ def generate_launch_description():
                 default_value="false",
                 description="Auto-arm the Nerf launcher on startup",
             ),
-            DeclareLaunchArgument(
-                "drive_type",
-                default_value="mecanum",
-                description="Type of drive system (diffdrive, mecanum)",
-            ),
             rsp,
             joystick,
             twist_mux,
             delayed_controller_manager,
-            # ALT: delayed_diff_drive_spawner,
             delayed_mecanum_drive_spawner,
             delayed_joint_broad_spawner,
             nerf_group,
