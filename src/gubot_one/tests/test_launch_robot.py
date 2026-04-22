@@ -1,14 +1,13 @@
-"""Test: launch_robot.launch.py — Mecanum Konfiguration.
+"""
+Test: launch_robot.launch.py — Mecanum Konfiguration.
 
 Prueft gemaess Plan 01:
-- Das Launch-Argument 'drive_type' muss existieren mit Default 'mecanum'.
-- Die Controller-Manager Konfiguration muss 'mecanum_my_controllers.yaml'
-  laden (wenn drive_type=mecanum).
-- Der Spawner muss 'mecanum_cont' starten, nicht 'diff_cont'.
-- Das twist_mux Remapping muss auf '/mecanum_cont/reference_unstamped' zeigen.
+- Die Controller-Manager Konfiguration muss 'my_controllers.yaml' laden.
+- Der Spawner muss 'mecanum_cont' starten.
+- Das twist_mux Remapping muss auf '/mecanum_cont/cmd_vel_unstamped' zeigen.
 
 Ansatz: Kombination aus Textanalyse (zuverlaessig) und LaunchDescription
-Introspection (fuer Argument-Defaults).
+Introspection.
 """
 
 import os
@@ -39,27 +38,25 @@ def _load_launch_description():
 
 
 def test_launch_arguments():
-    """Prueft ob drive_type Argument vorhanden ist mit Default mecanum."""
+    """Prueft ob Launch-Argumente vorhanden sind."""
     ld = _load_launch_description()
 
-    found = False
+    found_nerf = False
     for action in ld.entities:
         if (isinstance(action, DeclareLaunchArgument)
-                and action.name == 'drive_type'):
-            found = True
-            assert action.default_value[0].perform(LaunchContext()) == \
-                'mecanum'
+                and action.name == 'use_nerf_hardware'):
+            found_nerf = True
             break
-    assert found, "Launch-Argument 'drive_type' fehlt"
+    assert found_nerf, "Launch-Argument 'use_nerf_hardware' fehlt"
 
 
 def test_controller_configuration():
     """Prueft ob mecanum_cont Spawner und YAML konfiguriert sind."""
     source = _load_launch_source()
 
-    # mecanum_my_controllers.yaml muss referenziert werden
-    assert 'mecanum_my_controllers.yaml' in source, (
-        "mecanum_my_controllers.yaml wird nicht in launch_robot referenziert"
+    # my_controllers.yaml muss referenziert werden
+    assert 'my_controllers.yaml' in source, (
+        "my_controllers.yaml wird nicht in launch_robot referenziert"
     )
 
     # mecanum_cont Spawner muss vorhanden sein (nicht auskommentiert)
@@ -96,8 +93,8 @@ def test_twist_mux_remap():
     ]
     active_source = '\n'.join(active_lines)
 
-    assert '/mecanum_cont/reference_unstamped' in active_source, (
-        "twist_mux remap auf /mecanum_cont/reference_unstamped fehlt "
+    assert '/mecanum_cont/cmd_vel_unstamped' in active_source, (
+        "twist_mux remap auf /mecanum_cont/cmd_vel_unstamped fehlt "
         "in aktiven Zeilen"
     )
 

@@ -49,9 +49,7 @@ mecanum_cont:
       wheels_radius: 0.033
       sum_of_robot_center_projection_on_X_Y_axis: 0.2615
 
-    # In vielen ROS 2 Humble Versionen sind dies die korrekten, benötigten Parameter!
-    wheels_radius: 0.033
-    sum_of_robot_center_projection_on_X_Y_axis: 0.2615
+
 
     # Aktuelle Humble / Rolling / Jazzy Versionen verwenden diese Parameter:
     # Werte stammen aus gubot_one_geometry.xacro:

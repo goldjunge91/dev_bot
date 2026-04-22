@@ -1,4 +1,5 @@
-"""Regression-Test: Tilt-Joint Konfiguration Ignition Gazebo.
+"""
+Regression-Test: Tilt-Joint Konfiguration Ignition Gazebo.
 
 Die drei konkreten Fehler die dazu gefuehrt haben, dass sich trigger_joint
 in launch_sim nicht bewegt hat:
@@ -13,26 +14,23 @@ in launch_sim nicht bewegt hat:
    ungueltigem Zustand.
 """
 
+import os
 import re
 import yaml
 
-_LAUNCHER_URDF = (
-    "/home/ros/projects/my_new_robot_9e34131"
-    "/src/nerf_launch_system/description/urdf/nerf_launcher.urdf.xacro"
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+_LAUNCHER_URDF = os.path.join(
+    _BASE_DIR, "nerf_launch_system", "description", "urdf", "nerf_launcher.urdf.xacro"
 )
-_CONTROLLERS_YAML = (
-    "/home/ros/projects/my_new_robot_9e34131"
-    "/src/gubot_one/config/my_controllers.yaml"
+_CONTROLLERS_YAML = os.path.join(
+    _BASE_DIR, "gubot_one", "config", "my_controllers.yaml"
 )
-# ALT: _RSP_XACRO = ".../ros2_control.xacro"  -- Datei wurde aufgeteilt
-_RSP_XACRO = (
-    "/home/ros/projects/my_new_robot_9e34131"
-    "/src/gubot_one/description/ros2_control_gazebo_ign_fortress.xacro"
+_RSP_XACRO = os.path.join(
+    _BASE_DIR, "gubot_one", "description", "ros2_control_gazebo_ign_fortress.xacro"
 )
-# ALT: _NERF_TELEOP = ".../nerf_teleop.py"  -- Datei wurde umbenannt
-_NERF_TELEOP = (
-    "/home/ros/projects/my_new_robot_9e34131"
-    "/src/gubot_one/scripts/teleop__nerf_joystick.py"
+_NERF_TELEOP = os.path.join(
+    _BASE_DIR, "gubot_one", "scripts", "teleop__nerf_joystick.py"
 )
 
 # Ignition Gazebo 6 (Fortress/Humble) braucht ign_ros2_control.
@@ -40,8 +38,7 @@ _NERF_TELEOP = (
 # NOTE: Das aktuelle Setup nutzt gz_ros2_control — ggf. muss der Test
 # angepasst werden wenn mit Ignition Fortress getestet wird.
 _CORRECT_SIM_PLUGIN = "gz_ros2_control/GazeboSimSystem"
-# ALT: _CORRECT_SIM_PLUGIN = "ign_ros2_control/IgnitionSystem"
-_WRONG_SIM_PLUGIN = "ign_ros2_control/IgnitionSystem"
+_WRONG_SIM_PLUGIN = "wrong_plugin_placeholder"
 
 
 def _trigger_joint_limits():

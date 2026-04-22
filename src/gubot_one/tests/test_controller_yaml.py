@@ -1,4 +1,5 @@
-"""Test: mecanum_my_controllers.yaml — Keine doppelten Parameter.
+"""
+Test: my_controllers.yaml — Keine doppelten Parameter.
 
 Prueft gemaess mecanum_drive_controller Schema (ROS2 Humble):
 - Wheel-Namen: nur front_left_wheel_name (nicht _command_joint_name)
@@ -16,7 +17,7 @@ import yaml
 # Pfad relativ zu diesem Test-Skript (../config/mecanum_my_controllers.yaml)
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 _CONTROLLERS_YAML = os.path.join(
-    _TEST_DIR, "..", "config", "mecanum_my_controllers.yaml"
+    _TEST_DIR, "..", "config", "my_controllers.yaml"
 )
 
 # ROS2 Humble: Pflichtparameter ist front_left_wheel_name
