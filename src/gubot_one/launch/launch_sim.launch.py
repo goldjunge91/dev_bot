@@ -20,14 +20,18 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     package_name = "gubot_one"
-    
+
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
 
     # 1. Robot State Publisher
     rsp = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory(package_name), "launch", "rsp.launch.py"
-        )]),
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    get_package_share_directory(package_name), "launch", "rsp.launch.py"
+                )
+            ]
+        ),
         launch_arguments={
             "use_sim_time": "true",
             "use_ros2_control": "true",
@@ -38,9 +42,15 @@ def generate_launch_description():
 
     # 2. Joystick
     joystick = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory(package_name), "launch", "joystick.launch.py"
-        )]),
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    get_package_share_directory(package_name),
+                    "launch",
+                    "joystick.launch.py",
+                )
+            ]
+        ),
         launch_arguments={"use_sim_time": "true"}.items(),
     )
 
@@ -52,8 +62,10 @@ def generate_launch_description():
         package="twist_mux",
         executable="twist_mux",
         parameters=[twist_mux_params, {"use_sim_time": True}],
-        # ALT: remappings=[("/cmd_vel_out", "/mecanum_cont/reference_unstamped")],
-        remappings=[("/cmd_vel_out", "/mecanum_cont/cmd_vel_unstamped")],
+        # ALT: remappings=["/cmd_vel_out", "/mecanum_cont/cmd_vel_unstamped"]
+        # Remapping im IGN-Plugin (ros2_control_gazebo_ign_fortress.xacro):
+        # mecanum_drive_controller/cmd_vel_unstamped → cmd_vel
+        remappings=[("/cmd_vel_out", "/cmd_vel")],
     )
 
     # 4. World
@@ -64,9 +76,15 @@ def generate_launch_description():
 
     # 5. Gazebo (Ignition)
     gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory("ros_gz_sim"), "launch", "gz_sim.launch.py"
-        )]),
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    get_package_share_directory("ros_gz_sim"),
+                    "launch",
+                    "gz_sim.launch.py",
+                )
+            ]
+        ),
         launch_arguments={
             "gz_args": ["-r -v4 ", world],
             "on_exit_shutdown": "true",
@@ -89,10 +107,11 @@ def generate_launch_description():
     # Fix: TimerAction(5s) gibt ign_ros2_control genuegend Zeit.
     enable = LaunchConfiguration("enable_ros2_controllers")
 
+    # ALT: arguments=["mecanum_cont"] — umbenannt auf mecanum_drive_controller (wie Referenz)
     drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["mecanum_cont"],
+        arguments=["mecanum_drive_controller"],
         condition=IfCondition(enable),
     )
     joint_broad_spawner = Node(
@@ -128,7 +147,6 @@ def generate_launch_description():
         condition=IfCondition(use_nerf_hardware),
     )
 
-
     delayed_spawners = TimerAction(
         period=5.0,
         actions=[
@@ -160,52 +178,79 @@ def generate_launch_description():
         output="screen",
     )
 
+    # 14.5. EKF Node
+    ekf_params = os.path.join(
+        get_package_share_directory(package_name), "localization", "ekf.yaml"
+    )
+    ekf_node = Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="ekf_node",
+        output="screen",
+        parameters=[ekf_params, {"use_sim_time": True}],
+        remappings=[
+            ("odometry/filtered", "odometry/filtered"),
+        ],
+    )
+
     # 15. RViz
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
-        arguments=["-d", os.path.join(
-            get_package_share_directory(package_name), "config", "view_bot.rviz"
-        )],
+        arguments=[
+            "-d",
+            os.path.join(
+                get_package_share_directory(package_name), "config", "view_bot.rviz"
+            ),
+        ],
         output="screen",
     )
 
-    return LaunchDescription([
-        AppendEnvironmentVariable(
-            "IGN_GAZEBO_RESOURCE_PATH",
-            os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
-        ),
-        AppendEnvironmentVariable(
-            "GAZEBO_MODEL_PATH",
-            os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
-        ),
-        AppendEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
-        AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
-        
-        # --- GPU Acceleration für WSL (Erzwingt Nvidia bei Hybrid-Systemen) ---
-        SetEnvironmentVariable("LIBGL_ALWAYS_SOFTWARE", "0"),
-        SetEnvironmentVariable("GALLIUM_DRIVER", "d3d12"),
-        # Da du beides hast, zwingen wir WSL hier, die starke Nvidia-GPU zu nutzen!
-        SetEnvironmentVariable("MESA_D3D12_DEFAULT_ADAPTER_NAME", "NVIDIA"),
-        
-        AppendEnvironmentVariable("QT_QPA_PLATFORM", "xcb"),
-        AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
-        DeclareLaunchArgument("use_sim_time", default_value="true",
-                              description="Use sim time if true"),
-        DeclareLaunchArgument("world", default_value=default_world,
-                              description="World to load"),
-        DeclareLaunchArgument("enable_ros2_controllers", default_value="true",
-                              description="Spawn ros2_control controllers"),
-        DeclareLaunchArgument("use_nerf_hardware", default_value="false",
-                              description="Enable nerf hardware if true"),
-        # correct order is importend
-        rsp,
-        joystick,
-        twist_mux,
-        gazebo,
-        spawn_entity,
-        ros_gz_bridge,
-        ros_gz_image_bridge,
-        rviz_node,
-        delayed_spawners,
-    ])
+    return LaunchDescription(
+        [
+            AppendEnvironmentVariable(
+                "IGN_GAZEBO_RESOURCE_PATH",
+                os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
+            ),
+            AppendEnvironmentVariable(
+                "GAZEBO_MODEL_PATH",
+                os.path.join(os.path.expanduser("~"), ".gazebo", "models"),
+            ),
+            # AppendEnvironmentVariable("MESA_GL_VERSION_OVERRIDE", "4.5"),
+            # AppendEnvironmentVariable("MESA_GLSL_VERSION_OVERRIDE", "450"),
+            # # --- GPU Acceleration für WSL (Erzwingt Nvidia bei Hybrid-Systemen) ---
+            # SetEnvironmentVariable("LIBGL_ALWAYS_SOFTWARE", "0"),
+            # SetEnvironmentVariable("GALLIUM_DRIVER", "d3d12"),
+            # # Da du beides hast, zwingen wir WSL hier, die starke Nvidia-GPU zu nutzen!
+            # SetEnvironmentVariable("MESA_D3D12_DEFAULT_ADAPTER_NAME", "NVIDIA"),
+            # AppendEnvironmentVariable("QT_QPA_PLATFORM", "xcb"),
+            # AppendEnvironmentVariable("GZ_TRANSPORT_RCVHWM", "1000"),
+            DeclareLaunchArgument(
+                "use_sim_time", default_value="true", description="Use sim time if true"
+            ),
+            DeclareLaunchArgument(
+                "world", default_value=default_world, description="World to load"
+            ),
+            DeclareLaunchArgument(
+                "enable_ros2_controllers",
+                default_value="true",
+                description="Spawn ros2_control controllers",
+            ),
+            DeclareLaunchArgument(
+                "use_nerf_hardware",
+                default_value="false",
+                description="Enable nerf hardware if true",
+            ),
+            # correct order is importend
+            rsp,
+            joystick,
+            twist_mux,
+            gazebo,
+            spawn_entity,
+            ros_gz_bridge,
+            ros_gz_image_bridge,
+            ekf_node,
+            rviz_node,
+            delayed_spawners,
+        ]
+    )

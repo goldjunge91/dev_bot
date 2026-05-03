@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" xmlns:ignition="http://ignitionrobotics.org/schema">
     <xacro:include filename="inertial_macros.xacro"/>
     <xacro:property name="chassis_length" value="0.335"/>
     <xacro:property name="chassis_width" value="0.265"/>
     <xacro:property name="chassis_height" value="0.138"/>
-    <xacro:property name="chassis_mass" value="1.0"/>
+    <xacro:property name="chassis_mass" value="3.5"/>
     <xacro:property name="wheel_radius" value="0.033"/>
     <xacro:property name="wheel_thickness" value="0.026"/>
-    <xacro:property name="wheel_mass" value="0.05"/>
+    <xacro:property name="wheel_mass" value="0.4"/>
     <!-- ALT (Asymmetrisch): <xacro:property name="wheel_offset_x" value="0.226"/> -->
     <xacro:property name="wheel_offset_x" value="0.113"/>
     <xacro:property name="wheel_offset_y" value="0.1485"/>
@@ -43,37 +43,43 @@
     </joint>
     <link name="base_footprint">
     </link>
-    <!-- CHASSIS LINK -->
-    <joint name="chassis_joint" type="fixed">
+    <!-- BODY_LINK (wie Referenz rosbot_xl: base_link -> body_link mit Z=wheel_radius Offset) -->
+    <!-- ALT: chassis_joint / chassis (asymm. Offset, Wheels an base_link) -->
+    <!-- <joint name="chassis_joint" type="fixed"> -->
+    <!--     <parent link="base_link"/> -->
+    <!--     <child link="chassis"/> -->
+    <!--     <origin xyz="${-wheel_offset_x} 0 ${-wheel_offset_z}"/> -->
+    <!-- </joint> -->
+    <joint name="base_to_body_joint" type="fixed">
         <parent link="base_link"/>
-        <child link="chassis"/>
-        <origin xyz="${-wheel_offset_x} 0 ${-wheel_offset_z}"/>
+        <child link="body_link"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     </joint>
-    <link name="chassis">
+    <link name="body_link">
         <visual>
-            <origin xyz="${chassis_length/2} 0 ${chassis_height/2}"/>
+            <origin xyz="0.0 0.0 ${chassis_height/2}"/>
             <geometry>
                 <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
             </geometry>
             <material name="orange"/>
         </visual>
         <collision>
-            <origin xyz="${chassis_length/2} 0 ${chassis_height/2}"/>
+            <origin xyz="0.0 0.0 ${chassis_height/2}"/>
             <geometry>
-                <!-- Slightly smaller collision box to avoid wheel overlap -->
                 <box size="${chassis_length - 0.01} ${chassis_width - 0.01} ${chassis_height - 0.01}"/>
             </geometry>
         </collision>
         <xacro:inertial_box mass="${chassis_mass}" x="${chassis_length}" y="${chassis_width}" z="${chassis_height}">
-            <origin xyz="${chassis_length/2} 0 ${chassis_height/2}" rpy="0 0 0"/>
+            <origin xyz="0.0 0.0 ${chassis_height/2}" rpy="0 0 0"/>
         </xacro:inertial_box>
     </link>
-    <gazebo reference="chassis">
+    <gazebo reference="body_link">
         <material>Gazebo/Orange</material>
     </gazebo>
     <!-- IMU LINK -->
     <joint name="imu_joint" type="fixed">
-        <parent link="chassis"/>
+        <!-- ALT: <parent link="chassis"/> -->
+        <parent link="body_link"/>
         <child link="imu_link"/>
         <origin xyz="0 0 0.05" rpy="0 0 0"/>
     </joint>
@@ -98,97 +104,52 @@
     </link>
     <gazebo reference="imu_link">
         <material>Gazebo/Black</material>
+        <!-- IMU Sensor — Ignition Fortress Konfiguration (wie Referenz rosbot_xl) -->
+        <!-- ALT: Branching via use_gazebo_classic Arg + topic=imu_sensor/imu_data -->
         <sensor name="imu_sensor" type="imu">
             <always_on>true</always_on>
-            <update_rate>50</update_rate>
+            <update_rate>25</update_rate>
             <visualize>false</visualize>
+            <topic>imu/data_raw</topic>
+            <ignition_frame_id>imu_link</ignition_frame_id>
+            <enable_metrics>false</enable_metrics>
             <imu>
                 <angular_velocity>
-                    <x>
-                        <noise type="gaussian">
-                            <mean>0.0</mean>
-                            <stddev>0.0002</stddev>
-                            <bias_mean>0.0000075</bias_mean>
-                            <bias_stddev>0.0000008</bias_stddev>
-                        </noise>
-                    </x>
-                    <y>
-                        <noise type="gaussian">
-                            <mean>0.0</mean>
-                            <stddev>0.0002</stddev>
-                            <bias_mean>0.0000075</bias_mean>
-                            <bias_stddev>0.0000008</bias_stddev>
-                        </noise>
-                    </y>
-                    <z>
-                        <noise type="gaussian">
-                            <mean>0.0</mean>
-                            <stddev>0.0002</stddev>
-                            <bias_mean>0.0000075</bias_mean>
-                            <bias_stddev>0.0000008</bias_stddev>
-                        </noise>
-                    </z>
+                    <x><noise type="gaussian"><mean>0.0</mean><stddev>5.24e-3</stddev><bias_mean>2.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></x>
+                    <y><noise type="gaussian"><mean>0.0</mean><stddev>5.24e-3</stddev><bias_mean>2.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></y>
+                    <z><noise type="gaussian"><mean>0.0</mean><stddev>5.24e-3</stddev><bias_mean>2.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></z>
                 </angular_velocity>
                 <linear_acceleration>
-                    <x>
-                        <noise type="gaussian">
-                            <mean>0.0</mean>
-                            <stddev>0.017</stddev>
-                            <bias_mean>0.1</bias_mean>
-                            <bias_stddev>0.001</bias_stddev>
-                        </noise>
-                    </x>
-                    <y>
-                        <noise type="gaussian">
-                            <mean>0.0</mean>
-                            <stddev>0.017</stddev>
-                            <bias_mean>0.1</bias_mean>
-                            <bias_stddev>0.001</bias_stddev>
-                        </noise>
-                    </y>
-                    <z>
-                        <noise type="gaussian">
-                            <mean>0.0</mean>
-                            <stddev>0.017</stddev>
-                            <bias_mean>0.1</bias_mean>
-                            <bias_stddev>0.001</bias_stddev>
-                        </noise>
-                    </z>
+                    <x><noise type="gaussian"><mean>0.0</mean><stddev>1.86e-3</stddev><bias_mean>1.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></x>
+                    <y><noise type="gaussian"><mean>0.0</mean><stddev>1.86e-3</stddev><bias_mean>1.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></y>
+                    <z><noise type="gaussian"><mean>0.0</mean><stddev>1.86e-3</stddev><bias_mean>1.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></z>
                 </linear_acceleration>
             </imu>
-            <xacro:if value="$(arg use_gazebo_classic)">
-                <plugin name="imu_plugin" filename="libgazebo_ros_imu_sensor.so">
-                    <ros>
-                        <remapping>~/out:=imu/data</remapping>
-                    </ros>
-                    <initial_orientation_as_reference>false</initial_orientation_as_reference>
-                </plugin>
-            </xacro:if>
-            <xacro:unless value="$(arg use_gazebo_classic)">
-                <topic>imu_sensor/imu_data</topic>
-            </xacro:unless>
         </sensor>
     </gazebo>
-    <!-- LEFT WHEEL LINK -->
+    <!-- FRONT LEFT WHEEL (wie Referenz: parent=body_link, axis=Y, RPY=0) -->
+    <!-- ALT: parent=base_link, rpy="-pi/2 0 0", axis="0 0 1" -->
     <joint name="front_left_wheel_joint" type="continuous">
-        <parent link="base_link"/>
+        <parent link="body_link"/>
         <child link="left_wheel"/>
-        <!-- ALT (X=0): <origin xyz="0 ${wheel_offset_y} 0" rpy="-${pi/2} 0 0" /> -->
-        <origin xyz="${wheel_offset_x} ${wheel_offset_y} 0" rpy="-${pi/2} 0 0" />
-        <axis xyz="0 0 1"/>
-        <dynamics damping="0.01" friction="0.01"/>
+        <origin xyz="${wheel_offset_x} ${wheel_offset_y} 0.0" rpy="0.0 0.0 0.0"/>
+        <axis xyz="0.0 1.0 0.0"/>
+        <limit effort="1.5" velocity="30.0"/>
+        <dynamics damping="0.001" friction="0.001"/>
     </joint>
     <link name="left_wheel">
         <visual>
             <geometry>
                 <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
             </geometry>
+            <origin xyz="0.0 0.0 0.0" rpy="${pi/2} 0.0 0.0"/>
             <material name="blue"/>
         </visual>
         <collision>
             <geometry>
-                <sphere radius="${wheel_radius}"/>
+                <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
             </geometry>
+            <origin xyz="0.0 0.0 0.0" rpy="${pi/2} 0.0 0.0"/>
         </collision>
         <xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
             <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -196,30 +157,37 @@
     </link>
     <gazebo reference="left_wheel">
         <material>Gazebo/Blue</material>
-        <mu1>1.0</mu1>
-        <mu2>0.0</mu2>
-        <fdir1>1 -1 0</fdir1>
+        <collision>
+            <surface><friction><ode>
+                <mu>0.8</mu><mu2>0.2</mu2>
+                <slip1>0.035</slip1><slip2>0.0</slip2>
+                <fdir1 ignition:expressed_in="base_link">1 -1 0</fdir1>
+            </ode></friction></surface>
+        </collision>
     </gazebo>
-    <!-- RIGHT WHEEL LINK -->
+    <!-- FRONT RIGHT WHEEL (wie Referenz: parent=body_link, axis=Y, RPY=0) -->
+    <!-- ALT: parent=base_link, rpy="pi/2 0 0", axis="0 0 -1" -->
     <joint name="front_right_wheel_joint" type="continuous">
-        <parent link="base_link"/>
+        <parent link="body_link"/>
         <child link="right_wheel"/>
-        <!-- ALT (X=0): <origin xyz="0 ${-wheel_offset_y} 0" rpy="${pi/2} 0 0" /> -->
-        <origin xyz="${wheel_offset_x} ${-wheel_offset_y} 0" rpy="${pi/2} 0 0" />
-        <axis xyz="0 0 -1"/>
-        <dynamics damping="0.01" friction="0.01"/>
+        <origin xyz="${wheel_offset_x} ${-wheel_offset_y} 0.0" rpy="0.0 0.0 0.0"/>
+        <axis xyz="0.0 1.0 0.0"/>
+        <limit effort="1.5" velocity="30.0"/>
+        <dynamics damping="0.001" friction="0.001"/>
     </joint>
     <link name="right_wheel">
         <visual>
             <geometry>
                 <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
             </geometry>
+            <origin xyz="0.0 0.0 0.0" rpy="${pi/2} 0.0 0.0"/>
             <material name="blue"/>
         </visual>
         <collision>
             <geometry>
-                <sphere radius="${wheel_radius}"/>
+                <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
             </geometry>
+            <origin xyz="0.0 0.0 0.0" rpy="${pi/2} 0.0 0.0"/>
         </collision>
         <xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
             <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -227,70 +195,90 @@
     </link>
     <gazebo reference="right_wheel">
         <material>Gazebo/Blue</material>
-        <mu1>1.0</mu1>
-        <mu2>0.0</mu2>
-        <fdir1>1 1 0</fdir1>
+        <collision>
+            <surface><friction><ode>
+                <mu>0.8</mu><mu2>0.2</mu2>
+                <slip1>0.035</slip1><slip2>0.0</slip2>
+                <fdir1 ignition:expressed_in="base_link">1 1 0</fdir1>
+            </ode></friction></surface>
+        </collision>
     </gazebo>
-    <!-- REAR WHEELS -->
-        <!-- REAR LEFT WHEEL LINK -->
-        <joint name="rear_left_wheel_joint" type="continuous">
-            <parent link="base_link"/>
-            <child link="rear_left_wheel"/>
-            <origin xyz="${-wheel_offset_x} ${wheel_offset_y} 0" rpy="-${pi/2} 0 0" />
-            <axis xyz="0 0 1"/>
-            <dynamics damping="0.01" friction="0.01"/>
-        </joint>
-        <link name="rear_left_wheel">
-            <visual>
-                <geometry>
-                    <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
-                </geometry>
-                <material name="blue"/>
-            </visual>
-            <collision>
-                <geometry>
-                    <sphere radius="${wheel_radius}"/>
-                </geometry>
-            </collision>
-            <xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
-                <origin xyz="0 0 0" rpy="0 0 0"/>
-            </xacro:inertial_cylinder>
-        </link>
-        <gazebo reference="rear_left_wheel">
-            <material>Gazebo/Blue</material>
-            <mu1>1.0</mu1>
-            <mu2>0.0</mu2>
-            <fdir1>1 1 0</fdir1>
-        </gazebo>
+    <!-- REAR WHEELS (wie Referenz: parent=body_link, axis=Y, RPY=0) -->
+    <!-- REAR LEFT WHEEL -->
+    <!-- ALT: parent=base_link, rpy="-pi/2 0 0", axis="0 0 1" -->
+    <joint name="rear_left_wheel_joint" type="continuous">
+        <parent link="body_link"/>
+        <child link="rear_left_wheel"/>
+        <origin xyz="${-wheel_offset_x} ${wheel_offset_y} 0.0" rpy="0.0 0.0 0.0"/>
+        <axis xyz="0.0 1.0 0.0"/>
+        <limit effort="1.5" velocity="30.0"/>
+        <dynamics damping="0.001" friction="0.001"/>
+    </joint>
+    <link name="rear_left_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
+            </geometry>
+            <origin xyz="0.0 0.0 0.0" rpy="${pi/2} 0.0 0.0"/>
+            <material name="blue"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
+            </geometry>
+            <origin xyz="0.0 0.0 0.0" rpy="${pi/2} 0.0 0.0"/>
+        </collision>
+        <xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_cylinder>
+    </link>
+    <gazebo reference="rear_left_wheel">
+        <material>Gazebo/Blue</material>
+        <collision>
+            <surface><friction><ode>
+                <mu>0.8</mu><mu2>0.2</mu2>
+                <slip1>0.035</slip1><slip2>0.0</slip2>
+                <fdir1 ignition:expressed_in="base_link">1 1 0</fdir1>
+            </ode></friction></surface>
+        </collision>
+    </gazebo>
 
-        <!-- REAR RIGHT WHEEL LINK -->
-        <joint name="rear_right_wheel_joint" type="continuous">
-            <parent link="base_link"/>
-            <child link="rear_right_wheel"/>
-            <origin xyz="${-wheel_offset_x} ${-wheel_offset_y} 0" rpy="${pi/2} 0 0" />
-            <axis xyz="0 0 -1"/>
-            <dynamics damping="0.01" friction="0.01"/>
-        </joint>
-        <link name="rear_right_wheel">
-            <visual>
-                <geometry>
-                    <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
-                </geometry>
-                <material name="blue"/>
-            </visual>
-            <collision>
-                <geometry>
-                    <sphere radius="${wheel_radius}"/>
-                </geometry>
-            </collision>
-            <xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
-                <origin xyz="0 0 0" rpy="0 0 0"/>
-            </xacro:inertial_cylinder>
-        </link>
-        <gazebo reference="rear_right_wheel">
-            <material>Gazebo/Blue</material>
-            <mu1>1.0</mu1>
-            <mu2>0.0</mu2>
-            <fdir1>1 -1 0</fdir1>
-        </gazebo>
+    <!-- REAR RIGHT WHEEL -->
+    <!-- ALT: parent=base_link, rpy="pi/2 0 0", axis="0 0 -1" -->
+    <joint name="rear_right_wheel_joint" type="continuous">
+        <parent link="body_link"/>
+        <child link="rear_right_wheel"/>
+        <origin xyz="${-wheel_offset_x} ${-wheel_offset_y} 0.0" rpy="0.0 0.0 0.0"/>
+        <axis xyz="0.0 1.0 0.0"/>
+        <limit effort="1.5" velocity="30.0"/>
+        <dynamics damping="0.001" friction="0.001"/>
+    </joint>
+    <link name="rear_right_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
+            </geometry>
+            <origin xyz="0.0 0.0 0.0" rpy="${pi/2} 0.0 0.0"/>
+            <material name="blue"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
+            </geometry>
+            <origin xyz="0.0 0.0 0.0" rpy="${pi/2} 0.0 0.0"/>
+        </collision>
+        <xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_thickness}" radius="${wheel_radius}">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_cylinder>
+    </link>
+    <gazebo reference="rear_right_wheel">
+        <material>Gazebo/Blue</material>
+        <collision>
+            <surface><friction><ode>
+                <mu>0.8</mu><mu2>0.2</mu2>
+                <slip1>0.035</slip1><slip2>0.0</slip2>
+                <fdir1 ignition:expressed_in="base_link">1 -1 0</fdir1>
+            </ode></friction></surface>
+        </collision>
+    </gazebo>
 </robot>
