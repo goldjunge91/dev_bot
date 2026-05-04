@@ -47,7 +47,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY config description launch worlds meshes
+  DIRECTORY bringup controller description gazebo localization
   DESTINATION share/${PROJECT_NAME}
 )
 

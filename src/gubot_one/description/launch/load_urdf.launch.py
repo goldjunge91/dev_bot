@@ -54,7 +54,7 @@ def generate_launch_description():
     # URDF Datei verarbeiten
     # Xacro wird zu URDF konvertiert mit den angegebenen Parametern
     pkg_path = os.path.join(get_package_share_directory("gubot_one"))
-    xacro_file = os.path.join(pkg_path, "description", "gubot_one_main.urdf.xacro")
+    xacro_file = os.path.join(pkg_path, "description", "urdf", "gubot_one_main.urdf.xacro")
 
     # Command() führt xacro zur Laufzeit aus
     robot_description_config = Command(
@@ -104,7 +104,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "integrated_mode",
-                default_value="false",
+                default_value="true",
                 description="Use integrated mode if true",
             ),
             DeclareLaunchArgument(
