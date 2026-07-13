@@ -1,5 +1,17 @@
-"""
-Regression-Test: Tilt-Joint Konfiguration Ignition Gazebo.
+# Copyright 2024 gubot_one contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Regression-Test: Tilt-Joint Konfiguration Ignition Gazebo.
 
 Die drei konkreten Fehler die dazu gefuehrt haben, dass sich trigger_joint
 in launch_sim nicht bewegt hat:
@@ -24,10 +36,11 @@ _LAUNCHER_URDF = os.path.join(
     _BASE_DIR, "nerf_launch_system", "description", "urdf", "nerf_launcher.urdf.xacro"
 )
 _CONTROLLERS_YAML = os.path.join(
-    _BASE_DIR, "gubot_one", "config", "my_controllers.yaml"
+    _BASE_DIR, "gubot_one", "controller", "config", "controllers.yaml"
 )
+# ALT: description/ros2_control_gazebo_ign_fortress.xacro (falscher Pfad, liegt in urdf/)
 _RSP_XACRO = os.path.join(
-    _BASE_DIR, "gubot_one", "description", "ros2_control_gazebo_ign_fortress.xacro"
+    _BASE_DIR, "gubot_one", "description", "urdf", "ros2_control_gazebo_ign_fortress.xacro"
 )
 _NERF_TELEOP = os.path.join(
     _BASE_DIR, "gubot_one", "scripts", "teleop__nerf_joystick.py"
@@ -59,9 +72,10 @@ def _trigger_joint_limits():
 def test_urdf_limits_match_teleop_range():
     """Fix 1: URDF-Limits muessen zum Wertebereich passen.
 
-    Die trigger_joint Limits sind bedingt auf use_gazebo_classic:
-    - Classic: [-1.05, 0.0]
-    - Ignition: [-0.52, 0.52]
+    # ALT: Die trigger_joint Limits sind bedingt auf use_gazebo_classic:
+    # ALT: - Classic: [-1.05, 0.0]
+    # ALT: - Ignition: [-0.52, 0.52]
+    Die trigger_joint Limits sind auf [-0.52, 0.52] festgesetzt.
     Der Teleop-Skript sendet Werte im Bereich [5.23, 6.28].
     Wir pruefen nur dass Limits im URDF vorhanden sind.
     """

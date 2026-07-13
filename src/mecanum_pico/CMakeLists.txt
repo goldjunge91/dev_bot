@@ -84,12 +84,23 @@ if(BUILD_TESTING)
   # NOTE: test_wheel only uses header-only Wheel struct; no link to mecanum_pico lib needed yet
 
   # Sprint 2 — PicoComms serial protocol tests
+  # OLD:
+  # ament_add_gtest(test_pico_comms
+  #   test/test_pico_comms.cpp
+  # )
+  # target_include_directories(test_pico_comms PRIVATE
+  #   ${PROJECT_SOURCE_DIR}/hardware/include
+  # )
+  # NEW:
   ament_add_gtest(test_pico_comms
     test/test_pico_comms.cpp
   )
   target_include_directories(test_pico_comms PRIVATE
     ${PROJECT_SOURCE_DIR}/hardware/include
   )
+  target_link_libraries(test_pico_comms serial)
+
+
 
   # Sprint 3 — Hardware interface plugin load tests
   ament_add_gtest(test_hardware_interface

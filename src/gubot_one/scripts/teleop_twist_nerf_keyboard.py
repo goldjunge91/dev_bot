@@ -142,15 +142,18 @@ class NerfTeleop(Node):
         self.pusher_active = False  # Pusher aktiv während Schuss
         self.pusher_timer = 0  # Timer für Pusher-Puls
         # Simulator-spezifische Limits
-        self.is_classic = '--classic' in sys.argv
-        if self.is_classic:
-            self.tilt_min = -1.05
-            self.tilt_max = 0.0
-            self.tilt_pos = -0.5
-        else:
-            self.tilt_min = -0.52
-            self.tilt_max = 0.52
-            self.tilt_pos = 0.0
+        # ALT: self.is_classic = '--classic' in sys.argv
+        # ALT: if self.is_classic:
+        # ALT:     self.tilt_min = -1.05
+        # ALT:     self.tilt_max = 0.0
+        # ALT:     self.tilt_pos = -0.5
+        # ALT: else:
+        # ALT:     self.tilt_min = -0.52
+        # ALT:     self.tilt_max = 0.52
+        # ALT:     self.tilt_pos = 0.0
+        self.tilt_min = -0.52
+        self.tilt_max = 0.52
+        self.tilt_pos = 0.0
             
         self.tilt_step = 0.05  # Schrittweite für Tilt
         self.shot_power = 5.0  # Standard Schuss-Power (0-100)

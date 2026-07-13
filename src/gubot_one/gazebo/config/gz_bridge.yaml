@@ -1,22 +1,8 @@
-# gz_bridge config for ros_gz_bridge
-# Format: top-level YAML sequence of mappings (each mapping defines one bridge)
-
-- ros_topic_name: "clock"
-  gz_topic_name: "clock"
-  ros_type_name: "rosgraph_msgs/msg/Clock"
-  gz_type_name: "gz.msgs.Clock"
-  direction: "GZ_TO_ROS"
-
-- ros_topic_name: "scan"
-  gz_topic_name: "scan"
-  ros_type_name: "sensor_msgs/msg/LaserScan"
-  gz_type_name: "gz.msgs.LaserScan"
-  direction: "GZ_TO_ROS"
-
-# camera/image_raw wird von ros_gz_image image_bridge uebernommen (zuverlaessiger fuer Bilddaten)
-# Kamera-Info bleibt im parameter_bridge
-- ros_topic_name: "camera/camera_info"
-  gz_topic_name: "camera/camera_info"
-  ros_type_name: "sensor_msgs/msg/CameraInfo"
-  gz_type_name: "gz.msgs.CameraInfo"
-  direction: "GZ_TO_ROS"
+---
+# Globaler Gazebo-Bridge — nur /clock (wie Referenz rosbot_gazebo/config/gz_bridge.yaml)
+# ALT: enthielt auch scan und camera/camera_info (falscher Scope — jetzt in gubot_bridge.yaml)
+# Sensor-Topics werden per-Robot in gubot_bridge.yaml gebridget (spawn_robot.launch.py)
+  - topic_name: /clock
+    ros_type_name: rosgraph_msgs/msg/Clock
+    gz_type_name: gz.msgs.Clock
+    direction: GZ_TO_ROS

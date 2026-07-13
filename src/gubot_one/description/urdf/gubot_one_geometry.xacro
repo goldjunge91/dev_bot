@@ -35,25 +35,22 @@
     <link name="base_link">
 
     </link>
-    <!-- BASE_FOOTPRINT LINK -->
-    <joint name="base_footprint_joint" type="fixed">
-        <parent link="base_link"/>
-        <child link="base_footprint"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
-    <link name="base_footprint">
-    </link>
-    <!-- BODY_LINK (wie Referenz rosbot_xl: base_link -> body_link mit Z=wheel_radius Offset) -->
-    <!-- ALT: chassis_joint / chassis (asymm. Offset, Wheels an base_link) -->
-    <!-- <joint name="chassis_joint" type="fixed"> -->
+    <!-- ALT: base_footprint — nicht in rosbot_xl Referenz, auskommentiert -->
+    <!-- <joint name="base_footprint_joint" type="fixed"> -->
     <!--     <parent link="base_link"/> -->
-    <!--     <child link="chassis"/> -->
-    <!--     <origin xyz="${-wheel_offset_x} 0 ${-wheel_offset_z}"/> -->
+    <!--     <child link="base_footprint"/> -->
+    <!--     <origin xyz="0 0 0" rpy="0 0 0"/> -->
+    <!-- </joint> -->
+    <!-- <link name="base_footprint"/> -->
+    <!-- BODY_LINK (wie Referenz rosbot_xl: base_link -> body_link mit Z=wheel_radius Offset) -->
+    <!-- ALT: Z=0.0 — Chassis saß auf dem Boden, Räder sanken durch den Boden -->
+    <!-- <joint name="base_to_body_joint" type="fixed"> -->
+    <!--     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/> -->
     <!-- </joint> -->
     <joint name="base_to_body_joint" type="fixed">
         <parent link="base_link"/>
         <child link="body_link"/>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <origin xyz="0.0 0.0 ${wheel_radius}" rpy="0.0 0.0 0.0"/>
     </joint>
     <link name="body_link">
         <visual>
@@ -127,17 +124,19 @@
             </imu>
         </sensor>
     </gazebo>
-    <!-- FRONT LEFT WHEEL (wie Referenz: parent=body_link, axis=Y, RPY=0) -->
-    <!-- ALT: parent=base_link, rpy="-pi/2 0 0", axis="0 0 1" -->
-    <joint name="front_left_wheel_joint" type="continuous">
+    <!-- FRONT LEFT WHEEL (wie Referenz: fl_wheel_joint, parent=body_link, axis=Y, RPY=0) -->
+    <!-- ALT: front_left_wheel_joint / left_wheel — umbenannt auf Referenz-Schema fl/fr/rl/rr -->
+    <!-- <joint name="front_left_wheel_joint" type="continuous"> -->
+    <!-- <link name="left_wheel"> -->
+    <joint name="fl_wheel_joint" type="continuous">
         <parent link="body_link"/>
-        <child link="left_wheel"/>
+        <child link="fl_wheel_link"/>
         <origin xyz="${wheel_offset_x} ${wheel_offset_y} 0.0" rpy="0.0 0.0 0.0"/>
         <axis xyz="0.0 1.0 0.0"/>
         <limit effort="1.5" velocity="30.0"/>
         <dynamics damping="0.001" friction="0.001"/>
     </joint>
-    <link name="left_wheel">
+    <link name="fl_wheel_link">
         <visual>
             <geometry>
                 <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
@@ -155,7 +154,7 @@
             <origin xyz="0 0 0" rpy="0 0 0"/>
         </xacro:inertial_cylinder>
     </link>
-    <gazebo reference="left_wheel">
+    <gazebo reference="fl_wheel_link">
         <material>Gazebo/Blue</material>
         <collision>
             <surface><friction><ode>
@@ -165,17 +164,19 @@
             </ode></friction></surface>
         </collision>
     </gazebo>
-    <!-- FRONT RIGHT WHEEL (wie Referenz: parent=body_link, axis=Y, RPY=0) -->
-    <!-- ALT: parent=base_link, rpy="pi/2 0 0", axis="0 0 -1" -->
-    <joint name="front_right_wheel_joint" type="continuous">
+    <!-- FRONT RIGHT WHEEL (wie Referenz: fr_wheel_joint, parent=body_link, axis=Y, RPY=0) -->
+    <!-- ALT: front_right_wheel_joint / right_wheel — umbenannt auf Referenz-Schema fl/fr/rl/rr -->
+    <!-- <joint name="front_right_wheel_joint" type="continuous"> -->
+    <!-- <link name="right_wheel"> -->
+    <joint name="fr_wheel_joint" type="continuous">
         <parent link="body_link"/>
-        <child link="right_wheel"/>
+        <child link="fr_wheel_link"/>
         <origin xyz="${wheel_offset_x} ${-wheel_offset_y} 0.0" rpy="0.0 0.0 0.0"/>
         <axis xyz="0.0 1.0 0.0"/>
         <limit effort="1.5" velocity="30.0"/>
         <dynamics damping="0.001" friction="0.001"/>
     </joint>
-    <link name="right_wheel">
+    <link name="fr_wheel_link">
         <visual>
             <geometry>
                 <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
@@ -193,7 +194,7 @@
             <origin xyz="0 0 0" rpy="0 0 0"/>
         </xacro:inertial_cylinder>
     </link>
-    <gazebo reference="right_wheel">
+    <gazebo reference="fr_wheel_link">
         <material>Gazebo/Blue</material>
         <collision>
             <surface><friction><ode>
@@ -203,18 +204,20 @@
             </ode></friction></surface>
         </collision>
     </gazebo>
-    <!-- REAR WHEELS (wie Referenz: parent=body_link, axis=Y, RPY=0) -->
+    <!-- REAR WHEELS (wie Referenz: rl/rr_wheel_joint, parent=body_link, axis=Y, RPY=0) -->
     <!-- REAR LEFT WHEEL -->
-    <!-- ALT: parent=base_link, rpy="-pi/2 0 0", axis="0 0 1" -->
-    <joint name="rear_left_wheel_joint" type="continuous">
+    <!-- ALT: rear_left_wheel_joint / rear_left_wheel — umbenannt auf Referenz-Schema -->
+    <!-- <joint name="rear_left_wheel_joint" type="continuous"> -->
+    <!-- <link name="rear_left_wheel"> -->
+    <joint name="rl_wheel_joint" type="continuous">
         <parent link="body_link"/>
-        <child link="rear_left_wheel"/>
+        <child link="rl_wheel_link"/>
         <origin xyz="${-wheel_offset_x} ${wheel_offset_y} 0.0" rpy="0.0 0.0 0.0"/>
         <axis xyz="0.0 1.0 0.0"/>
         <limit effort="1.5" velocity="30.0"/>
         <dynamics damping="0.001" friction="0.001"/>
     </joint>
-    <link name="rear_left_wheel">
+    <link name="rl_wheel_link">
         <visual>
             <geometry>
                 <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
@@ -232,7 +235,7 @@
             <origin xyz="0 0 0" rpy="0 0 0"/>
         </xacro:inertial_cylinder>
     </link>
-    <gazebo reference="rear_left_wheel">
+    <gazebo reference="rl_wheel_link">
         <material>Gazebo/Blue</material>
         <collision>
             <surface><friction><ode>
@@ -244,16 +247,18 @@
     </gazebo>
 
     <!-- REAR RIGHT WHEEL -->
-    <!-- ALT: parent=base_link, rpy="pi/2 0 0", axis="0 0 -1" -->
-    <joint name="rear_right_wheel_joint" type="continuous">
+    <!-- ALT: rear_right_wheel_joint / rear_right_wheel — umbenannt auf Referenz-Schema -->
+    <!-- <joint name="rear_right_wheel_joint" type="continuous"> -->
+    <!-- <link name="rear_right_wheel"> -->
+    <joint name="rr_wheel_joint" type="continuous">
         <parent link="body_link"/>
-        <child link="rear_right_wheel"/>
+        <child link="rr_wheel_link"/>
         <origin xyz="${-wheel_offset_x} ${-wheel_offset_y} 0.0" rpy="0.0 0.0 0.0"/>
         <axis xyz="0.0 1.0 0.0"/>
         <limit effort="1.5" velocity="30.0"/>
         <dynamics damping="0.001" friction="0.001"/>
     </joint>
-    <link name="rear_right_wheel">
+    <link name="rr_wheel_link">
         <visual>
             <geometry>
                 <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
@@ -271,7 +276,7 @@
             <origin xyz="0 0 0" rpy="0 0 0"/>
         </xacro:inertial_cylinder>
     </link>
-    <gazebo reference="rear_right_wheel">
+    <gazebo reference="rr_wheel_link">
         <material>Gazebo/Blue</material>
         <collision>
             <surface><friction><ode>

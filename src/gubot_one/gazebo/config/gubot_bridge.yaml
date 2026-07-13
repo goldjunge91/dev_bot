@@ -1,0 +1,32 @@
+---
+# Per-Robot Gazebo-Bridge fuer gubot_one
+# Referenz: rosbot_gazebo/config/rosbot_bridge.yaml (pro Roboter in spawn_robot.launch.py)
+# ALT: Sensor-Topics waren in gz_bridge.yaml global (falscher Scope)
+# Wird geladen von: gazebo/launch/spawn_robot.launch.py als "gubot_gz_bridge" Node
+
+  - topic_name: scan
+    ros_type_name: sensor_msgs/msg/LaserScan
+    gz_type_name: gz.msgs.LaserScan
+    direction: GZ_TO_ROS
+
+  - topic_name: camera/camera_info
+    ros_type_name: sensor_msgs/msg/CameraInfo
+    gz_type_name: gz.msgs.CameraInfo
+    direction: GZ_TO_ROS
+
+  # Kamerabild: ALT ros_gz_image image_bridge Node (entfernt aus simulation.launch.py)
+  - topic_name: camera/image_raw
+    ros_type_name: sensor_msgs/msg/Image
+    gz_type_name: gz.msgs.Image
+    direction: GZ_TO_ROS
+
+  # NEU: IMU Rohdaten direkt aus Ignition Gazebo Sensor (imu_sensor)
+  # Der imu_broadcaster liest diese bereits via gz_ros2_control und publiziert
+  # auf imu/data (EKF Input). Diese Bridge ermoeglicht zusaetzlich:
+  # - RViz IMU-Plugin Direktanzeige
+  # - Debugging/Vergleich Roh- vs. verarbeitete Daten
+  # ALT: kein IMU-Bridge -> nur imu/data ueber imu_broadcaster erreichbar
+  - topic_name: imu/data_raw
+    ros_type_name: sensor_msgs/msg/Imu
+    gz_type_name: gz.msgs.IMU
+    direction: GZ_TO_ROS

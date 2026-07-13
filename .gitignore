@@ -58,3 +58,38 @@ scripts/face_data/faces_raw/gunter/
 scripts/face_data/faces_raw/marco/
 scripts/face_data/faces_raw/schatz/
 src/nerf_standalone/nerf_standalone/__pycache__/nerf_control_node.cpython-310.pyc
+# colcon build artefacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# C++ / CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+*.so
+*.a
+*.o
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# clangd
+.cache/
+
+# Claude Code per-user overrides — do not commit personal settings
+.claude/settings.local.json

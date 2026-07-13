@@ -45,14 +45,22 @@
                     <far>8.0</far>
                 </clip>
             </camera>
-            <xacro:if value="$(arg use_gazebo_classic)">
-                <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
-                    <frame_name>camera_link_optical</frame_name>
-                </plugin>
-            </xacro:if>
-            <xacro:unless value="$(arg use_gazebo_classic)">
-                <topic>camera/image_raw</topic>
-            </xacro:unless>
+            <!-- <xacro:if value="$(arg use_gazebo_classic)"> -->
+            <!--     <plugin name="camera_controller" filename="libgazebo_ros_camera.so"> -->
+            <!--         <frame_name>camera_link_optical</frame_name> -->
+            <!--     </plugin> -->
+            <!-- </xacro:if> -->
+            <!-- <xacro:unless value="$(arg use_gazebo_classic)"> -->
+            <!--     <topic>camera/image_raw</topic> -->
+            <!--     <!- - NEU: Expliziter Frame-ID damit Ignition nicht den auto-generierten -->
+            <!--          Pfad 'gubot_one/base_link/camera' verwendet, sondern den TF-Frame -->
+            <!--          'camera_link_optical' der von robot_state_publisher veroeffentlicht wird. -->
+            <!--          ALT: kein ignition_frame_id -> Ignition nutzt 'modelname/linkname/sensorname' -->
+            <!--              -> RViz kann Frame nicht finden -> queue overflow -> Flackern - -> -->
+            <!--     <ignition_frame_id>camera_link_optical</ignition_frame_id> -->
+            <!-- </xacro:unless> -->
+            <topic>camera/image_raw</topic>
+            <ignition_frame_id>camera_link_optical</ignition_frame_id>
         </sensor>
     </gazebo>
 </robot>

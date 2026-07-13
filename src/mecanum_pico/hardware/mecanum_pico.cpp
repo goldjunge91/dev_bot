@@ -258,6 +258,14 @@ hardware_interface::return_type MecanumPicoHardware::write(
     to_ticks_per_loop(wheel_rr_)
   );
 
+  // ALT: // MIGRATION SPRINT 5: float velocity commands (rad/s)
+  // ALT: comms_.set_motor_values(
+  // ALT:   wheel_fl_.cmd,
+  // ALT:   wheel_fr_.cmd,
+  // ALT:   wheel_rl_.cmd,
+  // ALT:   wheel_rr_.cmd
+  // ALT: );
+
   return hardware_interface::return_type::OK;
 }
 

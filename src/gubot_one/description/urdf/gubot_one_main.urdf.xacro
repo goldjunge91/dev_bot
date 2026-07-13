@@ -3,30 +3,35 @@
 
     <xacro:arg name="use_ros2_control" default="true"/>
     <xacro:arg name="sim_mode" default="false"/>
-    <xacro:arg name="use_gazebo_classic" default="false"/>
+    <!-- <xacro:arg name="use_gazebo_classic" default="false"/> -->
+    <!-- NEU: use_nerf_hardware VOR dem ros2_control-Include deklariert
+         ALT: Deklaration nach dem Include (Zeile 23) -> xacro sah den Arg noch nicht
+              -> ros2_control_gazebo_ign_fortress.xacro nutzte Default-Wert 'true'
+              -> trigger_joint/dart_pusher_joint/system_arming_joint wurden immer geladen
+              -> gz_ros2_control fand diese Joints nicht im Sim-Modell -> SIGKILL -->
+    <xacro:arg name="use_nerf_hardware" default="false"/>
 
     <xacro:include filename="gubot_one_geometry.xacro" />
     <xacro:if value="$(arg use_ros2_control)">
         <xacro:if value="$(arg sim_mode)">
-            <xacro:if value="$(arg use_gazebo_classic)">
-                <xacro:include filename="ros2_control_gazebo_classic.xacro" />
-            </xacro:if>
-            <xacro:unless value="$(arg use_gazebo_classic)">
-                <xacro:include filename="ros2_control_gazebo_ign_fortress.xacro" />
-            </xacro:unless>
+            <!-- <xacro:if value="$(arg use_gazebo_classic)"> -->
+            <!--     <xacro:include filename="ros2_control_gazebo_classic.xacro" /> -->
+            <!-- </xacro:if> -->
+            <!-- <xacro:unless value="$(arg use_gazebo_classic)"> -->
+            <!--     <xacro:include filename="ros2_control_gazebo_ign_fortress.xacro" /> -->
+            <!-- </xacro:unless> -->
+            <xacro:include filename="ros2_control_gazebo_ign_fortress.xacro" />
         </xacro:if>
         <xacro:unless value="$(arg sim_mode)">
             <xacro:include filename="ros2_control_hardware.xacro" />
         </xacro:unless>
     </xacro:if>
 
-    <xacro:arg name="use_nerf_hardware" default="true"/>
-
     <!-- <xacro:include filename="sensor_lidar.xacro" /> -->
     <xacro:include filename="sensor_camera.xacro" />
     <!-- <xacro:include filename="sensor_depth_camera.xacro" /> -->
     <xacro:include filename="visual_face.xacro" />
-    
+
     <xacro:if value="$(arg use_nerf_hardware)">
         <xacro:include filename="nerf_launch_system.xacro" />
     </xacro:if>

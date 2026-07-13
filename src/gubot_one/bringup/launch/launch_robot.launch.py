@@ -109,7 +109,8 @@ def generate_launch_description():
         package="twist_mux",
         executable="twist_mux",
         parameters=[twist_mux_params],
-        remappings=[("/cmd_vel_out", "/mecanum_cont/cmd_vel_unstamped")],
+        # ALT: remappings=[("/cmd_vel_out", "/mecanum_cont/cmd_vel_unstamped")],
+        remappings=[("/cmd_vel_out", "/mecanum_drive_controller/cmd_vel_unstamped")],
     )
 
     # Robot Description für Controller Manager
@@ -128,8 +129,11 @@ def generate_launch_description():
     )
 
     # Controller Parameter
+    # ALT: controller_params_file = os.path.join(
+    # ALT:     get_package_share_directory(package_name), "config", "my_controllers.yaml"
+    # ALT: )
     controller_params_file = os.path.join(
-        get_package_share_directory(package_name), "config", "my_controllers.yaml"
+        get_package_share_directory(package_name), "controller", "config", "controllers.yaml"
     )
 
     # 4. Controller Manager
@@ -157,16 +161,27 @@ def generate_launch_description():
     # ALT:     executable="spawner",
     # ALT:     arguments=["diff_cont"],  # Differential Drive Controller
     # ALT: )
+    # ALT: mecanum_drive_spawner = Node(
+    # ALT:     package="controller_manager",
+    # ALT:     executable="spawner",
+    # ALT:     arguments=["mecanum_cont"],  # Mecanum Drive Controller
+    # ALT: )
     mecanum_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["mecanum_cont"],  # Mecanum Drive Controller
+        arguments=["mecanum_drive_controller"],  # Mecanum Drive Controller
     )
 
     # ALT: delayed_diff_drive_spawner = RegisterEventHandler(
     # ALT:     event_handler=OnProcessStart(
     # ALT:         target_action=controller_manager,
     # ALT:         on_start=[diff_drive_spawner],
+    # ALT:     )
+    # ALT: )
+    # ALT: delayed_mecanum_drive_spawner = RegisterEventHandler(
+    # ALT:     event_handler=OnProcessStart(
+    # ALT:         target_action=controller_manager,
+    # ALT:         on_start=[mecanum_drive_spawner],
     # ALT:     )
     # ALT: )
     delayed_mecanum_drive_spawner = RegisterEventHandler(
@@ -190,7 +205,21 @@ def generate_launch_description():
         )
     )
 
-    # 3. Nerf Tilt Controller (startet nach joint_broad)
+    # 3. IMU Broadcaster (startet nach joint_broad_spawner)
+    imu_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["imu_broadcaster"],
+    )
+
+    delayed_imu_broadcaster_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=joint_broad_spawner,
+            on_exit=[imu_broadcaster_spawner],
+        )
+    )
+
+    # 4. Nerf Tilt Controller (startet nach imu_broadcaster)
     nerf_tilt_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -198,9 +227,15 @@ def generate_launch_description():
         output="screen",
     )
 
+    # ALT: delayed_nerf_tilt = RegisterEventHandler(
+    # ALT:     event_handler=OnProcessExit(
+    # ALT:         target_action=joint_broad_spawner,
+    # ALT:         on_exit=[nerf_tilt_spawner],
+    # ALT:     )
+    # ALT: )
     delayed_nerf_tilt = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=joint_broad_spawner,
+            target_action=imu_broadcaster_spawner,
             on_exit=[nerf_tilt_spawner],
         )
     )
@@ -287,6 +322,7 @@ def generate_launch_description():
             delayed_controller_manager,
             delayed_mecanum_drive_spawner,
             delayed_joint_broad_spawner,
+            delayed_imu_broadcaster_spawner,
             nerf_group,
         ]
     )

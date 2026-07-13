@@ -31,57 +31,78 @@
     </link>
     <gazebo reference="laser_frame">
         <material>Gazebo/Black</material>
-        <xacro:if value="$(arg use_gazebo_classic)">
-            <sensor name="laser" type="ray">
-                <pose> 0 0 0 0 0 0 </pose>
-                <visualize>true</visualize>
-                <update_rate>10</update_rate>
-                <ray>
-                    <scan>
-                        <horizontal>
-                            <samples>360</samples>
-                            <resolution>1</resolution>
-                            <min_angle>-3.14</min_angle>
-                            <max_angle>3.14</max_angle>
-                        </horizontal>
-                    </scan>
-                    <range>
-                        <min>0.3</min>
-                        <max>12</max>
-                        <resolution>0.01</resolution>
-                    </range>
-                </ray>
-                <plugin name="laser_controller" filename="libgazebo_ros_ray_sensor.so">
-                    <ros>
-                        <remapping>~/out:=/scan</remapping>
-                    </ros>
-                    <output_type>sensor_msgs/LaserScan</output_type>
-                    <frame_name>laser_frame</frame_name>
-                </plugin>
-            </sensor>
-        </xacro:if>
-        <xacro:unless value="$(arg use_gazebo_classic)">
-            <sensor name="laser" type="gpu_lidar">
-                <pose> 0 0 0 0 0 0 </pose>
-                <visualize>false</visualize>
-                <update_rate>10</update_rate>
-                <topic>scan</topic>
-                <lidar>
-                    <scan>
-                        <horizontal>
-                            <samples>360</samples>
-                            <resolution>1</resolution>
-                            <min_angle>-3.14</min_angle>
-                            <max_angle>3.14</max_angle>
-                        </horizontal>
-                    </scan>
-                    <range>
-                        <min>0.3</min>
-                        <max>12</max>
-                        <resolution>0.01</resolution>
-                    </range>
-                </lidar>
-            </sensor>
-        </xacro:unless>
+        <!-- <xacro:if value="$(arg use_gazebo_classic)"> -->
+        <!--     <sensor name="laser" type="ray"> -->
+        <!--         <pose> 0 0 0 0 0 0 </pose> -->
+        <!--         <visualize>true</visualize> -->
+        <!--         <update_rate>10</update_rate> -->
+        <!--         <ray> -->
+        <!--             <scan> -->
+        <!--                 <horizontal> -->
+        <!--                     <samples>360</samples> -->
+        <!--                     <resolution>1</resolution> -->
+        <!--                     <min_angle>-3.14</min_angle> -->
+        <!--                     <max_angle>3.14</max_angle> -->
+        <!--                 </horizontal> -->
+        <!--             </scan> -->
+        <!--             <range> -->
+        <!--                 <min>0.3</min> -->
+        <!--                 <max>12</max> -->
+        <!--                 <resolution>0.01</resolution> -->
+        <!--             </range> -->
+        <!--         </ray> -->
+        <!--         <plugin name="laser_controller" filename="libgazebo_ros_ray_sensor.so"> -->
+        <!--             <ros> -->
+        <!--                 <remapping>~/out:=/scan</remapping> -->
+        <!--             </ros> -->
+        <!--             <output_type>sensor_msgs/LaserScan</output_type> -->
+        <!--             <frame_name>laser_frame</frame_name> -->
+        <!--         </plugin> -->
+        <!--     </sensor> -->
+        <!-- </xacro:if> -->
+        <!-- <xacro:unless value="$(arg use_gazebo_classic)"> -->
+        <!--     <sensor name="laser" type="gpu_lidar"> -->
+        <!--         <pose> 0 0 0 0 0 0 </pose> -->
+        <!--         <visualize>false</visualize> -->
+        <!--         <update_rate>10</update_rate> -->
+        <!--         <topic>scan</topic> -->
+        <!--         <lidar> -->
+        <!--             <scan> -->
+        <!--                 <horizontal> -->
+        <!--                     <samples>360</samples> -->
+        <!--                     <resolution>1</resolution> -->
+        <!--                     <min_angle>-3.14</min_angle> -->
+        <!--                     <max_angle>3.14</max_angle> -->
+        <!--                 </horizontal> -->
+        <!--             </scan> -->
+        <!--             <range> -->
+        <!--                 <min>0.3</min> -->
+        <!--                 <max>12</max> -->
+        <!--                 <resolution>0.01</resolution> -->
+        <!--             </range> -->
+        <!--         </lidar> -->
+        <!--     </sensor> -->
+        <!-- </xacro:unless> -->
+        <sensor name="laser" type="gpu_lidar">
+            <pose> 0 0 0 0 0 0 </pose>
+            <visualize>false</visualize>
+            <update_rate>10</update_rate>
+            <topic>scan</topic>
+            <lidar>
+                <scan>
+                    <horizontal>
+                        <samples>360</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-3.14</min_angle>
+                        <max_angle>3.14</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.3</min>
+                    <max>12</max>
+                    <resolution>0.01</resolution>
+                </range>
+            </lidar>
+        </sensor>
     </gazebo>
 </robot>

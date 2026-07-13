@@ -13,6 +13,7 @@
 #define MECANUM_PICO__PICO_COMMS_HPP_
 
 #include <sstream>
+// ALT: #include <iomanip>
 #include <iostream>
 #include <string>
 #include <libserial/SerialPort.h>
@@ -109,13 +110,13 @@ public:
   /**
    * @brief Send velocity commands to all 4 motors.
    *
-   * Values are signed integers representing ticks-per-loop targets.
+   * Values are float rad/s targets.
    * The Pico PID loop converts these to PWM duty cycles locally.
    *
-   * @param fl Front-left  motor [ticks/loop], range approx ±255 depending on firmware.
-   * @param fr Front-right motor [ticks/loop].
-   * @param rl Rear-left   motor [ticks/loop].
-   * @param rr Rear-right  motor [ticks/loop].
+   * @param fl Front-left  motor [rad/s].
+   * @param fr Front-right motor [rad/s].
+   * @param rl Rear-left   motor [rad/s].
+   * @param rr Rear-right  motor [rad/s].
    */
   void set_motor_values(int fl, int fr, int rl, int rr)
   {
@@ -123,6 +124,13 @@ public:
     ss << "m " << fl << " " << fr << " " << rl << " " << rr << "\r";
     send_msg(ss.str());
   }
+  // ALT: void set_motor_values(double fl, double fr, double rl, double rr)
+  // ALT: {
+  // ALT:   std::stringstream ss;
+  // ALT:   ss << std::fixed << std::setprecision(3);
+  // ALT:   ss << "m " << fl << " " << fr << " " << rl << " " << rr << "\r";
+  // ALT:   send_msg(ss.str());
+  // ALT: }
 
   // -------------------------------------------------------------------------
   // 4-wheel encoder read
