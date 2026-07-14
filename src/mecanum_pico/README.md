@@ -3,8 +3,7 @@
 ROS 2 hardware interface for a **4-wheel mecanum drive** robot controlled by a
 **Raspberry Pi Pico** via USB-CDC serial.
 
-Refactored from `diffdrive_arduino` (2-wheel diff drive) following the
-[mecanum_pico implementation plan](../mecanum_pico_implementation_plan.md).
+Refactored from `diffdrive_arduino` (2-wheel diff drive).
 
 ---
 
