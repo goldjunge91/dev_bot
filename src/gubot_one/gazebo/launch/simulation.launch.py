@@ -37,16 +37,15 @@ def generate_launch_description():
 
     world_arg = DeclareLaunchArgument(
         "world",
-        # ALT: obstacles.world — verwendet construction_cone/barrel Modelle
-        # die nicht installiert sind. Fuer obstacles.world muss
-        # IGN_GAZEBO_RESOURCE_PATH auf die Modell-Verzeichnisse zeigen.
-        # Beispiel:
-        # ros2 launch gubot_one simulation.launch.py \
-        #   world:=$(ros2 pkg prefix gubot_one)/share/.../obstacles.world
+        # obstacles.world nutzt construction_cone/barrel — die Modelle sind
+        # jetzt in gazebo/models/ vendored und werden über den env-hook
+        # (IGN_GAZEBO_RESOURCE_PATH, siehe CMakeLists ament_environment_hooks)
+        # gefunden.
+        # ALT: empty.world als Default, weil die Modelle nicht installiert waren
         default_value=PathJoinSubstitution([
-            FindPackageShare(package_name), "gazebo", "worlds", "empty.world"
+            FindPackageShare(package_name), "gazebo", "worlds", "obstacles.world"
         ]),
-        description="Ignition Gazebo World File (Standard: empty.world)",
+        description="Ignition Gazebo World File (Standard: obstacles.world)",
     )
 
     use_nerf_hardware_arg = DeclareLaunchArgument(
