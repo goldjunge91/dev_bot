@@ -315,12 +315,22 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_deactivate(
 hardware_interface::return_type MecanumPicoHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
+  if (diagnostics_) {
+    diagnostics_->set_connected(comms_.connected());
+  }
   if (!comms_.connected()) {
     return hardware_interface::return_type::ERROR;
   }
+  if (diagnostics_) {
+    diagnostics_->note_read_cycle();
+  }
 
   int fl_enc = 0, fr_enc = 0, rl_enc = 0, rr_enc = 0;
-  if (!comms_.read_encoder_values(fl_enc, fr_enc, rl_enc, rr_enc)) {
+  const bool encoder_ok = comms_.read_encoder_values(fl_enc, fr_enc, rl_enc, rr_enc);
+  if (diagnostics_) {
+    diagnostics_->note_encoder_read(encoder_ok);
+  }
+  if (!encoder_ok) {
     RCLCPP_ERROR(
       rclcpp::get_logger("MecanumPicoHardware"),
       "Failed to read encoder values from Pico.");
@@ -347,7 +357,11 @@ hardware_interface::return_type MecanumPicoHardware::read(
     double ax_g = 0.0, ay_g = 0.0, az_g = 0.0;
     double gx_dps = 0.0, gy_dps = 0.0, gz_dps = 0.0;
 
-    if (comms_.read_imu_values(ax_g, ay_g, az_g, gx_dps, gy_dps, gz_dps)) {
+    const bool imu_ok = comms_.read_imu_values(ax_g, ay_g, az_g, gx_dps, gy_dps, gz_dps);
+    if (diagnostics_) {
+      diagnostics_->note_imu_read(imu_ok);
+    }
+    if (imu_ok) {
       constexpr double kGravity = 9.80665;        // [g]     -> [m/s^2]
       constexpr double kDegToRad = M_PI / 180.0;  // [deg/s] -> [rad/s]
 
@@ -390,6 +404,9 @@ hardware_interface::return_type MecanumPicoHardware::read(
 hardware_interface::return_type MecanumPicoHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
+  if (diagnostics_) {
+    diagnostics_->set_connected(comms_.connected());
+  }
   if (!comms_.connected()) {
     return hardware_interface::return_type::ERROR;
   }

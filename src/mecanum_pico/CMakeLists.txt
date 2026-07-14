@@ -9,6 +9,8 @@ endif()
 # Dependencies
 # ---------------------------------------------------------------------------
 set(THIS_PACKAGE_INCLUDE_DEPENDS
+  diagnostic_msgs
+  diagnostic_updater
   hardware_interface
   pluginlib
   rclcpp
@@ -26,6 +28,7 @@ endforeach()
 add_library(
   mecanum_pico
   SHARED
+  hardware/hardware_diagnostics.cpp
   hardware/mecanum_pico.cpp
 )
 target_compile_features(mecanum_pico PUBLIC cxx_std_17)
@@ -120,6 +123,18 @@ if(BUILD_TESTING)
   target_link_libraries(test_hardware_interface mecanum_pico)
   ament_target_dependencies(test_hardware_interface
     hardware_interface pluginlib rclcpp
+  )
+
+  # /diagnostics reporting (Pico serial connection + control-loop rate)
+  ament_add_gtest(test_hardware_diagnostics
+    test/test_hardware_diagnostics.cpp
+  )
+  target_include_directories(test_hardware_diagnostics PRIVATE
+    ${PROJECT_SOURCE_DIR}/hardware/include
+  )
+  target_link_libraries(test_hardware_diagnostics mecanum_pico)
+  ament_target_dependencies(test_hardware_diagnostics
+    diagnostic_msgs diagnostic_updater rclcpp
   )
 endif()
 
