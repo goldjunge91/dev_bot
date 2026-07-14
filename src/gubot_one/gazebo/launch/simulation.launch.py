@@ -54,6 +54,17 @@ def generate_launch_description():
         description="Enable nerf hardware if true",
     )
 
+    # Kamera-Sensor abschaltbar: unter WSL2 rendert die 640x480-Kamera per
+    # Software-GL (llvmpipe) auf der CPU und drueckt den RTF massiv.
+    # use_camera:=false entfernt nur den Gazebo-Render-Sensor — Links und
+    # TF-Frames der Kamera bleiben erhalten (RViz-Konfig bricht nicht).
+    use_camera_arg = DeclareLaunchArgument(
+        "use_camera",
+        default_value="true",
+        description="Include the Gazebo camera sensor "
+                    "(false: faster sim on WSL2, camera TF frames stay).",
+    )
+
     declare_rviz_arg = DeclareLaunchArgument(
         "rviz",
         default_value="True",
@@ -63,6 +74,7 @@ def generate_launch_description():
 
     world = LaunchConfiguration("world")
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
+    use_camera = LaunchConfiguration("use_camera")
     rviz = LaunchConfiguration("rviz")
 
     # Gazebo (Ignition Fortress / gz_sim)
@@ -99,7 +111,10 @@ def generate_launch_description():
                 FindPackageShare(package_name), "gazebo", "launch", "spawn_robot.launch.py"
             ])
         ),
-        launch_arguments={"use_nerf_hardware": use_nerf_hardware}.items(),
+        launch_arguments={
+            "use_nerf_hardware": use_nerf_hardware,
+            "use_camera": use_camera,
+        }.items(),
     )
 
     # RViz (Referenz: description/launch/rviz.launch.py — hier direkter Node)
@@ -116,6 +131,7 @@ def generate_launch_description():
     return LaunchDescription([
         world_arg,
         use_nerf_hardware_arg,
+        use_camera_arg,
         declare_rviz_arg,
         # NEU: Globale SetEnvironmentVariable, SetRemap, SetParameter (Referenz-Pattern)
         SetEnvironmentVariable(name="RCUTILS_COLORIZED_OUTPUT", value="1"),

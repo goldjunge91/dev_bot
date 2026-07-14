@@ -31,6 +31,7 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time")
     use_ros2_control = LaunchConfiguration("use_ros2_control")
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
+    use_camera = LaunchConfiguration("use_camera")
     # ALT: use_gazebo_classic = LaunchConfiguration("use_gazebo_classic")
     controller_config = LaunchConfiguration("controller_config")
 
@@ -48,6 +49,7 @@ def generate_launch_description():
         " use_ros2_control:=", use_ros2_control,
         " sim_mode:=", use_sim_time,
         " use_nerf_hardware:=", use_nerf_hardware,
+        " use_camera:=", use_camera,
         # ALT: " use_gazebo_classic:=", use_gazebo_classic,
         " use_gazebo_classic:=false",
         # NEU: controller_config wird in xacro injiziert (ALT: hard-coded im xacro)
@@ -81,6 +83,12 @@ def generate_launch_description():
             "use_nerf_hardware",
             default_value="true",
             description="Enable Nerf hardware if true",
+        ),
+        DeclareLaunchArgument(
+            "use_camera",
+            default_value="true",
+            description="Include the Gazebo camera sensor in the URDF "
+                        "(false: no render sensor, camera TF frames stay).",
         ),
         # DeclareLaunchArgument(
         #     "use_gazebo_classic",

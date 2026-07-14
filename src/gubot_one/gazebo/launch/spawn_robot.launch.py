@@ -38,6 +38,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration("use_sim_time", default="true")
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware", default="false")
+    use_camera = LaunchConfiguration("use_camera", default="true")
 
     declare_x_arg = DeclareLaunchArgument(
         "x", default_value="0.0",
@@ -111,7 +112,8 @@ def generate_launch_description():
         ),
         launch_arguments={
             "use_sim_time": use_sim_time,
-            "use_nerf_hardware": use_nerf_hardware
+            "use_nerf_hardware": use_nerf_hardware,
+            "use_camera": use_camera,
         }.items(),
     )
 
@@ -127,6 +129,11 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument("use_sim_time", default_value="true"),
         DeclareLaunchArgument("use_nerf_hardware", default_value="false"),
+        DeclareLaunchArgument(
+            "use_camera",
+            default_value="true",
+            description="Include the Gazebo camera sensor in the URDF.",
+        ),
         declare_x_arg,
         declare_y_arg,
         declare_z_arg,

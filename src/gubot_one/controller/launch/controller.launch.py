@@ -4,30 +4,7 @@ Controller Launch
 Startet robot_state_publisher, twist_mux, den controller_manager (nur echte
 Hardware) und alle ros2_control Spawner.
 Referenz: rosbot_ws/src/rosbot_ros/rosbot_controller/launch/controller.launch.py
-
-Änderungen:
-- Einzelner Spawner für alle 3 Controller mit --controller-manager-timeout 20
-  ALT: 3 separate Spawner mit gestaffelten TimerActions (2s/3s/4s) — Race Condition möglich
-- OnProcessIO stderr-Monitor für fatale Fehler (Shutdown bei "failed"/"fatal")
-  ALT: Keine Fehlerüberwachung
-- use_sim_time wird über globalen SetParameter gesetzt (nicht per Node-Parameter)
-- controller_manager (ros2_control_node) wird für echte Hardware hier gestartet
-  (UnlessCondition(use_sim_time)). In der Simulation startet ihn das
-  gz_ros2_control-Plugin — dort darf kein zweiter Manager laufen.
-  ALT: kein controller_manager — Spawner liefen ins Leere (launch_robot.launch.py
-       hatte ihn, ist aber durch diese Kette ersetzt)
-- ros2_control_node bekommt dieselben Remappings wie das Sim-Plugin
-  (Referenz-Pattern rosbot_controller): cmd_vel_unstamped→cmd_vel,
-  odom→odometry/wheels, imu_broadcaster/imu→imu/data. Damit ist der
-  Topic-Vertrag in Sim und Real identisch und die EKF (odometry/wheels,
-  imu/data) bekommt ihre Inputs auch auf echter Hardware.
-  ALT: keine Remappings — EKF-Inputs existierten nur in der Simulation
-- robot_description kommt per Topic vom robot_state_publisher
-  (Remap ~/robot_description→robot_description, wie Referenz)
-  ALT: robot_description als Parameter per xacro Command — deprecated und
-       doppelte xacro-Ausführung
-- Nerf-Kette (tilt/shooter/arming Spawner + nerf_control_node) hinter
-  use_nerf_hardware, sequenziell nach dem Basis-Spawner (OnProcessExit)
+)
 """
 
 from launch import LaunchDescription
@@ -52,7 +29,9 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration("use_sim_time", default="false")
     use_ros2_control = LaunchConfiguration("use_ros2_control", default="true")
-    use_nerf_hardware = LaunchConfiguration("use_nerf_hardware", default="true")
+    use_nerf_hardware = LaunchConfiguration(
+        "use_nerf_hardware", default="true")
+    use_camera = LaunchConfiguration("use_camera", default="true")
     auto_arm = LaunchConfiguration("auto_arm", default="false")
 
     # 1. Load URDF (Robot State Publisher)
@@ -60,19 +39,22 @@ def generate_launch_description():
     load_urdf = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
-                FindPackageShare(package_name), "description", "launch", "load_urdf.launch.py"
+                FindPackageShare(
+                    package_name), "description", "launch", "load_urdf.launch.py"
             ])
         ),
         launch_arguments={
             "use_sim_time": use_sim_time,
             "use_ros2_control": use_ros2_control,
             "use_nerf_hardware": use_nerf_hardware,
+            "use_camera": use_camera,
         }.items(),
     )
 
     # 2. Twist Mux
     twist_mux_config = PathJoinSubstitution([
-        FindPackageShare(package_name), "controller", "config", "twist_mux.yaml"
+        FindPackageShare(
+            package_name), "controller", "config", "twist_mux.yaml"
     ])
     twist_mux = Node(
         package="twist_mux",
@@ -92,7 +74,8 @@ def generate_launch_description():
     # damit Sim und Real denselben Topic-Vertrag haben (Referenz-Pattern
     # rosbot_controller/launch/controller.launch.py).
     controller_config = PathJoinSubstitution([
-        FindPackageShare(package_name), "controller", "config", "controllers.yaml"
+        FindPackageShare(
+            package_name), "controller", "config", "controllers.yaml"
     ])
     controller_manager = Node(
         package="controller_manager",
@@ -106,7 +89,8 @@ def generate_launch_description():
                 "_mecanum_drive_controller/transition_event",
             ),
             ("imu_broadcaster/imu", "imu/data"),
-            ("imu_broadcaster/transition_event", "_imu_broadcaster/transition_event"),
+            ("imu_broadcaster/transition_event",
+             "_imu_broadcaster/transition_event"),
             (
                 "joint_state_broadcaster/transition_event",
                 "_joint_state_broadcaster/transition_event",
@@ -136,7 +120,8 @@ def generate_launch_description():
 
     # TimerAction: controller_manager muss bereit sein (wie Referenz: 2.0s)
     # ALT: periode war unterschiedlich pro Spawner (2s, 3s, 4s)
-    delayed_controllers_spawner = TimerAction(period=2.0, actions=[controllers_spawner])
+    delayed_controllers_spawner = TimerAction(
+        period=2.0, actions=[controllers_spawner])
 
     # Stderr-Monitor: Shutdown bei fatalen Fehlern (Referenz-Pattern)
     # ALT: keine Fehlerüberwachung — Fehler beim Spawnen wurden ignoriert
@@ -147,7 +132,8 @@ def generate_launch_description():
         if (
             "fatal" in msg or "failed" in msg
         ) and "attempt" not in msg:
-            print(f"{red_color}Fatal error: {event.text}. Emitting shutdown...{reset_color}")
+            print(
+                f"{red_color}Fatal error: {event.text}. Emitting shutdown...{reset_color}")
             return EmitEvent(event=Shutdown(reason="Spawner failed"))
 
     controllers_monitor = RegisterEventHandler(
@@ -212,6 +198,11 @@ def generate_launch_description():
         DeclareLaunchArgument("use_sim_time", default_value="false"),
         DeclareLaunchArgument("use_ros2_control", default_value="true"),
         DeclareLaunchArgument("use_nerf_hardware", default_value="true"),
+        DeclareLaunchArgument(
+            "use_camera",
+            default_value="true",
+            description="Include the Gazebo camera sensor in the URDF.",
+        ),
         DeclareLaunchArgument(
             "auto_arm",
             default_value="false",

@@ -29,6 +29,10 @@
     <link name="camera_link_optical"></link>
     <gazebo reference="camera_link">
         <material>Gazebo/Black</material>
+        <!-- Der Render-Sensor ist abschaltbar (use_camera:=false), weil er unter
+             WSL2 (Software-GL/llvmpipe) die Simulation massiv bremst. Die Links
+             und TF-Frames oben bleiben davon unberuehrt. -->
+        <xacro:if value="$(arg use_camera)">
         <sensor name="camera" type="camera">
             <pose> 0 0 0 0 0 0 </pose>
             <visualize>false</visualize>
@@ -62,5 +66,6 @@
             <topic>camera/image_raw</topic>
             <ignition_frame_id>camera_link_optical</ignition_frame_id>
         </sensor>
+        </xacro:if>
     </gazebo>
 </robot>
