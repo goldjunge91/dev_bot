@@ -123,6 +123,15 @@ private:
     std::string port_;  // Serieller Port (z.B. /dev/ttyACM0)
     int baud_rate_;     // Baudrate (z.B. 115200)
 
+    // Tilt-Range in Joint-Space (rad) — das Hardware-Interface besitzt die
+    // Konvention: alle Nodes kommandieren im URDF-Joint-Bereich, write()
+    // clampt darauf. Die Firmware selbst ist einheitenlos (relative UP/DN-
+    // Pulse), daher genügt der Clamp hier.
+    // ALT: Nodes kommandierten Servo-Rohwerte 5.23–6.28 rad — kollidierte
+    //      mit den URDF-Limits (±0.52) in der Simulation.
+    double tilt_min_ = -0.52;  // URDF trigger_joint lower limit (rad)
+    double tilt_max_ = 0.52;   // URDF trigger_joint upper limit (rad)
+
     // Arming State (Synchron mit Firmware-FSM)
     /**
      * @brief Gibt Pointer auf State-Variable zurück

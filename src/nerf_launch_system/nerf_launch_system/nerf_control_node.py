@@ -9,9 +9,11 @@ Services:
 
 Topics (Subscribed):
 - /nerf/tilt (Float64MultiArray) - Normalisierte Tilt-Position [0.0-1.0]
-  * 0.0 = Unten (5.23 rad ≈ 300°)
-  * 0.5 = Horizontal (5.75 rad)
-  * 1.0 = Oben (6.28 rad ≈ 360°)
+  * 0.0 = Unten (-0.52 rad, Joint-Space)
+  * 0.5 = Horizontal (0.0 rad)
+  * 1.0 = Oben (+0.52 rad)
+  # ALT: Servo-Rohwerte 5.23–6.28 rad — kollidierte mit den URDF-Limits
+  #      (±0.52) in der Simulation; NerfSystem arbeitet jetzt in Joint-Space
 
 Topics (Published):
 - /trigger_controller/commands - Tilt Servo Position (Radiant)
@@ -67,9 +69,12 @@ class NerfControlNode(Node):
         # Services: Bietet Fire-Service an
         self.create_service(Trigger, "/nerf/fire", self.fire_callback)
 
-        # Parameters: Physikalische Grenzen
-        self.tilt_min = 5.23  # ~300° (Unten)
-        self.tilt_max = 6.28  # ~360° (Oben)
+        # Parameters: Physikalische Grenzen in Joint-Space (rad)
+        # = trigger_joint URDF-Limits; gilt für Sim UND echte Hardware
+        # (NerfSystem clampt zusätzlich auf dieselbe Range).
+        # ALT: 5.23 / 6.28 — Servo-Rohwerte, in der Sim ans Limit geclampt
+        self.tilt_min = -0.52  # Unten
+        self.tilt_max = 0.52   # Oben
 
         self.get_logger().info("Nerf Control Node Started")
 
@@ -79,12 +84,15 @@ class NerfControlNode(Node):
 
     def init_callback(self):
         """
-        Initialisiert Launcher-Position auf 'UP' (6.28 rad)
+        Initialisiert Launcher-Position auf 'UP' (tilt_max, Joint-Space)
         Läuft nur einmal
         """
-        self.get_logger().info("Initializing Launcher Position to UP (6.28)...")
+        # ALT: cmd.data = [6.28] — Servo-Rohwert
+        self.get_logger().info(
+            f"Initializing Launcher Position to UP ({self.tilt_max})..."
+        )
         cmd = Float64MultiArray()
-        cmd.data = [6.28]
+        cmd.data = [self.tilt_max]
         self.trigger_pub.publish(cmd)
 
         if self.auto_arm:
@@ -105,10 +113,10 @@ class NerfControlNode(Node):
         """
         Akzeptiert normalisierte Tilt-Werte [0.0 - 1.0]
 
-        Mapping:
-        0.0 = Unten (5.23 rad ≈ 300°)
-        0.5 = Horizontal (5.75 rad)
-        1.0 = Oben (6.28 rad ≈ 360°)
+        Mapping (Joint-Space):
+        0.0 = Unten (-0.52 rad)
+        0.5 = Horizontal (0.0 rad)
+        1.0 = Oben (+0.52 rad)
 
         Beispiel:
         - msg.data = [0.0] → Launcher zeigt nach unten

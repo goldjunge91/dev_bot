@@ -7,6 +7,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/logging.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <rclcpp_lifecycle/state.hpp>
 #include <sstream>
@@ -26,10 +27,20 @@ hardware_interface::CallbackReturn NerfSystem::on_init(
     port_ = info_.hardware_parameters["port"];
     baud_rate_ = std::stoi(info_.hardware_parameters["baud_rate"]);
 
+    // Tilt-Range aus URDF (optional, Default: ±0.52 rad = trigger_joint Limits)
+    if (info_.hardware_parameters.count("tilt_min")) {
+        tilt_min_ = std::stod(info_.hardware_parameters.at("tilt_min"));
+    }
+    if (info_.hardware_parameters.count("tilt_max")) {
+        tilt_max_ = std::stod(info_.hardware_parameters.at("tilt_max"));
+    }
+
     RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
-                "Initialized NerfSystem on port %s @ %d",
+                "Initialized NerfSystem on port %s @ %d (tilt range [%.2f, %.2f] rad)",
                 port_.c_str(),
-                baud_rate_);
+                baud_rate_,
+                tilt_min_,
+                tilt_max_);
 
     // Verifiziere Joints aus URDF-Konfiguration
     for (const hardware_interface::ComponentInfo &joint : info_.joints) {
@@ -203,7 +214,10 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
     if (!armed_) return hardware_interface::return_type::OK;
 
     // 1. Tilt – UP/DN Commands für kontinuierliche Rotation
-    double target_pos = hw_commands_.tilt_pos;
+    // Clamp auf die Joint-Range: das Hardware-Interface besitzt die Konvention.
+    // Out-of-Range-Kommandos (z. B. alte Servo-Rohwerte 5.23–6.28) laufen so
+    // nicht mehr endlos gegen die mechanische Grenze.
+    double target_pos = std::clamp(hw_commands_.tilt_pos, tilt_min_, tilt_max_);
     double current_pos = hw_states_.tilt_pos;
     double delta = target_pos - current_pos;
 

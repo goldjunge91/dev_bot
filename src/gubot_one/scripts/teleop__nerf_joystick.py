@@ -7,17 +7,21 @@ Steuert den Nerf-Launcher über einen Xbox/PlayStation Controller.
 Hauptfunktionen:
 - Arming/Disarming System (LB+RB für 3s halten)
 - Tilt Servo Steuerung (LB/RB einzeln)
-- Feuer-Befehl (A-Taste)
+- Feuer-Befehl (RT)
+  # ALT: A-Taste — Konflikt mit teleop_twist_joy Deadman (enable_button 0 = A):
+  #      jeder Fahr-Enable hätte im armed-Zustand einen Schuss ausgelöst
 - Notfall-Disarm (D-Pad beliebige Richtung)
 
 Button Mapping (Xbox Controller):
-- 0: A (Fire)
 - 4: LB (Tilt Down / Arming)
 - 5: RB (Tilt Up / Arming)
 - 6: LT (Flywheel Speed - digital fallback)
+- 7: RT (Fire - digital fallback)
 - 12-15: D-Pad (Emergency Disarm)
+# ALT: - 0: A (Fire)
 
 Axis Mapping:
+- Axis 5: RT analog (Fire; Ruhe +1.0, gedrückt -1.0)
 - Axis 6/7: D-Pad Axes (Emergency Disarm)
 """
 
@@ -59,8 +63,12 @@ class NerfJoy(Node):
         self.pusher_active = False  # Pusher aktiv (während Schuss)
         self.pusher_timer = 0  # Timer für Pusher-Puls (0.5s)
 
-        # Tilt State
-        self.tilt_pos = 6.28  # Startposition: UP (360°)
+        # Tilt State — Joint-Space (rad), = trigger_joint URDF-Limits ±0.52.
+        # Gilt für Sim UND echte Hardware (NerfSystem clampt auf dieselbe Range).
+        # ALT: 6.28 / 5.23–6.28 — Servo-Rohwerte, in der Sim ans Limit geclampt
+        self.tilt_min = -0.52  # DOWN
+        self.tilt_max = 0.52  # UP
+        self.tilt_pos = self.tilt_max  # Startposition: UP
         self.tilt_step = 0.05  # Schrittweite für Tilt-Änderungen
 
         # Arming Logic
@@ -70,6 +78,7 @@ class NerfJoy(Node):
         # Debounce/Edge detection
         self.last_buttons = []  # Vorheriger Button-Zustand
         self.last_axes = []  # Vorheriger Achsen-Zustand
+        self.last_rt_pressed = False  # Vorheriger RT-Zustand (Flanken-Erkennung)
 
         # Timer: Läuft mit 20Hz (0.05s) für Pusher-Puls-Verwaltung
         self.create_timer(0.05, self.loop)
@@ -93,7 +102,7 @@ class NerfJoy(Node):
         1. D-Pad → Notfall-Disarm (höchste Priorität)
         2. LB+RB (3s) → Arming Toggle
         3. LB/RB einzeln → Tilt Control (nur wenn nicht arming)
-        4. A → Fire (nur wenn armed)
+        4. RT → Fire (nur wenn armed)
         """
         # Initialisierung beim ersten Durchlauf
         if not self.last_buttons:
@@ -157,21 +166,36 @@ class NerfJoy(Node):
                 # Tilt Down: LB (Einzeldruck/Halten)
                 # Tilt Up: RB (Einzeldruck/Halten)
 
+                # Joint-Space-Konvention: positiv = UP (Achse in
+                # nerf_launcher.urdf.xacro entsprechend orientiert).
+                # LB = Tilt Down (−step), RB = Tilt Up (+step) — wie im
+                # Button-Mapping oben dokumentiert.
+                # ALT: LB erhöhte den Wert und loggte "DOWN" — Log und
+                #      Richtung waren gegeneinander verdreht (Servo-Rohwerte)
                 if pressed(4):  # LB
-                    # Richtung konsistent zu nerf_teleop (UP)
-                    self.tilt_pos = min(6.28, self.tilt_pos + self.tilt_step)
+                    self.tilt_pos = max(self.tilt_min, self.tilt_pos - self.tilt_step)
                     self.publish_tilt(self.tilt_pos)
                     self.get_logger().info(f"Tilt DOWN: {self.tilt_pos:.2f}")
 
                 if pressed(5):  # RB
-                    # Richtung konsistent zu nerf_teleop (DOWN)
-                    self.tilt_pos = max(5.23, self.tilt_pos - self.tilt_step)
+                    self.tilt_pos = min(self.tilt_max, self.tilt_pos + self.tilt_step)
                     self.publish_tilt(self.tilt_pos)
                     self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
 
-        # --- 3. Fire (A) ---
-        # Anforderung: "Schießen mit A" → User Map: 0='A'
-        if pressed(0):
+        # --- 3. Fire (RT) ---
+        # ALT: Fire lag auf A (Button 0) — Konflikt mit dem teleop_twist_joy
+        #      Deadman-Button (enable_button: 0): Fahren-Enable hätte im
+        #      armed-Zustand jedes Mal einen Schuss ausgelöst.
+        # RT wird doppelt erkannt: analoge Achse 5 (Ruhe +1.0, voll gedrückt
+        # -1.0) ODER digitaler Button 7 (Fallback für Controller, die die
+        # Trigger als Buttons melden). Flanken-Erkennung wie vorher bei A.
+        rt_pressed = False
+        if len(msg.axes) > 5 and msg.axes[5] < -0.5:
+            rt_pressed = True
+        if len(msg.buttons) > 7 and msg.buttons[7] == 1:
+            rt_pressed = True
+
+        if rt_pressed and not self.last_rt_pressed:
             # Sicherheitsprüfungen: Armed
             if self.armed_state:
                 self.get_logger().info("FIRE!")
@@ -184,6 +208,7 @@ class NerfJoy(Node):
         # Speichere aktuellen Zustand für nächste Iteration
         self.last_buttons = msg.buttons
         self.last_axes = msg.axes
+        self.last_rt_pressed = rt_pressed
 
     def publish_arming(self, val):
         """Sendet Arming-Befehl (0.0=Disarm, 1.0=Arm)"""
@@ -199,8 +224,9 @@ class NerfJoy(Node):
 
     def publish_tilt(self, pos):
         """
-        Sendet Tilt-Servo Position in Radiant
-        5.23 rad ≈ 300° (DOWN), 6.28 rad ≈ 360° (UP)
+        Sendet Tilt-Servo Position in Radiant (Joint-Space)
+        -0.52 rad = DOWN, +0.52 rad = UP
+        # ALT: 5.23 rad ≈ 300° (DOWN), 6.28 rad ≈ 360° (UP) — Servo-Rohwerte
         """
         msg = Float64MultiArray()
         msg.data = [float(pos)]

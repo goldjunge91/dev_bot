@@ -166,7 +166,12 @@
         <origin xyz="0.08882309 0.10354221000000001 -0.00119223" rpy="-1.5707963267948943 -3.374960801568061e-11 -1.570862213919093" />
         <parent link="bottom_plate" />
         <child link="motor_bracket" />
-        <axis xyz="1.1287570791617654e-07 2.227474133869779e-15 1.0000000021779938" />
+        <!-- Achse invertiert: positiv = Launcher hoch (aus dem Körper heraus).
+             ALT: xyz="1.1e-07 2.2e-15 1.0" (CAD-Export) — positiv drehte den
+             Launcher NACH UNTEN in den Roboterkörper; das Init-Kommando
+             "UP = +tilt_max" fuhr ihn damit genau falsch herum. Hardware ist
+             deltabasiert (UP-Pulse bei steigendem Soll) und bleibt konsistent. -->
+        <axis xyz="0 0 -1" />
         <!-- <xacro:if value="$(arg use_gazebo_classic)"> -->
         <!--     <!- - Classic Simulation parser requires the original bounds - -> -->
         <!--     <limit lower="-1.05" upper="0.0" effort="10.0" velocity="5.0" /> -->

@@ -22,8 +22,8 @@ Tastenbelegung:
     1 - Disarm System
     2 - ARM System
     SPACE - Schießen
-    T - Tilt UP (6.28 rad)
-    G - Tilt DOWN (5.23 rad)
+    T - Tilt UP (+0.52 rad)
+    G - Tilt DOWN (-0.52 rad)
     R / F - Power UP/DN (5% steps)
     E / D - Power UP/DN (1% steps)
 """
@@ -52,8 +52,8 @@ Launcher Controls:
 
    SPACE : Fire Single Shot (Pulse Pusher)
    
-   t : Tilt Servo (UP - 6.28)
-   g : Tilt Servo (DOWN - 5.23)
+   t : Tilt Servo (UP - +0.52)
+   g : Tilt Servo (DOWN - -0.52)
 
    r / f : Increase/Decrease Fire Power (5% steps)
    e / b : Increase/Decrease Fire Power (1% steps)
