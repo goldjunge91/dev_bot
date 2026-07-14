@@ -16,11 +16,16 @@ git pull
 4.  Upload.
 
 ### Base Controller (Raspberry Pi Pico)
-1.  Connect the Pi Pico (holding BOOTSEL if needed, though Arduino IDE usually handles it).
-2.  Open `src/diffdrive_arduino/firmware/ROSArduinoBridge/ROSArduinoBridge.ino`.
-3.  Ensure you have the **Raspberry Pi Pico/RP2040** board support installed (e.g., Earle Philhower core).
-4.  Select Board: **Raspberry Pi Pico**.
-5.  Upload.
+<!-- ALT: src/diffdrive_arduino/firmware/ROSArduinoBridge/ROSArduinoBridge.ino
+     (Arduino IDE) — Paket wurde zu mecanum_pico refactored, Firmware ist
+     jetzt PlatformIO-basiert -->
+1.  Connect the Pi Pico (holding BOOTSEL if needed).
+2.  The firmware lives in `src/mecanum_pico/pico_firmware/` (PlatformIO project).
+3.  Build & upload:
+    ```bash
+    cd src/mecanum_pico/pico_firmware
+    pio run -t upload
+    ```
 
 ## 3. Build ROS Workspace
 On the Raspberry Pi:
@@ -32,11 +37,17 @@ source install/setup.bash
 
 ## 4. Launch Robot Stack
 **Terminal 1:**
-Launch the FULL robot (Base + Nerf) using the unified launch file:
+Launch the FULL robot (Base + Nerf + EKF + Joystick-Teleop) using the unified launch file:
 ```bash
-ros2 launch gubot_one launch_robot.launch.py
+ros2 launch gubot_one launch_all_real.launch.py
 ```
-*Note details: This assumes Nerf is on `/dev/ttyACM0` and Pico Base is on `/dev/ttyACM1`.*
+<!-- ALT: ros2 launch gubot_one launch_robot.launch.py — Datei wurde durch die
+     modulare Kette ersetzt: launch_all_real.launch.py inkludiert
+     controller/launch/controller.launch.py (controller_manager, Spawner,
+     Nerf-Kette, Twist Mux) + load_urdf + EKF -->
+*Notes:*
+- *Nerf hardware is enabled by default (`use_nerf_hardware:=true` inside the launch file); serial ports are resolved via `/dev/serial/by-id/...` in the URDF (`ros2_control_hardware.xacro`), not by ACM number.*
+- *For joystick control, run `joy_node` on the remote machine with the gamepad (same `ROS_DOMAIN_ID`, CycloneDDS config from `src/gubot_one/cycloneDDS/`); only `teleop_node`/`nerf_joy` run on the robot.*
 
 ## 5. Run Full System Test
 **Terminal 2:**

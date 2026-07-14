@@ -1,9 +1,17 @@
 """Tests for verifying launch file syntax and start script behavior."""
 
 import os
+import stat
 import subprocess
+import tempfile
 
 from ament_index_python.packages import get_package_share_directory
+
+# Workspace-Root dynamisch aus der Testdatei ableiten
+# ALT: workspace_dir war hartkodiert auf /home/ros/projects/my_new_robot
+#      (existiert nicht — Workspace heißt my_new_robot_9e34131)
+_TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+_WORKSPACE_DIR = os.path.abspath(os.path.join(_TEST_DIR, "..", "..", ".."))
 
 
 def test_launch_all_real_syntax_and_dependencies():
@@ -13,8 +21,13 @@ def test_launch_all_real_syntax_and_dependencies():
     Testet, ob das Launch-File syntaktisch korrekt ist und alle referenzierten
     Pakete (wie face_tracker) vorhanden sind.
     """
-    package_dir = get_package_share_directory("gubot_one_bringup")
-    launch_file_path = os.path.join(package_dir, "launch", "launch_all_real.launch.py")
+    # ALT: get_package_share_directory("gubot_one_bringup") — Paket existiert
+    #      nicht (Restrukturierung nie vollzogen); Launch-Dateien installieren
+    #      unter share/gubot_one/bringup/launch/
+    package_dir = get_package_share_directory("gubot_one")
+    launch_file_path = os.path.join(
+        package_dir, "bringup", "launch", "launch_all_real.launch.py"
+    )
 
     result = subprocess.run(
         ["ros2", "launch", launch_file_path, "--show-args"],
@@ -30,8 +43,9 @@ def test_start_robot_sh_execution_dry_run():
     """
     Test the start_robot.sh execution using a mock ros2 command.
 
-    Testet das start_robot.sh Skript, indem der ros2 launch Befehl durch ein Mock ersetzt wird.
-    So wird sichergestellt, dass keine Variablen-Initialisierungsfehler (--face) mehr auftreten.
+    Testet das start_robot.sh Skript, indem der ros2 launch Befehl durch ein
+    Mock ersetzt wird. So wird sichergestellt, dass keine
+    Variablen-Initialisierungsfehler (--face) mehr auftreten.
     """
     script_content = """#!/bin/bash
     source /opt/ros/humble/setup.bash
@@ -52,24 +66,38 @@ def test_start_robot_sh_execution_dry_run():
     bash ./src/gubot_one/scripts/start_robot.sh --face --target schatz
     """
 
-    test_sh_path = "/tmp/test_start_robot.sh"
-    with open(test_sh_path, "w") as f:
+    # Mock-Script innerhalb des Workspace anlegen (Projektregel: nicht nach
+    # /tmp schreiben) und nach dem Test aufräumen
+    # ALT: fester Pfad /tmp/test_start_robot.sh ohne Cleanup
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        suffix=".sh",
+        prefix="test_start_robot_",
+        dir=_TEST_DIR,
+        delete=False,
+    ) as f:
         f.write(script_content)
+        test_sh_path = f.name
 
-    os.chmod(test_sh_path, 0o755)
+    try:
+        os.chmod(test_sh_path, os.stat(test_sh_path).st_mode | stat.S_IXUSR)
 
-    workspace_dir = "/home/ros/projects/my_new_robot"
-    result = subprocess.run(
-        ["bash", test_sh_path], cwd=workspace_dir, capture_output=True, text=True
-    )
+        result = subprocess.run(
+            ["bash", test_sh_path],
+            cwd=_WORKSPACE_DIR,
+            capture_output=True,
+            text=True,
+        )
 
-    assert result.returncode == 0, (
-        f"Fehler beim Ausführen von start_robot.sh:\n{result.stderr}"
-    )
-    assert "malformed launch argument" not in result.stderr, (
-        "Fehler: malformed launch argument gefunden!"
-    )
-    assert (
-        "launch_face_tracker:=false" in result.stdout
-        or "launch_face_tracker:=true" in result.stdout
-    )
+        assert result.returncode == 0, (
+            f"Fehler beim Ausführen von start_robot.sh:\n{result.stderr}"
+        )
+        assert "malformed launch argument" not in result.stderr, (
+            "Fehler: malformed launch argument gefunden!"
+        )
+        assert (
+            "launch_face_tracker:=false" in result.stdout
+            or "launch_face_tracker:=true" in result.stdout
+        )
+    finally:
+        os.unlink(test_sh_path)

@@ -39,8 +39,13 @@ def generate_launch_description():
     tilt_command_topic = LaunchConfiguration("tilt_command_topic")
 
     # Lade Joystick-Parameter aus YAML
+    # ALT: "config", "joystick.yaml" — Verzeichnis wurde beim Umbau der
+    #      Paketstruktur gelöscht; Datei liegt jetzt unter controller/config/
     joy_params = os.path.join(
-        get_package_share_directory("gubot_one"), "config", "joystick.yaml"
+        get_package_share_directory("gubot_one"),
+        "controller",
+        "config",
+        "joystick.yaml",
     )
 
     # Node 1: joy_node - Liest Controller über /dev/input/js0

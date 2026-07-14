@@ -17,6 +17,12 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+
+# Modell-Suchpfad für Ignition/Gazebo (wie husarion_gz_worlds):
+# stellt gazebo/models (construction_cone, construction_barrel für
+# obstacles.world) über IGN_GAZEBO_RESOURCE_PATH bereit
+ament_environment_hooks(
+  "${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/${PROJECT_NAME}.sh.in")
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -40,9 +46,17 @@ if(BUILD_TESTING)
     tests/test_urdf_geometry.py
     TIMEOUT 30
   )
-  ament_add_pytest_test(test_launch_robot
-    tests/test_launch_robot.py
+  # ALT: test_launch_robot (tests/test_launch_robot.py) — launch_robot.launch.py
+  #      wurde durch controller/launch/controller.launch.py ersetzt
+  ament_add_pytest_test(test_controller_launch
+    tests/test_controller_launch.py
     TIMEOUT 30
+  )
+  # NEU: war nie registriert (und referenzierte das nicht existierende Paket
+  #      gubot_one_bringup) — repariert und in die Suite aufgenommen
+  ament_add_pytest_test(test_launch_args
+    tests/test_launch_args.py
+    TIMEOUT 60
   )
 endif()
 

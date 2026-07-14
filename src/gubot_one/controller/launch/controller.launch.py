@@ -1,7 +1,8 @@
 """
 Controller Launch
 =================
-Startet robot_state_publisher, twist_mux und alle ros2_control Spawner.
+Startet robot_state_publisher, twist_mux, den controller_manager (nur echte
+Hardware) und alle ros2_control Spawner.
 Referenz: rosbot_ws/src/rosbot_ros/rosbot_controller/launch/controller.launch.py
 
 Änderungen:
@@ -10,6 +11,23 @@ Referenz: rosbot_ws/src/rosbot_ros/rosbot_controller/launch/controller.launch.py
 - OnProcessIO stderr-Monitor für fatale Fehler (Shutdown bei "failed"/"fatal")
   ALT: Keine Fehlerüberwachung
 - use_sim_time wird über globalen SetParameter gesetzt (nicht per Node-Parameter)
+- controller_manager (ros2_control_node) wird für echte Hardware hier gestartet
+  (UnlessCondition(use_sim_time)). In der Simulation startet ihn das
+  gz_ros2_control-Plugin — dort darf kein zweiter Manager laufen.
+  ALT: kein controller_manager — Spawner liefen ins Leere (launch_robot.launch.py
+       hatte ihn, ist aber durch diese Kette ersetzt)
+- ros2_control_node bekommt dieselben Remappings wie das Sim-Plugin
+  (Referenz-Pattern rosbot_controller): cmd_vel_unstamped→cmd_vel,
+  odom→odometry/wheels, imu_broadcaster/imu→imu/data. Damit ist der
+  Topic-Vertrag in Sim und Real identisch und die EKF (odometry/wheels,
+  imu/data) bekommt ihre Inputs auch auf echter Hardware.
+  ALT: keine Remappings — EKF-Inputs existierten nur in der Simulation
+- robot_description kommt per Topic vom robot_state_publisher
+  (Remap ~/robot_description→robot_description, wie Referenz)
+  ALT: robot_description als Parameter per xacro Command — deprecated und
+       doppelte xacro-Ausführung
+- Nerf-Kette (tilt/shooter/arming Spawner + nerf_control_node) hinter
+  use_nerf_hardware, sequenziell nach dem Basis-Spawner (OnProcessExit)
 """
 
 from launch import LaunchDescription
@@ -20,7 +38,8 @@ from launch.actions import (
     RegisterEventHandler,
     TimerAction,
 )
-from launch.event_handlers import OnProcessIO
+from launch.conditions import IfCondition, UnlessCondition
+from launch.event_handlers import OnProcessExit, OnProcessIO
 from launch.events import Shutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -34,6 +53,7 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time", default="false")
     use_ros2_control = LaunchConfiguration("use_ros2_control", default="true")
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware", default="true")
+    auto_arm = LaunchConfiguration("auto_arm", default="false")
 
     # 1. Load URDF (Robot State Publisher)
     # controller_config wird mit Standardpfad geladen (überschreibbar)
@@ -58,10 +78,46 @@ def generate_launch_description():
         package="twist_mux",
         executable="twist_mux",
         parameters=[twist_mux_config],
+        # /cmd_vel ist der gemeinsame Topic-Vertrag (Sim + Real): der Controller
+        # wird per Remap auf cmd_vel gelegt — in der Sim durch das gz-Plugin
+        # (ros2_control_gazebo_ign_fortress.xacro), auf echter Hardware durch
+        # die Remappings am ros2_control_node unten.
         remappings=[("/cmd_vel_out", "/cmd_vel")],
     )
 
-    # 3. Controller Spawner — Referenz-Pattern: einzelner Aufruf mit allen Controllern
+    # 3. Controller Manager (ros2_control_node) — NUR echte Hardware.
+    # In der Simulation startet gz_ros2_control den Manager im Gazebo-Prozess.
+    # robot_description kommt per Topic vom robot_state_publisher (load_urdf);
+    # die Remappings spiegeln exakt die <ros>-Remappings des Sim-Plugins,
+    # damit Sim und Real denselben Topic-Vertrag haben (Referenz-Pattern
+    # rosbot_controller/launch/controller.launch.py).
+    controller_config = PathJoinSubstitution([
+        FindPackageShare(package_name), "controller", "config", "controllers.yaml"
+    ])
+    controller_manager = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        parameters=[controller_config],
+        remappings=[
+            ("mecanum_drive_controller/cmd_vel_unstamped", "cmd_vel"),
+            ("mecanum_drive_controller/odom", "odometry/wheels"),
+            (
+                "mecanum_drive_controller/transition_event",
+                "_mecanum_drive_controller/transition_event",
+            ),
+            ("imu_broadcaster/imu", "imu/data"),
+            ("imu_broadcaster/transition_event", "_imu_broadcaster/transition_event"),
+            (
+                "joint_state_broadcaster/transition_event",
+                "_joint_state_broadcaster/transition_event",
+            ),
+            ("~/robot_description", "robot_description"),
+        ],
+        output="screen",
+        condition=UnlessCondition(use_sim_time),
+    )
+
+    # 4. Controller Spawner — Referenz-Pattern: einzelner Aufruf mit allen Controllern
     # ALT: 3 separate spawner mit TimerAction(2s/3s/4s) — mögliche Race Condition
     # ALT: joint_state_broadcaster_spawner = Node(...)
     # ALT: mecanum_drive_controller_spawner = Node(...)
@@ -74,7 +130,7 @@ def generate_launch_description():
             "imu_broadcaster",
             "joint_state_broadcaster",
             "-c", "controller_manager",
-            "--controller-manager-timeout", "20",
+            "--controller-manager-timeout", "60",
         ],
     )
 
@@ -101,12 +157,72 @@ def generate_launch_description():
         )
     )
 
+    # 5. Nerf-Kette (nur wenn use_nerf_hardware=true)
+    # Spawner startet sequenziell NACH dem Basis-Spawner (OnProcessExit) —
+    # verhindert DDS "Thundering Herd" (Pattern aus launch_robot.launch.py).
+    nerf_controllers_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "tilt_controller",
+            "shooter_controller",
+            "arming_controller",
+            "-c", "controller_manager",
+            "--controller-manager-timeout", "60",
+        ],
+        output="screen",
+        condition=IfCondition(use_nerf_hardware),
+    )
+
+    delayed_nerf_spawner = RegisterEventHandler(
+        OnProcessExit(
+            target_action=controllers_spawner,
+            on_exit=[nerf_controllers_spawner],
+        )
+    )
+
+    nerf_monitor = RegisterEventHandler(
+        OnProcessIO(
+            target_action=nerf_controllers_spawner,
+            on_stderr=check_if_log_is_fatal,
+        )
+    )
+
+    # High-Level Nerf Control Node — startet nach den Nerf-Spawnern
+    nerf_control = Node(
+        package="nerf_launch_system",
+        executable="nerf_control_node",
+        output="screen",
+        parameters=[{"auto_arm": auto_arm}],
+        remappings=[
+            ("/trigger_controller/commands", "/tilt_controller/commands"),
+            ("/pusher_controller/commands", "/shooter_controller/commands"),
+        ],
+        condition=IfCondition(use_nerf_hardware),
+    )
+
+    delayed_nerf_control = RegisterEventHandler(
+        OnProcessExit(
+            target_action=nerf_controllers_spawner,
+            on_exit=[nerf_control],
+        )
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument("use_sim_time", default_value="false"),
         DeclareLaunchArgument("use_ros2_control", default_value="true"),
         DeclareLaunchArgument("use_nerf_hardware", default_value="true"),
+        DeclareLaunchArgument(
+            "auto_arm",
+            default_value="false",
+            description="Auto-arm the Nerf launcher on startup",
+        ),
         load_urdf,
         twist_mux,
+        controller_manager,
         delayed_controllers_spawner,
         controllers_monitor,
+        delayed_nerf_spawner,
+        nerf_monitor,
+        delayed_nerf_control,
     ])

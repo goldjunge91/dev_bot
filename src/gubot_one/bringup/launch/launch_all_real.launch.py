@@ -4,23 +4,35 @@ Launch All Real - Hauptstartdatei für echten Roboter
 Startet alle Komponenten für den echten Gubot One Roboter
 
 Komponenten:
-1. Roboter-Basis (launch_robot.launch.py)
-   - State Publisher
-   - Controller Manager
-   - Hardware Interfaces
+1. Controller-Kette (controller/launch/controller.launch.py)
+   - Robot State Publisher (via description/launch/load_urdf.launch.py)
+   - Controller Manager (ros2_control_node, nur echte Hardware)
+   - Controller Spawner (mecanum_drive_controller, imu_broadcaster,
+     joint_state_broadcaster) + Nerf-Kette (tilt/shooter/arming + control node)
    - Twist Mux
-   - Nerf Launcher (optional)
+   # ALT: launch_robot.launch.py — gelöscht, Pfade zeigten auf die alte
+   #      Paketstruktur (launch/, config/) und existierten nicht mehr
 
-2. RPLidar (optional)
+2. EKF Localization (localization/launch/ekf.launch.py)
+   - Publiziert odom -> base_link TF (enable_odom_tf ist im Controller aus)
+
+3. RPLidar (optional)
    - Laser-Scanner für Navigation
 
-3. USB Kamera (optional)
+4. USB Kamera (optional)
    - Bildverarbeitung
+
+5. Joystick-Teleop (bringup/launch/joystick.launch.py)
+   - teleop_node + nerf_joy laufen auf dem Roboter
+   - joy_node läuft NICHT hier (launch_joy_node:=false) — er läuft auf der
+     Remote-Maschine mit dem Gamepad und publiziert /joy über DDS/Tailscale
+   # ALT: war ausgehängt, weil config/joystick.yaml gelöscht war —
+   #      wiederhergestellt nach controller/config/joystick.yaml
 
 Launch Arguments:
 - launch_lidar: false (Standard, da kein Lidar vorhanden)
 - launch_camera: false (Standard, da Kamera defekt)
-- use_nerf_hardware: true (wird an launch_robot weitergegeben)
+- auto_arm: false (wird an die Nerf-Kette weitergegeben)
 
 Verwendung:
   ros2 launch gubot_one launch_all_real.launch.py
@@ -42,6 +54,7 @@ from launch.conditions import IfCondition
 
 def generate_launch_description():
     package_name = "gubot_one"
+    pkg_share = get_package_share_directory(package_name)
 
     # Launch Configuration Variablen
     launch_lidar = LaunchConfiguration("launch_lidar")
@@ -75,30 +88,72 @@ def generate_launch_description():
         description="Auto-arm the Nerf launcher on startup",
     )
 
-    # Roboter-Basis starten
-    # Enthält: State Publisher, Controller Manager, Hardware Interfaces, Twist Mux
+    # Controller-Kette starten (neue modulare Kette)
+    # Enthält: RSP (load_urdf), controller_manager, Spawner, Nerf-Kette, Twist Mux
+    # ALT: IncludeLaunchDescription(".../launch/launch_robot.launch.py") —
+    #      Datei installierte unter bringup/launch/, Include-Pfad war kaputt
     base_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
                 os.path.join(
-                    get_package_share_directory(package_name),
+                    pkg_share,
+                    "controller",
                     "launch",
-                    "launch_robot.launch.py",
+                    "controller.launch.py",
                 )
             ]
         ),
         launch_arguments={
+            "use_sim_time": "false",  # Echte Hardware, keine Simulation
+            "use_ros2_control": "true",
             "use_nerf_hardware": "true",  # Nerf Launcher aktivieren
             "auto_arm": auto_arm,
         }.items(),
     )
 
+    # Joystick-Teleop — nur der Roboter-Anteil:
+    # teleop_node (/joy -> /cmd_vel_joy) + nerf_joy. Der joy_node selbst
+    # läuft auf der Remote-Maschine mit dem Gamepad (launch_joy_node:=false).
+    joystick_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    pkg_share,
+                    "bringup",
+                    "launch",
+                    "joystick.launch.py",
+                )
+            ]
+        ),
+        launch_arguments={
+            "use_sim_time": "false",
+            "launch_joy_node": "false",
+        }.items(),
+    )
+
+    # EKF Localization — publiziert odom -> base_link TF
+    # (mecanum_drive_controller hat enable_odom_tf: false)
+    ekf_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    pkg_share,
+                    "localization",
+                    "launch",
+                    "ekf.launch.py",
+                )
+            ]
+        ),
+    )
+
     # RPLidar starten (nur wenn launch_lidar=true)
+    # ALT: "launch", "rplidar.launch.py" — fehlte das bringup-Präfix
     lidar_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
                 os.path.join(
-                    get_package_share_directory(package_name),
+                    pkg_share,
+                    "bringup",
                     "launch",
                     "rplidar.launch.py",
                 )
@@ -132,11 +187,13 @@ def generate_launch_description():
 
     # Kamera-Treiber Auswahl
     # 1. v4l2_camera (Standard)
+    # ALT: "launch", "camera.launch.py" — fehlte das bringup-Präfix
     v4l2_camera_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
                 os.path.join(
-                    get_package_share_directory(package_name),
+                    pkg_share,
+                    "bringup",
                     "launch",
                     "camera.launch.py",
                 )
@@ -156,11 +213,13 @@ def generate_launch_description():
     )
 
     # 2. usb_cam (Alternative, optimiert auf MJPEG)
+    # ALT: "launch", "real_camera.launch.py" — fehlte das bringup-Präfix
     usb_cam_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
                 os.path.join(
-                    get_package_share_directory(package_name),
+                    pkg_share,
+                    "bringup",
                     "launch",
                     "real_camera.launch.py",
                 )
@@ -181,11 +240,13 @@ def generate_launch_description():
 
     # Gesichtserkennung modular einbinden
     # Das Bild wird von real_camera.launch.py bereitgestellt.
+    # ALT: get_package_share_directory("ball_tracker") — Paket existiert nicht,
+    #      crashte die gesamte Launch-Datei beim Parsen (PackageNotFoundError)
     face_tracker_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
                 os.path.join(
-                    get_package_share_directory("ball_tracker"),
+                    get_package_share_directory("face_tracker"),
                     "launch",
                     "face_tracker.launch.py",
                 )
@@ -214,6 +275,8 @@ def generate_launch_description():
             camera_type_arg,
             auto_arm_arg,
             base_launch,
+            joystick_launch,
+            ekf_launch,
             lidar_launch,
             v4l2_camera_launch,
             usb_cam_launch,
