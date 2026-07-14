@@ -94,3 +94,5 @@ compile_commands.json
 
 # Claude Code per-user overrides — do not commit personal settings
 .claude/settings.local.json
+# WSL/Windows NTFS-Metadaten — werden beim Dateizugriff von Windows staendig neu erzeugt
+*Zone.Identifier
