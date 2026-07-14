@@ -151,6 +151,21 @@ See Sprint 7 procedures:
 
 ---
 
+## IMU (ICM-20948)
+
+The hardware interface reads accel + gyro from the Pico and fuses them into an
+orientation quaternion (complementary filter, `hardware/include/mecanum_pico/imu_fusion.hpp`)
+so the `imu_sensor_broadcaster` gets its required `orientation.x/y/z/w`
+state interfaces on real hardware too.
+
+**Keep the robot still for ~1 s after activation:** the first 100 standstill
+samples calibrate the gyro zero-rate bias (logged once as
+"Gyro bias calibrated…"). Samples taken while the robot accelerates are
+skipped and merely extend the calibration window. Every controller
+(re-)activation recalibrates.
+
+---
+
 ## Migration from diffdrive_arduino
 
 | Old | New |

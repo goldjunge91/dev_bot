@@ -287,9 +287,13 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_activate(
   }
 
   // Fresh orientation estimate per activation — the filter re-initializes
-  // roll/pitch from the first trustworthy gravity sample in read().
+  // roll/pitch from the first trustworthy gravity sample in read() and then
+  // recalibrates the gyro bias: the robot must stand still for ~1 s after
+  // activation (kCalibSamples standstill samples) before yaw integration
+  // starts.
   imu_filter_.reset();
   imu_orientation_ = {0.0, 0.0, 0.0, 1.0};
+  imu_calib_logged_ = false;
   RCLCPP_INFO(rclcpp::get_logger("MecanumPicoHardware"), "Successfully activated.");
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -382,6 +386,13 @@ hardware_interface::return_type MecanumPicoHardware::read(
         imu_filter_.quaternion(
           imu_orientation_[0], imu_orientation_[1],
           imu_orientation_[2], imu_orientation_[3]);
+        if (imu_filter_.calibrated() && !imu_calib_logged_) {
+          imu_calib_logged_ = true;
+          RCLCPP_INFO(
+            rclcpp::get_logger("MecanumPicoHardware"),
+            "Gyro bias calibrated after standstill: [%.5f, %.5f, %.5f] rad/s",
+            imu_filter_.bias_x(), imu_filter_.bias_y(), imu_filter_.bias_z());
+        }
       }
     } else {
       // Non-fatal: keep the last known IMU values and continue. The wheel

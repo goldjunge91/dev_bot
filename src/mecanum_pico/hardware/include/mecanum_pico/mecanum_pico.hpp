@@ -126,6 +126,9 @@ private:
   /// Complementary filter fusing gyro+accel into imu_orientation_ (RT-safe).
   ImuComplementaryFilter imu_filter_;
 
+  /// Edge flag for the one-time "gyro bias calibrated" log in read().
+  bool imu_calib_logged_ = false;
+
   /// True once a sensor block was found in the URDF — export_state_interfaces()
   /// only advertises the IMU interfaces when this is true.
   bool has_imu_sensor_ = false;

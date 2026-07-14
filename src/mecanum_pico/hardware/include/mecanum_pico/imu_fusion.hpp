@@ -30,6 +30,11 @@ namespace mecanum_pico
  *  - yaw: pure gyro integration. Drifts slowly without a magnetometer; the
  *    EKF consumes yaw with imu0_relative: true, so slow drift is acceptable.
  *  - dt guards: dt <= 0 or dt > kMaxDt skips integration for that sample.
+ *  - gyro bias: the first kCalibSamples standstill samples after reset() are
+ *    averaged into a per-axis bias that is subtracted from all later gyro
+ *    readings (MEMS zero-rate offset would otherwise integrate into yaw
+ *    drift). The robot must sit still ~1 s after activation; samples taken
+ *    while accelerating merely extend the calibration window.
  */
 class ImuComplementaryFilter
 {
@@ -46,6 +51,10 @@ public:
   static constexpr double kGravity = 9.80665;
   static constexpr double kAccelTrustLow = 0.7 * kGravity;
   static constexpr double kAccelTrustHigh = 1.3 * kGravity;
+
+  /// Standstill samples averaged into the gyro bias after reset()
+  /// (~1 s at the controller_manager's 100 Hz update rate).
+  static constexpr int kCalibSamples = 100;
 
   /**
    * @brief Feed one IMU sample.
@@ -83,6 +92,34 @@ public:
     if (dt <= 0.0 || dt > kMaxDt) {
       return;  // clock jump / gap — skip integration for this sample
     }
+
+    // Gyro bias calibration: average the first kCalibSamples standstill
+    // samples. Only samples with a trusted accel magnitude count (~1 g —
+    // hard acceleration means the gyro is not at rest either); untrusted
+    // samples merely extend the window instead of corrupting the mean.
+    // No gyro integration during this phase: roll/pitch keep tracking
+    // gravity, yaw stays 0 — the robot is standing still anyway.
+    if (!calibrated_) {
+      if (accel_trusted) {
+        bias_sum_x_ += gx;
+        bias_sum_y_ += gy;
+        bias_sum_z_ += gz;
+        ++calib_count_;
+        roll_ = std::atan2(ay, az);
+        pitch_ = std::atan2(-ax, std::sqrt(ay * ay + az * az));
+        if (calib_count_ >= kCalibSamples) {
+          bias_x_ = bias_sum_x_ / calib_count_;
+          bias_y_ = bias_sum_y_ / calib_count_;
+          bias_z_ = bias_sum_z_ / calib_count_;
+          calibrated_ = true;
+        }
+      }
+      return;
+    }
+
+    gx -= bias_x_;
+    gy -= bias_y_;
+    gz -= bias_z_;
 
     // Gyro integration.
     double roll_gyro = roll_ + gx * dt;
@@ -131,16 +168,25 @@ public:
   }
 
   /// Reset to identity / uninitialized (call from on_configure/on_activate).
+  /// Also restarts the gyro bias calibration — every activation recalibrates.
   void reset()
   {
     roll_ = pitch_ = yaw_ = 0.0;
     initialized_ = false;
+    bias_x_ = bias_y_ = bias_z_ = 0.0;
+    bias_sum_x_ = bias_sum_y_ = bias_sum_z_ = 0.0;
+    calib_count_ = 0;
+    calibrated_ = false;
   }
 
   double roll() const {return roll_;}
   double pitch() const {return pitch_;}
   double yaw() const {return yaw_;}
   bool initialized() const {return initialized_;}
+  bool calibrated() const {return calibrated_;}
+  double bias_x() const {return bias_x_;}
+  double bias_y() const {return bias_y_;}
+  double bias_z() const {return bias_z_;}
 
 private:
   static double wrap_angle(double a)
@@ -154,6 +200,16 @@ private:
   double pitch_ = 0.0;  ///< [rad]
   double yaw_ = 0.0;    ///< [rad]
   bool initialized_ = false;
+
+  // Gyro zero-rate bias [rad/s], learned during the calibration phase.
+  double bias_x_ = 0.0;
+  double bias_y_ = 0.0;
+  double bias_z_ = 0.0;
+  double bias_sum_x_ = 0.0;
+  double bias_sum_y_ = 0.0;
+  double bias_sum_z_ = 0.0;
+  int calib_count_ = 0;
+  bool calibrated_ = false;
 };
 
 }  // namespace mecanum_pico
