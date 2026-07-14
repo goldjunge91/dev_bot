@@ -8,6 +8,8 @@
 #ifndef MECANUM_PICO__MECANUM_PICO_HPP_
 #define MECANUM_PICO__MECANUM_PICO_HPP_
 
+#include "mecanum_pico/hardware_diagnostics.hpp"
+#include "mecanum_pico/imu_fusion.hpp"
 #include "mecanum_pico/pico_comms.hpp"
 #include "mecanum_pico/visibility_control.h"
 #include "mecanum_pico/wheel.hpp"
@@ -23,6 +25,7 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -100,6 +103,44 @@ private:
   Wheel wheel_fr_;  ///< Front-right wheel — positive cmd = forward-right contribution
   Wheel wheel_rl_;  ///< Rear-left   wheel — positive cmd = backward-left contribution
   Wheel wheel_rr_;  ///< Rear-right  wheel — positive cmd = backward-right contribution
+
+  // -------------------------------------------------------------------------
+  // IMU sensor (ICM-20948, read via Pico 'i' command)
+  // -------------------------------------------------------------------------
+  /// Sensor name — must match the URDF <sensor name="..."> declaration.
+  /// Populated from info_.sensors[0].name in on_init() if a sensor is declared,
+  /// otherwise falls back to "imu_sensor".
+  std::string imu_sensor_name_ = "imu_sensor";
+
+  /// Order: [0]=linear_acceleration.x [1]=.y [2]=.z
+  ///        [3]=angular_velocity.x    [4]=.y [5]=.z
+  /// Units: SI (m/s^2, rad/s) — converted from firmware units (g, deg/s) in read().
+  std::array<double, 6> imu_data_{};
+
+  /// Orientation quaternion [x, y, z, w] computed by imu_filter_ in read().
+  /// Exported as orientation.x/y/z/w state interfaces when the URDF declares
+  /// them (has_orientation_). The Humble imu_sensor_broadcaster requires
+  /// these to activate — the raw ICM-20948 does not measure orientation.
+  std::array<double, 4> imu_orientation_{0.0, 0.0, 0.0, 1.0};
+
+  /// Complementary filter fusing gyro+accel into imu_orientation_ (RT-safe).
+  ImuComplementaryFilter imu_filter_;
+
+  /// True once a sensor block was found in the URDF — export_state_interfaces()
+  /// only advertises the IMU interfaces when this is true.
+  bool has_imu_sensor_ = false;
+
+  /// True when the URDF sensor block declares the 4 orientation interfaces
+  /// (10-interface layout) in addition to accel+gyro (6-interface layout).
+  bool has_orientation_ = false;
+
+  // -------------------------------------------------------------------------
+  // /diagnostics reporting (Pico serial connection + control-loop rate).
+  // Created in on_configure(), started/stopped alongside the serial
+  // connection lifecycle. See hardware_diagnostics.hpp for why this owns
+  // its own node/thread instead of using a node this class doesn't have.
+  // -------------------------------------------------------------------------
+  std::unique_ptr<HardwareDiagnostics> diagnostics_;
 };
 
 }  // namespace mecanum_pico

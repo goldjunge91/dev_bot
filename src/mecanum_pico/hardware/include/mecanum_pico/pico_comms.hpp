@@ -169,6 +169,46 @@ public:
   }
 
   // -------------------------------------------------------------------------
+  // IMU read (accelerometer + gyroscope)
+  // -------------------------------------------------------------------------
+
+  /**
+   * @brief Request and parse IMU accel+gyro values from the Pico.
+   *
+   * Sends "i\r" and parses the response "ax ay az gx gy gz\n" (no prefix char,
+   * see pico_firmware/src/main.cpp 'i' command).
+   *
+   * Units as returned by the firmware: acceleration in [g], angular rate in [deg/s].
+   * Caller is responsible for converting to SI units (m/s^2, rad/s) for ROS.
+   *
+   * @return true on successful parse, false on timeout or malformed response.
+   */
+  bool read_imu_values(
+    double & ax, double & ay, double & az,
+    double & gx, double & gy, double & gz)
+  {
+    std::string response = send_msg("i\r");
+    return parse_imu_response(response, ax, ay, az, gx, gy, gz);
+  }
+
+  /**
+   * @brief Parse an IMU response string of the form "ax ay az gx gy gz\r\n".
+   *
+   * This method is public and virtual so it can be unit-tested without a real serial port.
+   *
+   * @return true if exactly 6 tokens were parsed.
+   */
+  virtual bool parse_imu_response(
+    const std::string & line,
+    double & ax, double & ay, double & az,
+    double & gx, double & gy, double & gz)
+  {
+    int parsed = std::sscanf(
+      line.c_str(), "%lf %lf %lf %lf %lf %lf", &ax, &ay, &az, &gx, &gy, &gz);
+    return parsed == 6;
+  }
+
+  // -------------------------------------------------------------------------
   // Reset encoders
   // -------------------------------------------------------------------------
 

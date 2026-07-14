@@ -1,10 +1,10 @@
-// MIGRATION STATUS: IN PROGRESS (Sprint 1+2 complete; Sprint 3 URDF wiring pending)
 // Copyright 2024 mecanum_pico Development
 // SPDX-License-Identifier: Apache-2.0
 //
 // MecanumPicoHardware — full ros2_control SystemInterface implementation.
-// Handles 4 wheels (front_left, front_right, rear_left, rear_right)
-// and communicates with the Raspberry Pi Pico via USB-CDC.
+// Handles 4 wheels (front_left, front_right, rear_left, rear_right) and,
+// if declared in the URDF, one IMU sensor (accel + gyro, ICM-20948 via Pico).
+// Communicates with the Raspberry Pi Pico via USB-CDC.
 // Host sends velocity targets; PID loops run on-Pico.
 
 #include "mecanum_pico/mecanum_pico.hpp"
@@ -87,6 +87,71 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_init(
     }
   }
 
+  // --- Detect optional IMU sensor block in URDF --------------------------
+  // A sensor is only wired up if the URDF actually declares one under this
+  // <ros2_control> block (see gubot_one/description/urdf/ros2_control_hardware.xacro).
+  if (!info_.sensors.empty()) {
+    const hardware_interface::ComponentInfo & sensor = info_.sensors[0];
+
+    // 10-interface layout (like the sim xacro): accel + gyro + orientation.
+    // Orientation is COMPUTED here (complementary filter) — the ICM-20948
+    // does not measure it, but the Humble imu_sensor_broadcaster requires
+    // orientation.x/y/z/w to activate.
+    // ALT: exactly 6 interfaces (accel + gyro) — the imu_broadcaster could
+    //      never activate on real hardware. 6 is still accepted (legacy).
+    static const char * const kExpectedImuInterfaces[10] = {
+      "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
+      "angular_velocity.x", "angular_velocity.y", "angular_velocity.z",
+      "orientation.x", "orientation.y", "orientation.z", "orientation.w"
+    };
+
+    const size_t n_ifaces = sensor.state_interfaces.size();
+    if (n_ifaces != 6 && n_ifaces != 10) {
+      RCLCPP_FATAL(
+        rclcpp::get_logger("MecanumPicoHardware"),
+        "Sensor '%s' declares %zu state interfaces — expected 6 "
+        "(accel + gyro) or 10 (accel + gyro + orientation).",
+        sensor.name.c_str(), n_ifaces);
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    for (size_t i = 0; i < n_ifaces; ++i) {
+      if (sensor.state_interfaces[i].name != kExpectedImuInterfaces[i]) {
+        RCLCPP_FATAL(
+          rclcpp::get_logger("MecanumPicoHardware"),
+          "Sensor '%s' state interface %zu is '%s' — expected '%s'. "
+          "Check the order in ros2_control_hardware.xacro.",
+          sensor.name.c_str(), i, sensor.state_interfaces[i].name.c_str(),
+          kExpectedImuInterfaces[i]);
+        return hardware_interface::CallbackReturn::ERROR;
+      }
+    }
+
+    imu_sensor_name_ = sensor.name;
+    has_imu_sensor_ = true;
+    has_orientation_ = (n_ifaces == 10);
+    if (has_orientation_) {
+      RCLCPP_INFO(
+        rclcpp::get_logger("MecanumPicoHardware"),
+        "IMU sensor '%s' found in URDF — accel/gyro via Pico 'i' command, "
+        "orientation via onboard complementary filter.",
+        imu_sensor_name_.c_str());
+    } else {
+      RCLCPP_WARN(
+        rclcpp::get_logger("MecanumPicoHardware"),
+        "IMU sensor '%s' declares only 6 interfaces (no orientation) — "
+        "an imu_sensor_broadcaster will fail to activate. Declare the 4 "
+        "orientation interfaces in the URDF to enable it.",
+        imu_sensor_name_.c_str());
+    }
+  } else {
+    RCLCPP_WARN(
+      rclcpp::get_logger("MecanumPicoHardware"),
+      "No <sensor> declared in URDF — IMU state interfaces will NOT be exported. "
+      "An imu_broadcaster relying on '%s' will fail to activate.",
+      imu_sensor_name_.c_str());
+  }
+
   RCLCPP_INFO(
     rclcpp::get_logger("MecanumPicoHardware"),
     "on_init OK — device: %s  baud: %d  enc/rev: %d",
@@ -112,7 +177,34 @@ MecanumPicoHardware::export_state_interfaces()
         w->name, hardware_interface::HW_IF_VELOCITY, &w->vel));
   }
 
-  // 8 state interfaces total (4 wheels × 2)
+  // --- IMU sensor (only if a <sensor> block was found in on_init) ---------
+  if (has_imu_sensor_) {
+    static const char * const kImuInterfaceNames[6] = {
+      "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
+      "angular_velocity.x", "angular_velocity.y", "angular_velocity.z"
+    };
+    for (size_t i = 0; i < imu_data_.size(); ++i) {
+      state_interfaces.emplace_back(
+        hardware_interface::StateInterface(
+          imu_sensor_name_, kImuInterfaceNames[i], &imu_data_[i]));
+    }
+
+    // Orientation (computed by the complementary filter in read()) — only
+    // when the URDF declares the 10-interface layout. Required by the
+    // Humble imu_sensor_broadcaster.
+    if (has_orientation_) {
+      static const char * const kOrientationNames[4] = {
+        "orientation.x", "orientation.y", "orientation.z", "orientation.w"
+      };
+      for (size_t i = 0; i < imu_orientation_.size(); ++i) {
+        state_interfaces.emplace_back(
+          hardware_interface::StateInterface(
+            imu_sensor_name_, kOrientationNames[i], &imu_orientation_[i]));
+      }
+    }
+  }
+
+  // 8 wheel state interfaces (4 wheels × 2) + 6 or 10 IMU state interfaces
   return state_interfaces;
 }
 
@@ -145,6 +237,15 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_configure(
     comms_.disconnect();
   }
   comms_.connect(cfg_.device, cfg_.baud_rate, cfg_.timeout_ms);
+
+  // Health reporting (/diagnostics) for the serial link + control-loop
+  // rate. Created fresh on every on_configure() so a previous run's
+  // failure counters don't leak across reconfigurations.
+  diagnostics_ = std::make_unique<HardwareDiagnostics>(
+    get_name(), cfg_.device, cfg_.baud_rate, cfg_.loop_rate);
+  diagnostics_->set_connected(comms_.connected());
+  diagnostics_->start();
+
   RCLCPP_INFO(rclcpp::get_logger("MecanumPicoHardware"), "Successfully configured.");
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -158,6 +259,10 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_cleanup(
   RCLCPP_INFO(rclcpp::get_logger("MecanumPicoHardware"), "Cleaning up...");
   if (comms_.connected()) {
     comms_.disconnect();
+  }
+  if (diagnostics_) {
+    diagnostics_->stop();
+    diagnostics_.reset();
   }
   RCLCPP_INFO(rclcpp::get_logger("MecanumPicoHardware"), "Successfully cleaned up.");
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -177,6 +282,14 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_activate(
     return hardware_interface::CallbackReturn::ERROR;
   }
   comms_.send_empty_msg();  // Wake up the Pico
+  if (diagnostics_) {
+    diagnostics_->set_connected(comms_.connected());
+  }
+
+  // Fresh orientation estimate per activation — the filter re-initializes
+  // roll/pitch from the first trustworthy gravity sample in read().
+  imu_filter_.reset();
+  imu_orientation_ = {0.0, 0.0, 0.0, 1.0};
   RCLCPP_INFO(rclcpp::get_logger("MecanumPicoHardware"), "Successfully activated.");
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -228,6 +341,45 @@ hardware_interface::return_type MecanumPicoHardware::read(
   update_wheel(wheel_fr_, fr_enc);
   update_wheel(wheel_rl_, rl_enc);
   update_wheel(wheel_rr_, rr_enc);
+
+  // --- IMU (accel + gyro), only if a <sensor> block was found in on_init ---
+  if (has_imu_sensor_) {
+    double ax_g = 0.0, ay_g = 0.0, az_g = 0.0;
+    double gx_dps = 0.0, gy_dps = 0.0, gz_dps = 0.0;
+
+    if (comms_.read_imu_values(ax_g, ay_g, az_g, gx_dps, gy_dps, gz_dps)) {
+      constexpr double kGravity = 9.80665;        // [g]     -> [m/s^2]
+      constexpr double kDegToRad = M_PI / 180.0;  // [deg/s] -> [rad/s]
+
+      imu_data_[0] = ax_g * kGravity;
+      imu_data_[1] = ay_g * kGravity;
+      imu_data_[2] = az_g * kGravity;
+      imu_data_[3] = gx_dps * kDegToRad;
+      imu_data_[4] = gy_dps * kDegToRad;
+      imu_data_[5] = gz_dps * kDegToRad;
+
+      // Fuse into an orientation quaternion (complementary filter) — the
+      // imu_sensor_broadcaster requires orientation.x/y/z/w to activate.
+      if (has_orientation_) {
+        imu_filter_.update(
+          imu_data_[0], imu_data_[1], imu_data_[2],
+          imu_data_[3], imu_data_[4], imu_data_[5],
+          period.seconds());
+        imu_filter_.quaternion(
+          imu_orientation_[0], imu_orientation_[1],
+          imu_orientation_[2], imu_orientation_[3]);
+      }
+    } else {
+      // Non-fatal: keep the last known IMU values and continue. The wheel
+      // odometry (the safety-critical path) must not be blocked by a flaky
+      // IMU read on the same serial link.
+      // ALT: unthrottled RCLCPP_WARN — bei 100 Hz read() flutete das Log
+      static rclcpp::Clock steady_clock(RCL_STEADY_TIME);
+      RCLCPP_WARN_THROTTLE(
+        rclcpp::get_logger("MecanumPicoHardware"), steady_clock, 5000,
+        "Failed to read IMU values from Pico — keeping last known values.");
+    }
+  }
 
   return hardware_interface::return_type::OK;
 }

@@ -1,53 +1,63 @@
-// MIGRATION STATUS: COMPLETE (v2 — TB6612 + ICM-20948 SPI)
 // board_config.h — GPIO pin assignments for mecanum_pico firmware.
 // Platform: Raspberry Pi Pico (RP2040), pure Pico SDK (no Arduino).
 //
 // Motor index mapping: [0]=FL  [1]=FR  [2]=RL  [3]=RR
-// Adjust all pin numbers to match your physical wiring.
+//
+// STATUS (aktuelle Verkabelung):
+//   FL, FR + IMU sind physisch verkabelt und unten mit den echten Pins eingetragen.
+//   RL, RR sind noch NICHT verkabelt — die Pins unten sind reserviert/konfliktfrei
+//   gewählt (2. TB6612-Board für die Hinterachse), aber noch nicht durch reale
+//   Verkabelung bestätigt. Beim Anschließen des 2. TB6612-Boards prüfen und ggf.
+//   anpassen, dann diesen Kommentar aktualisieren.
 
 #ifndef BOARD_CONFIG_H
 #define BOARD_CONFIG_H
 
 // ---------------------------------------------------------------------------
-// Motor 0: Front-Left (FL) — TB6612 channel A
+// Motor 0: Front-Left (FL) — TB6612 #1 channel A — VERKABELT
 // ---------------------------------------------------------------------------
-#define FL_PWM_PIN    2   ///< GP2  → PWMA
-#define FL_IN1_PIN    3   ///< GP3  → AIN1 (direction)
-#define FL_IN2_PIN    4   ///< GP4  → AIN2 (direction)
-#define FL_ENC_A_PIN  5   ///< GP5  → Encoder A (interrupt)
-#define FL_ENC_B_PIN  6   ///< GP6  → Encoder B (direction sense)
+#define FL_PWM_PIN    3   ///< GP3  → PWMA
+#define FL_IN1_PIN    4   ///< GP4  → AIN1 (direction)
+#define FL_IN2_PIN    5   ///< GP5  → AIN2 (direction)
+#define FL_ENC_A_PIN  22  ///< GP22 → Encoder "Links" A
+#define FL_ENC_B_PIN  21  ///< GP21 → Encoder "Links" B
 
 // ---------------------------------------------------------------------------
-// Motor 1: Front-Right (FR) — TB6612 channel B
+// Motor 1: Front-Right (FR) — TB6612 #1 channel B — VERKABELT
 // ---------------------------------------------------------------------------
-#define FR_PWM_PIN    7   ///< GP7  → PWMB
-#define FR_IN1_PIN    8   ///< GP8  → BIN1
-#define FR_IN2_PIN    9   ///< GP9  → BIN2
-#define FR_ENC_A_PIN  10  ///< GP10 → Encoder A
-#define FR_ENC_B_PIN  11  ///< GP11 → Encoder B
+#define FR_PWM_PIN    6   ///< GP6  → PWMB
+#define FR_IN1_PIN    7   ///< GP7  → BIN1
+#define FR_IN2_PIN    8   ///< GP8  → BIN2
+#define FR_ENC_A_PIN  11  ///< GP11 → Encoder "Rechts" A
+#define FR_ENC_B_PIN  10  ///< GP10 → Encoder "Rechts" B
 
 // ---------------------------------------------------------------------------
-// Motor 2: Rear-Left (RL) — TB6612 channel A (second driver)
+// Motor 2: Rear-Left (RL) — TB6612 #2 channel A — RESERVIERT, NOCH NICHT VERKABELT
+// Frei von Konflikten mit FL/FR/IMU-Pins. Bei Verkabelung des 2. TB6612-Boards
+// gegen diese Werte prüfen (Pins können bei Bedarf getauscht werden, solange
+// sie mit keinem anderen Block hier kollidieren).
 // ---------------------------------------------------------------------------
-#define RL_PWM_PIN    12  ///< GP12 → PWMA
+#define RL_PWM_PIN    12  ///< GP12 → PWMA (2. TB6612)
 #define RL_IN1_PIN    13  ///< GP13 → AIN1
 #define RL_IN2_PIN    14  ///< GP14 → AIN2
 #define RL_ENC_A_PIN  15  ///< GP15 → Encoder A
-#define RL_ENC_B_PIN  16  ///< GP16 → Encoder B  ← NOTE: shared with IMU MISO default? Adjust if needed.
+#define RL_ENC_B_PIN  20  ///< GP20 → Encoder B
 
 // ---------------------------------------------------------------------------
-// Motor 3: Rear-Right (RR) — TB6612 channel B (second driver)
+// Motor 3: Rear-Right (RR) — TB6612 #2 channel B — RESERVIERT, NOCH NICHT VERKABELT
 // ---------------------------------------------------------------------------
-#define RR_PWM_PIN    17  ///< GP17 → PWMB
-#define RR_IN1_PIN    18  ///< GP18 → BIN1       ← NOTE: shared with IMU SCK default? Adjust if needed.
-#define RR_IN2_PIN    19  ///< GP19 → BIN2       ← NOTE: shared with IMU MOSI default? Adjust if needed.
-#define RR_ENC_A_PIN  20  ///< GP20 → Encoder A
-#define RR_ENC_B_PIN  21  ///< GP21 → Encoder B
+#define RR_PWM_PIN    26  ///< GP26 → PWMB (2. TB6612)
+#define RR_IN1_PIN    27  ///< GP27 → BIN1
+#define RR_IN2_PIN    28  ///< GP28 → BIN2
+#define RR_ENC_A_PIN  0   ///< GP0  → Encoder A
+#define RR_ENC_B_PIN  1   ///< GP1  → Encoder B
 
 // ---------------------------------------------------------------------------
 // TB6612 Standby pin (optional — tie HIGH if not used)
 // ---------------------------------------------------------------------------
-// #define TB6612_STBY_PIN  22  ///< GP22 → STBY (drive HIGH to enable driver)
+// #define TB6612_STBY_PIN  2  ///< GP2 → STBY (drive HIGH to enable driver)
+//   GP2 gewählt, da GP22 jetzt vom FL-Encoder belegt ist (alter Kommentar
+//   verwies noch auf GP22 — das kollidiert jetzt).
 //   If defined, firmware drives this HIGH on init. If not defined, wire STBY to 3V3.
 
 // hardware/spi.h must NOT be included here — it would cascade Pico SDK
@@ -57,18 +67,15 @@
 #define IMU_SPI_IDX   0       ///< 0 = spi0, 1 = spi1
 
 // ---------------------------------------------------------------------------
-// ICM-20948 SPI pins (SPI0 — matches ROSArduinoBridge README default)
-// IMPORTANT: If RL/RR motor pins above conflict, remap motor pins or use SPI1.
-// Default SPI0 mapping from original diffdrive_arduino firmware README:
-//   SCLK = GP18  |  MOSI = GP19  |  MISO = GP16  |  CS = GP17
-// These overlap with RR motor and RL encoder pins above — REMAP as needed.
-// Recommended: use GP22(CS), GP26(SCK), GP27(MOSI), GP28(MISO) for SPI1.
+// ICM-20948 SPI pins — VERKABELT (bestätigt durch reale Verkabelung).
+// Frei von Konflikten: FL/FR/RL/RR-Pins oben wurden bewusst um diese 4 Pins
+// (GP16–GP19) herum vergeben.
 // ---------------------------------------------------------------------------
 // IMU_SPI_PORT is resolved in imu_driver.cpp — do not use here.
-#define IMU_CS_PIN    17       ///< GP17 — Chip Select (active LOW)
-#define IMU_SCK_PIN   18       ///< GP18 — SPI Clock
-#define IMU_MOSI_PIN  19       ///< GP19 — MOSI (SDI on ICM-20948)
-#define IMU_MISO_PIN  16       ///< GP16 — MISO (ADA/SDO on ICM-20948)
+#define IMU_CS_PIN    17       ///< GP17 — NCS, Chip Select (active LOW)
+#define IMU_SCK_PIN   18       ///< GP18 — SLCK, SPI Clock
+#define IMU_MOSI_PIN  19       ///< GP19 — SDI (MOSI)
+#define IMU_MISO_PIN  16       ///< GP16 — AD0 (MISO / SDO on ICM-20948)
 #define IMU_BAUDRATE  4000000  ///< 4 MHz — safe for ICM-20948
 
 // ---------------------------------------------------------------------------

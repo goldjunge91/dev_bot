@@ -83,6 +83,14 @@ if(BUILD_TESTING)
   )
   # NOTE: test_wheel only uses header-only Wheel struct; no link to mecanum_pico lib needed yet
 
+  # IMU-Orientierungsfusion (Komplementärfilter, header-only wie Wheel)
+  ament_add_gtest(test_imu_fusion
+    test/test_imu_fusion.cpp
+  )
+  target_include_directories(test_imu_fusion PRIVATE
+    ${PROJECT_SOURCE_DIR}/hardware/include
+  )
+
   # Sprint 2 — PicoComms serial protocol tests
   # OLD:
   # ament_add_gtest(test_pico_comms

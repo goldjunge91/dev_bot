@@ -90,6 +90,16 @@
             <state_interface name="angular_velocity.x"/>
             <state_interface name="angular_velocity.y"/>
             <state_interface name="angular_velocity.z"/>
+            <!-- Orientierung wird NICHT gemessen, sondern im Hardware-Interface
+                 per Komplementärfilter berechnet (imu_fusion.hpp). Der Humble
+                 imu_sensor_broadcaster braucht diese 4 Interfaces zum Aktivieren
+                 — gleiche 10-Interface-Belegung wie das Sim-Xacro.
+                 ALT: nur 6 Interfaces — imu_broadcaster schlug auf echter
+                 Hardware fehl und der Fatal-Monitor beendete den Launch. -->
+            <state_interface name="orientation.x"/>
+            <state_interface name="orientation.y"/>
+            <state_interface name="orientation.z"/>
+            <state_interface name="orientation.w"/>
         </sensor>
     </ros2_control>
     <xacro:if value="$(arg use_nerf_hardware)">
@@ -98,6 +108,10 @@
                 <plugin>nerf_launch_system/NerfSystem</plugin>
                 <param name="port">$(arg nerf_port)</param>
                 <param name="baud_rate">115200</param>
+                <!-- Tilt-Range in Joint-Space (rad) = trigger_joint URDF-Limits.
+                     NerfSystem clampt Kommandos darauf; alle Nodes reden Joint-Space. -->
+                <param name="tilt_min">-0.52</param>
+                <param name="tilt_max">0.52</param>
             </hardware>
             <joint name="trigger_joint">
                 <command_interface name="position"/>
