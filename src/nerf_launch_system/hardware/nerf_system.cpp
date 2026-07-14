@@ -34,6 +34,10 @@ hardware_interface::CallbackReturn NerfSystem::on_init(
     if (info_.hardware_parameters.count("tilt_max")) {
         tilt_max_ = std::stod(info_.hardware_parameters.at("tilt_max"));
     }
+    if (info_.hardware_parameters.count("diagnostics_expected_rate_hz")) {
+        diagnostics_expected_rate_hz_ =
+            std::stod(info_.hardware_parameters.at("diagnostics_expected_rate_hz"));
+    }
 
     RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
                 "Initialized NerfSystem on port %s @ %d (tilt range [%.2f, %.2f] rad)",
@@ -93,12 +97,25 @@ hardware_interface::CallbackReturn NerfSystem::on_configure(
         RCLCPP_ERROR(rclcpp::get_logger("NerfSystem"), "Failed to open serial port: %s", e.what());
         return hardware_interface::CallbackReturn::ERROR;
     }
+
+    // Health reporting (/diagnostics) for the serial link + control-loop
+    // rate. Created fresh on every on_configure() so a previous run's
+    // failure counters don't leak across reconfigurations.
+    diagnostics_ = std::make_unique<NerfDiagnostics>(
+        get_name(), port_, baud_rate_, diagnostics_expected_rate_hz_);
+    diagnostics_->set_connected(comms_.connected());
+    diagnostics_->start();
+
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn NerfSystem::on_cleanup(
     const rclcpp_lifecycle::State & /*previous_state*/) {
     comms_.disconnect();
+    if (diagnostics_) {
+        diagnostics_->stop();
+        diagnostics_.reset();
+    }
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -112,6 +129,10 @@ hardware_interface::CallbackReturn NerfSystem::on_deactivate(
     const rclcpp_lifecycle::State & /*previous_state*/) {
     comms_.send_command("DISARM");
     armed_ = false;
+    if (diagnostics_) {
+        diagnostics_->set_armed(false);
+        diagnostics_->set_connected(comms_.connected());
+    }
     RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "System DISARMED");
     return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -164,6 +185,10 @@ std::vector<hardware_interface::CommandInterface> NerfSystem::export_command_int
 
 hardware_interface::return_type NerfSystem::read(const rclcpp::Time & /*time*/,
                                                  const rclcpp::Duration & /*period*/) {
+    if (diagnostics_) {
+        diagnostics_->note_read_cycle();
+    }
+
     // Open-Loop: Spiegle Commands in States
     auto safe_copy = [](double src, double &dst) {
         if (std::isfinite(src)) {
@@ -188,6 +213,20 @@ hardware_interface::return_type NerfSystem::read(const rclcpp::Time & /*time*/,
 
 hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
                                                   const rclcpp::Duration & /*period*/) {
+    // Wraps comms_.send_command() and reports a write failure to
+    // diagnostics_ if the serial link drops as a result (NerfCommunication
+    // disconnects internally when a write throws — no return value to
+    // check, so we detect it via the connected() state transition).
+    auto send_and_check = [this](const std::string &cmd) {
+        comms_.send_command(cmd);
+        if (diagnostics_ && !comms_.connected()) {
+            diagnostics_->note_write_failure();
+        }
+    };
+
+    if (diagnostics_) {
+        diagnostics_->set_connected(comms_.connected());
+    }
     if (!comms_.connected()) {
         if (!serial_warned_) {
             RCLCPP_WARN(rclcpp::get_logger("NerfSystem"),
@@ -202,13 +241,16 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
     bool should_arm = (hw_commands_.arming_pos > 0.5);
 
     if (should_arm && !armed_) {
-        comms_.send_command("ARM");
+        send_and_check("ARM");
         armed_ = true;
         RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: ARM");
     } else if (!should_arm && armed_) {
-        comms_.send_command("DISARM");
+        send_and_check("DISARM");
         armed_ = false;
         RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: DISARM");
+    }
+    if (diagnostics_) {
+        diagnostics_->set_armed(armed_);
     }
 
     if (!armed_) return hardware_interface::return_type::OK;
@@ -234,7 +276,7 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
             hw_states_.tilt_pos -= 0.05;
             if (hw_states_.tilt_pos < target_pos) hw_states_.tilt_pos = target_pos;
         }
-        comms_.send_command(ss.str());
+        send_and_check(ss.str());
     }
 
     // 2. Schuss – SHOT delegiert die komplette Sequenz an die FiringFSM
@@ -244,7 +286,7 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
     if (shot_power > 0 && !pusher_active_) {
         std::stringstream shot_ss;
         shot_ss << "SHOT " << shot_power;
-        comms_.send_command(shot_ss.str());
+        send_and_check(shot_ss.str());
         pusher_active_ = true;
         RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: SHOT %d (via FSM)", shot_power);
     } else if (shot_power <= 0) {

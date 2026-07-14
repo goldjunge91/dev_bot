@@ -17,6 +17,7 @@
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
 #include "nerf_launch_system/nerf_communication.hpp"
+#include "nerf_launch_system/nerf_diagnostics.hpp"
 #include "nerf_launch_system/nerf_types.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/state.hpp"
@@ -119,9 +120,22 @@ private:
     NerfJoints hw_commands_;     // Befehle von Controllern
     NerfJointStates hw_states_;  // Zustand für Controller (Open-Loop Feedback)
 
+    // /diagnostics-Reporting (Serial-Verbindung, Armed-Status, Loop-Rate).
+    // Angelegt in on_configure(), gestartet/gestoppt entlang des Serial-
+    // Verbindungs-Lifecycles. Siehe nerf_diagnostics.hpp — gleiches Muster
+    // wie mecanum_pico::HardwareDiagnostics (eigener Node/Thread, da
+    // SystemInterface keinen eigenen rclcpp::Node besitzt).
+    std::unique_ptr<NerfDiagnostics> diagnostics_;
+
     // Konfiguration aus URDF
     std::string port_;  // Serieller Port (z.B. /dev/ttyACM0)
     int baud_rate_;     // Baudrate (z.B. 115200)
+
+    // Referenz-Rate für die Loop-Rate-Diagnose (optional, Default: 100 Hz —
+    // das controller_manager update_rate laut config/controllers.yaml).
+    // Dieses Hardware-Interface kennt seine eigene Aufruf-Rate nicht, daher
+    // ist dies nur ein konfigurierbarer Vergleichswert für die Diagnose.
+    double diagnostics_expected_rate_hz_ = 100.0;
 
     // Tilt-Range in Joint-Space (rad) — das Hardware-Interface besitzt die
     // Konvention: alle Nodes kommandieren im URDF-Joint-Bereich, write()
