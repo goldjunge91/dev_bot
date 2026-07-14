@@ -159,41 +159,25 @@ git switch humble
 1.  **Source ROS 2 and Workspace:**
     ```bash
     source /opt/ros/humble/setup.bash
-    cd ~/projects/my_new_robot
     colcon build --symlink-install --packages-select gubot_one
     source install/setup.bash
     ```
 
+2.  **Launch Simulation** (Gazebo Fortress + RViz + Controller + EKF):
     ```bash
-    source /opt/ros/humble/setup.bash
-    cd ~/projects/my_new_robot
-    source /opt/ros/humble/setup.bash
-    colcon build --symlink-install
-    source install/setup.bash
-    ros2 launch gubot_one launch_sim.launch.py
+    ros2 launch gubot_one simulation.launch.py
+    # Optionen:
+    ros2 launch gubot_one simulation.launch.py use_camera:=false   # schnellere Sim (WSL2)
+    ros2 launch gubot_one simulation.launch.py world:=<pfad/zu/welt.world>
+    ros2 launch gubot_one simulation.launch.py use_nerf_hardware:=false
     ```
-
-2.  **Launch Simulation:**
-    Make sure to use the correct path to the world file:
-    ```bash
-    ros2 launch gubot_one launch_sim.launch.py
-    ros2 launch gubot_one launch_sim.launch.py world:=src/gubot_one/worlds/obstacles.world use_sim:=true
-    ros2 launch gubot_one launch_sim.launch.py world:=/home/ros/projects/my_new_robot/src/gubot_one/worlds/obstacles.world
-    ```
-    
 
     *Note: If you encounter "Entity already exists" errors, kill old processes first:*
     ```bash
-    killall -9 gzserver gzclient
-    pkill -9 gzserver && pkill -9 gzclient && pkill -9 rviz2 && pkill -9 ros2
-    ps aux | grep -E "(gzserver|gzclient|launch)" | grep -v grep
-    pkill -9 -f "joy|teleop|twist_mux|robot_state_publisher|controller_manager"
+    pkill -9 -f "ign gazebo" ; pkill -9 rviz2
+    ps aux | grep -E "(ign gazebo|launch)" | grep -v grep
+    ros2 daemon stop
     ```
-pkill -9 -f robot_state_publisher
-ros2 daemon stop
-cd /home/ros/projects/my_new_robot
-source install/setup.bash
-ros2 launch gubot_one launch_sim.launch.py
 
 
 1. nerf_joy.py (Joystick Steuerung)
@@ -239,6 +223,3 @@ colcon build --symlink-install --packages-select gubot_one
 source install/setup.bash
 ros2 launch gubot_one launch_all_real.launch.py
 ```
-
-
-ros2 launch gubot_one launch_sim.launch.py

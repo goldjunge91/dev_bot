@@ -14,7 +14,7 @@
 """Regression-Test: Tilt-Joint Konfiguration Ignition Gazebo.
 
 Die drei konkreten Fehler die dazu gefuehrt haben, dass sich trigger_joint
-in launch_sim nicht bewegt hat:
+in der Simulation nicht bewegt hat:
 
 1. URDF-Limits waren [-1.05, 0.0] -- Ignition klemmt Befehle auf diese
    Grenzen, nerf_teleop sendet aber [5.23, 6.28] -> Joint bleibt stehen.

@@ -74,11 +74,8 @@ Pro tip: If you ever see this issue again, run:
 ```bash
 pkill -9 -f robot_state_publisher
 ros2 daemon stop
-pkill -9 -f robot_state_publisher
-ros2 daemon stop
-cd /home/ros/projects/my_new_robot
 source install/setup.bash
-ros2 launch gubot_one launch_sim.launch.py
+ros2 launch gubot_one simulation.launch.py
 ```
 
 <!-- 

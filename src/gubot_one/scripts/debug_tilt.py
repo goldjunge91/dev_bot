@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Tilt Controller Debug Script
-Aufruf (waehrend launch_sim laeuft):
+Aufruf (waehrend simulation.launch.py laeuft):
   ws && python3 src/gubot_one/scripts/debug_tilt.py 2>&1 | tee debug_tilt.log
 """
 import subprocess
@@ -36,7 +36,7 @@ node_names = [n for n, _ in node.get_node_names_and_namespaces()]
 if "controller_manager" not in node_names:
     print(f"  {FAIL} /controller_manager nicht gefunden")
     print(f"  Gefundene Nodes: {node_names}")
-    print("  Starte zuerst: ros2 launch gubot_one launch_sim.launch.py")
+    print("  Starte zuerst: ros2 launch gubot_one simulation.launch.py")
     node.destroy_node()
     rclpy.shutdown()
     sys.exit(1)
