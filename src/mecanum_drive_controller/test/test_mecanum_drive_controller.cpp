@@ -229,7 +229,9 @@ TEST_F(MecanumDriveControllerTest, StateInterfaceConfigurationDefaultsToPosition
       HW_IF_POSITION));
 }
 
-TEST_F(MecanumDriveControllerTest, StateInterfaceConfigurationUsesVelocityWhenPositionFeedbackDisabled)
+TEST_F(
+  MecanumDriveControllerTest,
+  StateInterfaceConfigurationUsesVelocityWhenPositionFeedbackDisabled)
 {
   ASSERT_EQ(InitControllerWithDefaultWheels(/*position_feedback=*/ false), INIT_OK);
   ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), NODE_SUCCESS);

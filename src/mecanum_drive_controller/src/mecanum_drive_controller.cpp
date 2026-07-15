@@ -456,7 +456,8 @@ controller_interface::CallbackReturn MecanumDriveController::on_configure(
     DEFAULT_ODOMETRY_TOPIC,
     rclcpp::SystemDefaultsQoS());
   realtime_odometry_publisher_ =
-    std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(odometry_publisher_);
+    std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(
+    odometry_publisher_);
 
   auto & odometry_message = realtime_odometry_publisher_->msg_;
   odometry_message.header.frame_id = params_.odom_frame_id;
@@ -615,7 +616,8 @@ MecanumDriveController::configure_wheel(
   const auto state_handle = std::find_if(
     state_interfaces_.cbegin(), state_interfaces_.cend(),
     [&wheel_name, &interface_name](const auto & interface) {
-      return interface.get_prefix_name() == wheel_name && interface.get_interface_name() == interface_name;
+      return interface.get_prefix_name() == wheel_name &&
+      interface.get_interface_name() == interface_name;
     });
 
   if (state_handle == state_interfaces_.cend()) {
@@ -625,8 +627,10 @@ MecanumDriveController::configure_wheel(
 
   const auto command_handle =
     std::find_if(
-    command_interfaces_.begin(), command_interfaces_.end(), [&wheel_name](const auto & interface) {
-      return interface.get_prefix_name() == wheel_name && interface.get_interface_name() == HW_IF_VELOCITY;
+    command_interfaces_.begin(), command_interfaces_.end(),
+    [&wheel_name](const auto & interface) {
+      return interface.get_prefix_name() == wheel_name &&
+      interface.get_interface_name() == HW_IF_VELOCITY;
     });
 
   if (command_handle == command_interfaces_.end()) {
