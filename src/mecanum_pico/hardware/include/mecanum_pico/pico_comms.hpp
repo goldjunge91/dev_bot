@@ -107,10 +107,33 @@ public:
     return response;
   }
 
+  /**
+   * @brief Send a raw string without waiting for a reply.
+   *
+   * Use for commands the firmware answers *silently* on success (currently
+   * just 'm', see pico_firmware/src/main.cpp's handle_command() and its
+   * README's command table: "m fl fr rl rr\r -> (silent)"). Calling
+   * send_msg() for these would block for the full timeout_ms_ on every
+   * single call, since no response is ever coming for a valid command —
+   * this was the actual cause of the "[PicoComms] ReadLine timed out."
+   * spam on every write() cycle, independent of anything on the read()
+   * (encoder) side.
+   *
+   * @param msg_to_send String to transmit (must include terminator, e.g. "\r").
+   */
+  void send_no_response(const std::string & msg_to_send)
+  {
+    serial_conn_.FlushIOBuffers();
+    serial_conn_.Write(msg_to_send);
+  }
+
   /** @brief Send the wake/sync byte (equivalent to old sendEmptyMsg). */
   void send_empty_msg()
   {
-    send_msg("\r");
+    // Ein blanker '\r' laesst rx_pos==0 in main.cpp's loop() -> handle_command()
+    // wird nie aufgerufen -> es kommt strukturell nie eine Antwort. send_msg()
+    // wuerde hier immer den vollen Timeout verbraten, fuer nichts.
+    send_no_response("\r");
   }
 
   // -------------------------------------------------------------------------
@@ -132,7 +155,11 @@ public:
   {
     std::stringstream ss;
     ss << "m " << fl << " " << fr << " " << rl << " " << rr << "\r";
-    send_msg(ss.str());
+    // Fire-and-forget: 'm' ist bei Erfolg silent (siehe send_no_response()).
+    // Ein etwaiges "ERR\n" bei einem (hier praktisch unmoeglichen, da die
+    // Werte immer 4 wohlgeformte Ganzzahlen sind) Parse-Fehler wird beim
+    // naechsten Aufruf durch FlushIOBuffers() einfach verworfen.
+    send_no_response(ss.str());
   }
 
   // -------------------------------------------------------------------------
