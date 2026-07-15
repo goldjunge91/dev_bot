@@ -32,6 +32,9 @@ TiltController tiltCtrl(Config::PIN_TILT, Config::TILT_NEUTRAL_DEFAULT);
 Comms commsUSB(nerf, tiltCtrl, Serial);
 Comms commsUART(nerf, tiltCtrl, Serial1);
 
+// USB-Verbindungsstatus (DTR) — fuer das Connect-Banner in loop()
+static bool usbWasConnected = false;
+
 // --- SETUP ---
 void setup() {
     Serial.begin(Config::BAUD_RATE);
@@ -58,6 +61,8 @@ void setup() {
     // Initialize hardware (Safing everything)
     nerf.begin();
     Help::printStartup(nerf.getShotZero(), tiltCtrl.getNeutral(), nerf.getShotDur());
+    // War beim Boot schon ein Monitor offen, nicht direkt in loop() nochmal drucken
+    usbWasConnected = (bool)Serial;
 }
 
 // --- LOOP ---
@@ -69,6 +74,16 @@ void setup() {
  * 3. Checks for new commands on USB and UART
  */
 void loop() {
+    // Banner bei jedem neuen USB-Connect (DTR rising edge). Der 32u4 resettet
+    // beim Oeffnen des Monitors NICHT (anders als ein UNO) — ohne dies bleibt
+    // ein nach dem Boot geoeffneter Monitor stumm und die Firmware wirkt tot.
+    // Die ROS2-Seite liest nie vom Serial (write-only), Banner stoert sie nicht.
+    bool usbConnected = (bool)Serial;
+    if (usbConnected && !usbWasConnected) {
+        Help::printStartup(nerf.getShotZero(), tiltCtrl.getNeutral(), nerf.getShotDur());
+    }
+    usbWasConnected = usbConnected;
+
     nerf.update();
     tiltCtrl.update();
     commsUSB.update();

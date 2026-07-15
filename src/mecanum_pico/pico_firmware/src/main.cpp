@@ -15,9 +15,15 @@
 //   unknown                                                 → "ERR\n"
 
 #include <Arduino.h>
-// NOTE: Do NOT include pico/stdlib.h here — framework-arduino-mbed provides
-//       get_absolute_time(), make_timeout_time_ms(), sleep_ms() etc. via
-//       Arduino.h without needing the full Pico SDK stdio stack.
+// NOTE: Do NOT include pico/stdlib.h here — arduino-pico (Earle Philhower)
+//       provides get_absolute_time(), make_timeout_time_ms(), sleep_ms() etc.
+//       via Arduino.h without needing the full Pico SDK stdio stack.
+//
+// WICHTIG: Alle Protokoll-Antworten laufen ueber Serial.printf(), NICHT ueber
+// nacktes printf(). Beim arduino-pico-Core geht stdout an DEBUG_RP2040_PORT
+// (standardmaessig deaktiviert) — nacktes printf() wuerde die Antworten
+// stillschweigend verwerfen und die Firmware wirkt "tot" (genau dieser Bug
+// hat die v2-Erstinbetriebnahme gekostet).
 
 #include "board_config.h"
 #include "motor_driver.h"
@@ -45,7 +51,7 @@ static const uint32_t PID_PERIOD_MS = 1000u / PID_RATE_HZ;
 // ---------------------------------------------------------------------------
 static void handle_command(const char * buf)
 {
-  int32_t v[4] = {0, 0, 0, 0};
+  int v[4] = {0, 0, 0, 0};
 
   // ---- m: MOTOR_SPEEDS — set PID target ticks/frame ----
   if (buf[0] == 'm') {
@@ -56,24 +62,24 @@ static void handle_command(const char * buf)
       }
       moving = (v[0] || v[1] || v[2] || v[3]) ? 1 : 0;
       last_motion_cmd = get_absolute_time();
-    } else {printf("ERR\n");}
+    } else {Serial.printf("ERR\n");}
 
     // ---- o: MOTOR_RAW_PWM — bypass PID ----
   } else if (buf[0] == 'o') {
     if (sscanf(buf + 1, "%d %d %d %d", &v[0], &v[1], &v[2], &v[3]) == 4) {
       raw_pwm_mode = true;
       moving = 0;
-      motor_set_all((int)v[0], (int)v[1], (int)v[2], (int)v[3]);
+      motor_set_all(v[0], v[1], v[2], v[3]);
       last_motion_cmd = get_absolute_time();
-      printf("OK\n");
-    } else {printf("ERR\n");}
+      Serial.printf("OK\n");
+    } else {Serial.printf("ERR\n");}
 
     // ---- e: READ_ENCODERS ----
   } else if (buf[0] == 'e') {
-    printf(
-      "e %d %d %d %d\n",
-      (int)encoder_read(0), (int)encoder_read(1),
-      (int)encoder_read(2), (int)encoder_read(3));
+    Serial.printf(
+      "e %ld %ld %ld %ld\n",
+      (long)encoder_read(0), (long)encoder_read(1),
+      (long)encoder_read(2), (long)encoder_read(3));
 
     // ---- r: RESET_ENCODERS + PID ----
   } else if (buf[0] == 'r') {
@@ -82,51 +88,51 @@ static void handle_command(const char * buf)
     raw_pwm_mode = false;
     motor_stop_all();
     pid_reset();
-    printf("OK\n");
+    Serial.printf("OK\n");
 
     // ---- u: UPDATE_PID gains ----
   } else if (buf[0] == 'u') {
     if (sscanf(buf + 1, "%d %d %d %d", &v[0], &v[1], &v[2], &v[3]) == 4) {
-      Kp = (int)v[0]; Kd = (int)v[1];
-      Ki = (int)v[2]; Ko = (int)v[3];
-      printf("OK\n");
-    } else {printf("ERR\n");}
+      Kp = v[0]; Kd = v[1];
+      Ki = v[2]; Ko = v[3];
+      Serial.printf("OK\n");
+    } else {Serial.printf("ERR\n");}
 
     // ---- b: GET_BAUDRATE ----
   } else if (buf[0] == 'b') {
-    printf("%d\n", BAUD_RATE);
+    Serial.printf("%d\n", BAUD_RATE);
 
     // ---- i: READ_IMU ----
   } else if (buf[0] == 'i') {
     ImuData d;
     if (imu_read(&d)) {
-      printf(
+      Serial.printf(
         "%.4f %.4f %.4f %.4f %.4f %.4f\n",
         (double)d.ax, (double)d.ay, (double)d.az,
         (double)d.gx, (double)d.gy, (double)d.gz);
-    } else {printf("IMU_ERROR\n");}
+    } else {Serial.printf("IMU_ERROR\n");}
 
     // ---- p: PING ----
   } else if (buf[0] == 'p') {
-    printf("0\n");
+    Serial.printf("0\n");
 
-  } else {printf("ERR\n");}
+  } else {Serial.printf("ERR\n");}
 }
 
 // ---------------------------------------------------------------------------
 // setup() — runs once after boot
-// Arduino-Pico routes printf() to USB Serial after Serial.begin().
-// Do NOT call stdio_init_all() — Arduino framework handles stdio init.
+// Do NOT call stdio_init_all() — Arduino framework handles USB-CDC init.
+// Boot banner via Serial.printf; die printf-Diagnose der SDK-Libs (IMU) geht
+// ueber DEBUG_RP2040_PORT=Serial (siehe platformio.ini build_flags).
 // ---------------------------------------------------------------------------
 void setup()
 {
   Serial.begin(BAUD_RATE);
   sleep_ms(500);    // Wait for USB-CDC enumeration on host
 
-  // Boot banner via printf (routed to USB Serial by Arduino-Pico)
-  printf("\n=== %s ===\n", FW_NAME);
-  printf("Features: %s\n", FW_FEATURES);
-  printf(
+  Serial.printf("\n=== %s ===\n", FW_NAME);
+  Serial.printf("Features: %s\n", FW_FEATURES);
+  Serial.printf(
     "Baud: %d | PID: Kp=%d Kd=%d Ki=%d Ko=%d | AutoStop: %dms\n",
     BAUD_RATE, DEFAULT_KP, DEFAULT_KD, DEFAULT_KI, DEFAULT_KO, AUTO_STOP_MS);
 
