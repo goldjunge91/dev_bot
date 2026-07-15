@@ -24,8 +24,8 @@
         "**/log": true,
         "**/node_modules": true
     },
-    "ament-task-provider.envSetup": "source /opt/ros/${env:ROS_DISTRO}/setup.bash",
-    "ROS2.distro": "${env:ROS_DISTRO}",
+    "ament-task-provider.envSetup": "source /opt/ros/humble/setup.bash",
+    "ROS2.distro": "humble",
     "editor.formatOnSave": true,
     "python.analysis.extraPaths": [
         "/home/ros/projects/my_new_robot_9e34131/install/nerf_launch_system/local/lib/python3.10/dist-packages",
