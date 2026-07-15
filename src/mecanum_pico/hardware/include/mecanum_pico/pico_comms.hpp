@@ -57,6 +57,17 @@ public:
     timeout_ms_ = timeout_ms;
     serial_conn_.Open(serial_device);
     serial_conn_.SetBaudRate(convert_baud_rate(baud_rate));
+    // Explizite Line-Settings (wie NerfCommunication::connect()) — ohne diese
+    // laesst LibSerial::SerialPort::Open() Zeichengroesse/Paritaet/Stopbits/
+    // Flow-Control auf OS-/Treiber-Defaults, die von "NONE" abweichen koennen.
+    // Symptom bei falschem Flow-Control: Write() geht raus, ReadLine() blockt
+    // bis zum Timeout, obwohl ein manueller stty-basierter Test denselben Port
+    // klaglos bedient (stty/screen/cat setzen ueblicherweise Raw-Mode ohne
+    // Flow-Control als Default, LibSerial tut das hier nicht automatisch).
+    serial_conn_.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
+    serial_conn_.SetFlowControl(LibSerial::FlowControl::FLOW_CONTROL_NONE);
+    serial_conn_.SetParity(LibSerial::Parity::PARITY_NONE);
+    serial_conn_.SetStopBits(LibSerial::StopBits::STOP_BITS_1);
   }
 
   void disconnect()
