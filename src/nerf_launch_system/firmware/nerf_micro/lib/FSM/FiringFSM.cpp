@@ -112,7 +112,7 @@ void FiringFSM::evalState() {
         FiringState oldState = _currentState;
         {
             char dbg[48];
-            sprintf(dbg, "DBG evalState: %d -> %d", (int)oldState, (int)_nextState);
+            snprintf(dbg, sizeof(dbg), "DBG evalState: %d -> %d", (int)oldState, (int)_nextState);
             _onDebug(dbg);
         }
         _currentState = _nextState;
@@ -183,7 +183,7 @@ void FiringFSM::evalState() {
                 _onFlywheelPower(_targetPower);
                 {
                     char buf[64];
-                    sprintf(buf, "OK: Flywheels spinning at %d%%. Send STOP to end.", _targetPower);
+                    snprintf(buf, sizeof(buf), "OK: Flywheels spinning at %d%%. Send STOP to end.", _targetPower);
                     _onDebug(buf);
                 }
                 break;
@@ -223,6 +223,11 @@ void FiringFSM::triggerBraking() {
 
 void FiringFSM::triggerDisarming() {
     if (_currentState == FiringState::CALIBRATING) {
+        // Sonderfall verlässt evalState() und muss die DISARMED-Entry-Aktionen
+        // (Hardware trennen, isArmed zurücksetzen) hier selbst nachholen.
+        _onDetachESCs();
+        _onDetachShot();
+        _isArmed = false;
         _currentState = FiringState::IDLE;
         _nextState = FiringState::IDLE;
         _onDebug("OK: CALIBRATION FINISH (Sent MIN). Verify ESC beeps.");
@@ -245,13 +250,13 @@ void FiringFSM::triggerFire(int power) {
         _onDebug("ERR: Arm first!");  // Nur schiessen, wenn das System auf ARMED steht.
         return;
     }  // Block shoting without arming first.
-    if (_currentState != FiringState::ARMED && _currentState != FiringState::IDLE) return;
-    if (_currentState == FiringState::ARMED) {
-        _targetPower = power;
-        _nextState = FiringState::SPINNING_UP;
-        _stateStartTime = millis();
-        recordActivity();  // Inaktivitäts-Timer zurücksetzen
-    }
+    // _isArmed ist nur wahr, wenn _currentState != IDLE (siehe ARMED/DISARMING-Entry-Aktionen),
+    // daher ist die IDLE-Prüfung hier unerreichbar und entfällt.
+    if (_currentState != FiringState::ARMED) return;
+    _targetPower = power;
+    _nextState = FiringState::SPINNING_UP;
+    _stateStartTime = millis();
+    recordActivity();  // Inaktivitäts-Timer zurücksetzen
 }
 
 void FiringFSM::triggerCalibration() {

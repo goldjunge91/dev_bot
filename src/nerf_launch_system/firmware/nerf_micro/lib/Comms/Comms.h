@@ -19,23 +19,16 @@
  */
 class Comms {
 private:
+    // Laengster real vorkommender Befehl+Argument: "DANGEROUS_SHOT -2147483648" = 26 Zeichen
+    // + Puffer; harte Obergrenze statt der frueheren unbegrenzt wachsenden Arduino-String.
+    static constexpr uint8_t kBufferSize = 40;
+
     Launcher &_launcher;
     TiltController &_tilt;
     Stream &_stream;  // 'Stream' aus der Arduino-Bibliothek (Datenstrom, z.B. Serial)
-    String _buffer;
-
-    /**
-     * @brief Sendet eine Nachricht an alle verbundenen seriellen Ports.
-     *
-     * Gibt die Nachricht auf dem Haupt-Stream (z.B. USB) aus und zusätzlich
-     * auf dem sekundären seriellen Port (`Serial1`), falls verfügbar, sodass
-     * Debugging und Raspberry Pi-Steuerung gleichzeitig Status-Updates erhalten.
-     *
-     * @param msg Die C-String (Text) Nachricht.
-     */
-    void broadcast(const char *msg);
-
-    void broadcast(const __FlashStringHelper *msg);
+    char _buffer[kBufferSize];
+    uint8_t _bufLen = 0;
+    bool _overflow = false;
 
 public:
     /**
@@ -59,9 +52,10 @@ public:
     /**
      * @brief Analysiert und führt eine einzelne vollständige Befehlszeile aus.
      *
-     * @param line Der als Text (String) empfangene Befehl (z. B. "SHOT 60").
+     * @param line Die als C-String empfangene Befehlszeile (z. B. "SHOT 60"). Wird
+     * in-place mutiert (getrimmt/tokenisiert).
      */
-    void execute(String line);
+    void execute(char *line);
 };
 
 #endif  // COMMS_H

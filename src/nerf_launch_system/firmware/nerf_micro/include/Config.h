@@ -28,6 +28,8 @@ namespace Config {
     const uint32_t ARM_DELAY_MS = 2000;
     const uint32_t SPINUP_MS = 1200;
     const uint32_t AUTO_DISARM_MS = 60000;
+    // T_POS Haltezeit vor dem Auto-Detach (5-10s Fenster fuer manuelles Tuning, dann Sicherheits-Release)
+    const uint32_t TILT_HOLD_MS = 8000;
 
     // Deine kalibrierten Werte
     const uint16_t SHOT_NEUTRAL_DEFAULT = 1430;

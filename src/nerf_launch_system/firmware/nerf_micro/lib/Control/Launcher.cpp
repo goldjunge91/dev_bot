@@ -32,7 +32,8 @@ void Launcher::update() {
 
     // === NEW NON-BLOCKING MANUAL LOGIC ===
     uint32_t now = millis();  // millis() aus der Arduino-Bibliothek: Millisekunden seit Systemstart
-    if (_manualState != ManualState::IDLE && now >= _manualTimer) {
+    // Rollover-sichere Deadline-Pruefung (Differenz statt Direktvergleich, siehe FiringFSM)
+    if (_manualState != ManualState::IDLE && (int32_t)(now - _manualTimer) >= 0) {
         if (_manualState == ManualState::TEST_SHOT_PUSH) {
             _shot.writeMicroseconds(_fsm.getShotNeutral() - Config::BRAKE_OFFSET);
             _manualTimer = now + Config::BRAKE_MS;
@@ -134,6 +135,10 @@ void Launcher::callbackDebug(const char *msg) {
 // --- HARDWARE ACTIONS (not FSM-controlled) ---
 
 void Launcher::testShot(int ms) {
+    if (_manualState != ManualState::IDLE) {
+        SerialOutput::print(F("ERR: Busy, wait for current sequence"));
+        return;
+    }
     int safeDur = constrain(ms, 10, 5000);  // bounds check
     int duration = (ms > 0) ? safeDur : _fsm.getShotDuration();
     SerialOutput::printf("OK: Test shot %ld ms", (long)duration);
@@ -155,6 +160,10 @@ void Launcher::testShot(int ms) {
 }
 
 void Launcher::dangerousShot(int ms) {
+    if (_manualState != ManualState::IDLE) {
+        SerialOutput::print(F("ERR: Busy, wait for current sequence"));
+        return;
+    }
     if (!_fsm.isArmed()) {
         SerialOutput::print(F("ERR: Arm first!"));
         return;
@@ -183,6 +192,10 @@ void Launcher::dangerousShot(int ms) {
 // ESCCalibration)
 
 void Launcher::nudge(bool forward) {
+    if (_manualState != ManualState::IDLE) {
+        SerialOutput::print(F("ERR: Busy, wait for current sequence"));
+        return;
+    }
     SerialOutput::print(F("STATUS: Nudging..."));
     _shot.attach(Config::PIN_SHOT, Config::SV_MIN_US, Config::SV_MAX_US);
     int s = forward ? (_fsm.getShotNeutral() + 500) : (_fsm.getShotNeutral() - 500);

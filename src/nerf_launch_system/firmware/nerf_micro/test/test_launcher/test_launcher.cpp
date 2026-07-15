@@ -34,6 +34,7 @@ void releaseArduinoMock() {
 
 using ::testing::_;
 using ::testing::AtLeast;
+using ::testing::Ne;
 using ::testing::Return;
 
 // ============================================================
@@ -148,6 +149,182 @@ TEST_F(LauncherTest, AutoDisarm_AfterTimeout) {
     launcher.update();
     EXPECT_EQ(launcher.getFSM().getCurrentState(), FiringState::DISARMING);
     EXPECT_FALSE(launcher.getFSM().isArmed());
+}
+
+// ============================================================
+// TEST 8: testShot() waehrend einer laufenden Sequenz wird abgewiesen
+// (Regression: vorher ueberschrieb ein zweiter Aufruf _manualState/
+// _manualTimer kommentarlos und korrumpierte die laufende Sequenz.)
+// ============================================================
+TEST_F(LauncherTest, TestShot_RejectsWhenBusy) {
+    Launcher launcher;
+    launcher.begin();
+
+    EXPECT_CALL(launcher.getShot(), attach(_, _, _)).Times(1);
+    EXPECT_CALL(launcher.getShot(), writeMicroseconds(_)).Times(1);
+    launcher.testShot(500);  // startet TEST_SHOT_PUSH
+    launcher.testShot(500);  // muss abgewiesen werden -> keine weiteren Servo-Calls
+}
+
+// ============================================================
+// TEST 9: dangerousShot() waehrend einer laufenden Sequenz wird abgewiesen
+// ============================================================
+TEST_F(LauncherTest, DangerousShot_RejectsWhenBusy) {
+    Launcher launcher;
+    launcher.begin();
+    launcher.getFSM().triggerArming();
+    launcher.update();
+    launcher.update();
+    ASSERT_TRUE(launcher.getFSM().isArmed());
+
+    EXPECT_CALL(launcher.getShot(), attach(_, _, _)).Times(1);
+    EXPECT_CALL(launcher.getShot(), writeMicroseconds(_)).Times(1);
+    launcher.dangerousShot(500);
+    launcher.dangerousShot(500);  // muss abgewiesen werden
+}
+
+// ============================================================
+// TEST 10: nudge() waehrend einer laufenden Sequenz wird abgewiesen
+// ============================================================
+TEST_F(LauncherTest, Nudge_RejectsWhenBusy) {
+    Launcher launcher;
+    launcher.begin();
+
+    EXPECT_CALL(launcher.getShot(), attach(_, _, _)).Times(1);
+    EXPECT_CALL(launcher.getShot(), writeMicroseconds(_)).Times(1);
+    launcher.nudge(true);
+    launcher.nudge(false);  // muss abgewiesen werden -> Servo faehrt NICHT in Gegenrichtung
+}
+
+// ============================================================
+// TEST 11: Der Busy-Guard gilt methodenuebergreifend, nicht nur pro Methode
+// ============================================================
+TEST_F(LauncherTest, CrossMethod_BusyRejected) {
+    Launcher launcher;
+    launcher.begin();
+    launcher.getFSM().triggerArming();
+    launcher.update();
+    launcher.update();
+    ASSERT_TRUE(launcher.getFSM().isArmed());
+
+    EXPECT_CALL(launcher.getShot(), attach(_, _, _)).Times(1);
+    EXPECT_CALL(launcher.getShot(), writeMicroseconds(_)).Times(1);
+    launcher.testShot(500);       // startet eine Sequenz
+    launcher.dangerousShot(500);  // muss abgewiesen werden (busy)
+    launcher.nudge(true);         // muss abgewiesen werden (busy)
+}
+
+// ============================================================
+// TEST 12: millis()-Rollover waehrend einer manuellen Sequenz darf
+// deren Abschluss nicht verhindern (rollover-sichere Differenzpruefung).
+// ============================================================
+TEST_F(LauncherTest, MillisRollover_ManualSequenceStillCompletes) {
+    Launcher launcher;
+    launcher.begin();
+    mock->setMillisRaw(UINT32_MAX - 50);
+
+    EXPECT_CALL(launcher.getShot(), attach(_, _, _)).Times(1);
+    launcher.nudge(true);  // _manualTimer wraps around UINT32_MAX
+    testing::Mock::VerifyAndClearExpectations(&launcher.getShot());
+
+    // Ueberschreitet den Wraparound-Punkt und die erste (200ms Nudge-Out) Deadline
+    EXPECT_CALL(launcher.getShot(), writeMicroseconds(_)).Times(1);  // NUDGE_OUT -> NUDGE_CENTER
+    advanceMs(250);
+    launcher.update();
+    testing::Mock::VerifyAndClearExpectations(&launcher.getShot());
+
+    // Erreicht die zweite (50ms Center) Deadline -> Detach
+    EXPECT_CALL(launcher.getShot(), detach()).Times(1);
+    advanceMs(60);
+    launcher.update();
+}
+
+// ============================================================
+// Fixture: TiltController (T_POS / setPosition auto-detach bugfix)
+// ============================================================
+class TiltControllerTest : public ::testing::Test {
+protected:
+    ArduinoMock* mock;
+
+    void SetUp() override {
+        mock = arduinoMockInstanceNice();
+        mock->setMillisRaw(0);
+    }
+    void TearDown() override {
+        releaseArduinoMock();
+    }
+    void advanceMs(uint32_t ms) { mock->addMillisRaw(ms); }
+};
+
+// ============================================================
+// TEST 8: setPosition() haelt den Wert und detached erst nach TILT_HOLD_MS
+// (Regression: vorher setzte setPosition() sofort State::IDLE, sodass
+// update() nie detachte und der Servo dauerhaft bestromt blieb.)
+// ============================================================
+TEST_F(TiltControllerTest, SetPosition_HoldsThenAutoDetachesAfterHoldWindow) {
+    TiltController tilt(Config::PIN_TILT, Config::TILT_NEUTRAL_DEFAULT);
+
+    EXPECT_CALL(tilt.getServo(), attach(_, _, _)).Times(1);
+    EXPECT_CALL(tilt.getServo(), writeMicroseconds(1600)).Times(1);
+    tilt.setPosition(1600);
+    testing::Mock::VerifyAndClearExpectations(&tilt.getServo());
+
+    // Kurz vor der Deadline: noch kein Detach
+    EXPECT_CALL(tilt.getServo(), detach()).Times(0);
+    advanceMs(Config::TILT_HOLD_MS - 1);
+    tilt.update();
+    testing::Mock::VerifyAndClearExpectations(&tilt.getServo());
+
+    // Deadline erreicht: Detach feuert
+    EXPECT_CALL(tilt.getServo(), detach()).Times(1);
+    advanceMs(1);
+    tilt.update();
+    testing::Mock::VerifyAndClearExpectations(&tilt.getServo());
+}
+
+// ============================================================
+// TEST 9: setPosition() darf vor dem Detach NICHT auf _neutralUs
+// zurueckschreiben (sonst wuerde ein zu testender Kandidatenwert
+// stillschweigend ueberschrieben).
+// ============================================================
+TEST_F(TiltControllerTest, SetPosition_DoesNotRewriteNeutralBeforeDetach) {
+    TiltController tilt(Config::PIN_TILT, Config::TILT_NEUTRAL_DEFAULT);
+
+    EXPECT_CALL(tilt.getServo(), attach(_, _, _)).Times(1);
+    // Am wenigsten spezifischer Matcher zuerst: jeder ANDERE Wert als 1600 ist ein Fehler.
+    EXPECT_CALL(tilt.getServo(), writeMicroseconds(Ne(1600))).Times(0);
+    EXPECT_CALL(tilt.getServo(), writeMicroseconds(1600)).Times(1);
+    EXPECT_CALL(tilt.getServo(), detach()).Times(1);
+
+    tilt.setPosition(1600);
+    advanceMs(Config::TILT_HOLD_MS);
+    tilt.update();
+}
+
+// ============================================================
+// TEST 10: millis()-Rollover waehrend der Haltezeit darf das Detach
+// nicht verhindern (rollover-sichere Differenzpruefung statt now >= deadline).
+// ============================================================
+TEST_F(TiltControllerTest, SetPosition_MillisRollover_StillDetachesCorrectly) {
+    TiltController tilt(Config::PIN_TILT, Config::TILT_NEUTRAL_DEFAULT);
+    mock->setMillisRaw(UINT32_MAX - 100);
+
+    EXPECT_CALL(tilt.getServo(), attach(_, _, _)).Times(1);
+    EXPECT_CALL(tilt.getServo(), writeMicroseconds(1600)).Times(1);
+    tilt.setPosition(1600);  // _stateEndTime wraps around UINT32_MAX
+    testing::Mock::VerifyAndClearExpectations(&tilt.getServo());
+
+    // Ueberschreitet den Wraparound-Punkt, aber noch weit vor der 8s-Deadline
+    EXPECT_CALL(tilt.getServo(), detach()).Times(0);
+    advanceMs(200);
+    tilt.update();
+    testing::Mock::VerifyAndClearExpectations(&tilt.getServo());
+
+    // Jetzt (im gewrappten Zeitraum) ueber die Deadline hinaus
+    EXPECT_CALL(tilt.getServo(), detach()).Times(1);
+    advanceMs(Config::TILT_HOLD_MS);
+    tilt.update();
+    testing::Mock::VerifyAndClearExpectations(&tilt.getServo());
 }
 
 // ============================================================

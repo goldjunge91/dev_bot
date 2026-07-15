@@ -4,32 +4,30 @@
 
 #include "Comms.h"
 
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "../Utils/Help.h"
 
 // #include "../Debug/ESCCalibration.h"
 
 // 'Stream' aus der Arduino-Bibliothek (Datenstrom, z.B. Serial)
 Comms::Comms(Launcher& launcher, TiltController& tiltController, Stream& serialStream) :
-    _launcher(launcher), _tilt(tiltController), _stream(serialStream) {
-    _buffer.reserve(32);
-}
+    _launcher(launcher), _tilt(tiltController), _stream(serialStream) {}
 
-void Comms::broadcast(const char* msg) {
-    _stream.println(msg);
-    // Wenn diese Instanz Serial ist, sende auch an Serial1 (und umgekehrt)
-    if (&_stream == &Serial)
-        Serial1.println(msg);
-    else
-        Serial.println(msg);
+namespace {
+// Fallunabhaengiger Prefix-Vergleich (Loopback-Schutz), ohne eine Kopie des
+// gesamten Strings anzulegen (Ersatz fuer String::toUpperCase()+startsWith()).
+bool startsWithCI(const char* s, const char* prefix) {
+    while (*prefix) {
+        if (toupper((unsigned char)*s) != toupper((unsigned char)*prefix)) return false;
+        ++s;
+        ++prefix;
+    }
+    return true;
 }
-
-void Comms::broadcast(const __FlashStringHelper* msg) {
-    _stream.println(msg);
-    if (&_stream == &Serial)
-        Serial1.println(msg);
-    else
-        Serial.println(msg);
-}
+}  // namespace
 
 // -------------------------------------------------------------------------
 // Communcation Handler
@@ -41,18 +39,30 @@ void Comms::broadcast(const __FlashStringHelper* msg) {
  * Liest ankommende Buchstaben einzeln aus dem seriellen Puffer.
  * Ein Befehl gilt als vollständig, wenn ein Zeilenumbruchzeichen (\n oder \r) erkannt wird.
  * Verhindert das Blockieren des gesamten Roboters, da immer nur kurz gelesen wird.
+ *
+ * Der Puffer hat eine harte Obergrenze (kBufferSize): laeuft er ohne Zeilenumbruch voll
+ * (Rauschen, falsche Baudrate, fehlendes Terminierungszeichen), wird die Zeile verworfen
+ * statt unbegrenzt zu wachsen (frueher: Arduino String ohne Laengenlimit).
  */
 void Comms::update() {
     while (_stream.available()) {
         char c = _stream.read();
         if (c == '\n' || c == '\r') {
-            if (_buffer.length() > 0) {
+            if (_bufLen > 0 && !_overflow) {
+                _buffer[_bufLen] = '\0';
                 execute(_buffer);
-                _buffer = "";
             }
-        }
-        else if (c >= 32 && c <= 126) {
-            _buffer += c;
+            _bufLen = 0;
+            _overflow = false;
+        } else if (c >= 32 && c <= 126) {
+            if (_overflow) continue;  // Rest der ueberlangen Zeile verwerfen
+            if (_bufLen >= kBufferSize - 1) {
+                _overflow = true;
+                _bufLen = 0;
+                _stream.println(F("ERR: Line too long, discarded"));
+            } else {
+                _buffer[_bufLen++] = c;
+            }
         }
     }
 }
@@ -71,92 +81,99 @@ void Comms::update() {
  * - CAL: ESCs im FSM-Modus kalibrieren
  * - STATUS: Aktuellen Status ausgeben
  */
-void Comms::execute(String line) {
-    line.trim();
-    if (line.length() == 0) return;
+void Comms::execute(char* line) {
+    // Trim leading/trailing spaces in-place
+    while (*line == ' ') ++line;
+    if (*line == '\0') return;
+    char* end = line + strlen(line);
+    while (end > line && *(end - 1) == ' ') --end;
+    *end = '\0';
+    if (*line == '\0') return;
 
     // Schutz vor Endlos-Schleifen (Loopback Protection).
     // Verhindert, dass das System seine EIGENEN System-Ausgaben ("OK: ", "ERR: ")
     // wieder als Befehl interpretiert, falls Sende-(TX) und Empfangs-(RX) Pins
     // am Raspberry versehentlich kurzgeschlossen sind oder ein Echo geschickt wird.
-    String check = line;
-    check.toUpperCase();
-    if (check.startsWith(">") || check.startsWith("ERR") || check.startsWith("OK") ||
-        check.startsWith("STATUS:") || check.startsWith("NERF") || check.startsWith("---") ||
-        check.startsWith("SHOT ZERO") || check.startsWith("TILT ZERO")) {
-        return;
+    static const char* const kBlockedPrefixes[] = {
+        ">", "ERR", "OK", "STATUS:", "NERF", "---", "SHOT ZERO", "TILT ZERO"};
+    for (const char* prefix : kBlockedPrefixes) {
+        if (startsWithCI(line, prefix)) return;
     }
 
-    int spaceIdx = line.indexOf(' ');
-    String cmd = (spaceIdx == -1) ? line : line.substring(0, spaceIdx);
-    String argStr = (spaceIdx == -1) ? "" : line.substring(spaceIdx + 1);
-
-    cmd.toUpperCase();
-    int val = argStr.toInt();
+    // Tokenize: am ersten Leerzeichen aufteilen
+    char* argStr = strchr(line, ' ');
+    if (argStr) {
+        *argStr = '\0';
+        ++argStr;
+        while (*argStr == ' ') ++argStr;
+    } else {
+        argStr = line + strlen(line);  // leeres Argument
+    }
+    char* cmd = line;
+    for (char* p = cmd; *p; ++p) *p = toupper((unsigned char)*p);
+    int val = atoi(argStr);
 
     // --- Befehls-Zuweisung (Routing) ---
     // Ordnet die empfangenen Text-Befehle den echten C++ Funktionen der Controller zu
 
-    if (cmd == "ARM")
+    if (strcmp(cmd, "ARM") == 0)
         _launcher.getFSM().triggerArming();
-    else if (cmd == "DISARM")
+    else if (strcmp(cmd, "DISARM") == 0)
         _launcher.getFSM().triggerDisarming();
-    else if (cmd == "STOP")
+    else if (strcmp(cmd, "STOP") == 0)
         _launcher.getFSM().triggerDisarming();
-    else if (cmd == "BRAKE")
+    else if (strcmp(cmd, "BRAKE") == 0)
         _launcher.getFSM().triggerBraking();
-    else if (cmd == "SHOT")
+    else if (strcmp(cmd, "SHOT") == 0)
         _launcher.getFSM().triggerFire(val > 0 ? val : 5);
 
-    else if (cmd == "TEST_ESC")
+    else if (strcmp(cmd, "TEST_ESC") == 0)
         _launcher.getFSM().triggerEscTest(val >= 0 ? val : 20);
-    else if (cmd == "PWM")
+    else if (strcmp(cmd, "PWM") == 0)
         _launcher.setRawPWM(val);
-    else if (cmd == "CAL")
+    else if (strcmp(cmd, "CAL") == 0)
         _launcher.getFSM().triggerCalibration();
 
-    // Calibration & Test shortcuts handled via FSM now
-    else if (cmd == "CAL_MAX" || cmd == "CAL_MIN" || cmd == "CAL_TEST") {
-        broadcast(F("ERR: Obsolete commands. Use 'CAL' state via FSM instead."));
-    }
-    else if (cmd == "NF")
+    else if (strcmp(cmd, "NF") == 0)
         _launcher.nudge(true);
-    else if (cmd == "NB")
+    else if (strcmp(cmd, "NB") == 0)
         _launcher.nudge(false);
-    else if (cmd == "TEST_SHOT")
+    else if (strcmp(cmd, "TEST_SHOT") == 0)
         _launcher.testShot(val);
-    else if (cmd == "DANGEROUS_SHOT")
+    else if (strcmp(cmd, "DANGEROUS_SHOT") == 0)
         _launcher.dangerousShot(val);
-    else if (cmd == "ZERO_S")
+    else if (strcmp(cmd, "ZERO_S") == 0)
         _launcher.setZS(val);
-    else if (cmd == "SET_SHOT")
+    else if (strcmp(cmd, "SET_SHOT") == 0)
         _launcher.setD(val);
 
-    else if (cmd == "UP")
+    else if (strcmp(cmd, "UP") == 0)
         _tilt.move(true, val > 0 ? val : 200);
-    else if (cmd == "DN")
+    else if (strcmp(cmd, "DN") == 0)
         _tilt.move(false, val > 0 ? val : 200);
-    else if (cmd == "TU")
+    else if (strcmp(cmd, "TU") == 0)
         _tilt.nudge(true);
-    else if (cmd == "TD")
+    else if (strcmp(cmd, "TD") == 0)
         _tilt.nudge(false);
 
-    else if (cmd == "SAVE" || cmd == "SAVE_OLD")
-        Help::printConfig(_launcher.getShotZero(), _launcher.getFSM().getShotNeutral(), _launcher.getShotDur());
+    else if (strcmp(cmd, "SAVE") == 0 || strcmp(cmd, "SAVE_OLD") == 0)
+        Help::printConfig(
+            _launcher.getShotZero(), _launcher.getFSM().getShotNeutral(), _launcher.getShotDur());
 
-    else if (cmd == "ZERO_T")
+    else if (strcmp(cmd, "ZERO_T") == 0)
         _tilt.setNeutral(val);
-    else if (cmd == "T_POS")
+    else if (strcmp(cmd, "T_POS") == 0)
         _tilt.setPosition(val);
 
-    else if (cmd == "STATUS") {
+    else if (strcmp(cmd, "STATUS") == 0) {
         _stream.println(_launcher.getFSM().isArmed() ? F("STATUS: ARMED") : F("STATUS: DISARMED"));
     }
-    else if (cmd == "HELP") {
+    else if (strcmp(cmd, "HELP") == 0) {
         Help::printHelp();
     }
     else {
-        if (cmd.length() > 1) {
+        // CAL_MAX / CAL_MIN / CAL_TEST faellt hier bewusst durch (obsolete Kurzbefehle entfernt).
+        if (strlen(cmd) > 1) {
             _stream.print(F("ERR: Unknown "));
             _stream.println(cmd);
         }

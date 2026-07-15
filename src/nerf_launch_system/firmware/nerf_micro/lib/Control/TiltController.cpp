@@ -15,20 +15,28 @@ TiltController::TiltController(uint8_t pin, int neutral) :
  */
 void TiltController::update() {
     uint32_t now = millis();  // millis() aus der Arduino-Bibliothek
-    if (_state != State::IDLE && now >= _stateEndTime) {
-        if (_state == State::MOVING) {
-            _tiltServo.writeMicroseconds(_neutralUs);
-            _stateEndTime = now + 50;  // Give time to center
-            _state = State::CENTERING;
-        } else if (_state == State::NUDGING_OUT) {
-            _tiltServo.writeMicroseconds(_neutralUs);
-            _stateEndTime = now + 40;
-            _state = State::NUDGING_IN;
-        } else if (_state == State::CENTERING || _state == State::NUDGING_IN) {
-            _tiltServo.detach();
-            _state = State::IDLE;
-            SerialOutput::print(F("OK: TILT STOPPED"));
-        }
+    if (_state == State::IDLE) return;
+    // Rollover-sichere Deadline-Pruefung (Differenz statt Direktvergleich, siehe FiringFSM)
+    if ((int32_t)(now - _stateEndTime) < 0) return;
+
+    if (_state == State::MOVING) {
+        _tiltServo.writeMicroseconds(_neutralUs);
+        _stateEndTime = now + 50;  // Give time to center
+        _state = State::CENTERING;
+    } else if (_state == State::NUDGING_OUT) {
+        _tiltServo.writeMicroseconds(_neutralUs);
+        _stateEndTime = now + 40;
+        _state = State::NUDGING_IN;
+    } else if (_state == State::CENTERING || _state == State::NUDGING_IN) {
+        _tiltServo.detach();
+        _state = State::IDLE;
+        SerialOutput::print(F("OK: TILT STOPPED"));
+    } else if (_state == State::HOLDING) {
+        // T_POS haelt einen Testwert; kein Re-Center auf _neutralUs vor dem Detach,
+        // sonst wuerde genau der zu testende Kandidatenwert wieder ueberschrieben.
+        _tiltServo.detach();
+        _state = State::IDLE;
+        SerialOutput::print(F("OK: TILT STOPPED"));
     }
 }
 
@@ -73,8 +81,10 @@ void TiltController::setPosition(int us) {
 
     _tiltServo.attach(_pin, Config::SV_MIN_US, Config::SV_MAX_US);
     _tiltServo.writeMicroseconds(us);
-    // reset moving state so update() doesn't detach immediately
-    _state = State::IDLE;
+    // Haelt den Kandidatenwert fuer Config::TILT_HOLD_MS, dann Auto-Detach ueber update()
+    // (siehe HOLDING-Zweig) -- vorher blieb der Servo hier dauerhaft bestromt.
+    _stateEndTime = millis() + Config::TILT_HOLD_MS;
+    _state = State::HOLDING;
     SerialOutput::printf("OK: TILT SET %ld", (long)us);
 }
 

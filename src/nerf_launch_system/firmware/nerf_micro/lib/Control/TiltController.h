@@ -25,7 +25,7 @@ private:
     Servo _tiltServo;  // Servo-Klasse aus der Arduino-Bibliothek
     //    bool _isMoving;
     //    uint32_t _endTime;
-    enum class State { IDLE, MOVING, CENTERING, NUDGING_OUT, NUDGING_IN };
+    enum class State { IDLE, MOVING, CENTERING, NUDGING_OUT, NUDGING_IN, HOLDING };
     State _state;
     uint32_t _stateEndTime;
     bool _nudgeUp;
@@ -72,6 +72,13 @@ public:
     void setPosition(int us);
 
     int getNeutral();
+
+    /**
+     * @brief Zugriff auf den internen Servo (fuer Tests/Debug).
+     */
+    Servo& getServo() {
+        return _tiltServo;
+    }
 };
 
 #endif  // TILT_H
