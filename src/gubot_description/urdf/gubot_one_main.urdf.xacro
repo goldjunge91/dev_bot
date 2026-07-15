@@ -16,7 +16,7 @@
             <xacro:include filename="ros2_control_hardware.xacro" />
         </xacro:unless>
     </xacro:if>
-    <!-- <xacro:include filename="sensor_lidar.xacro" /> -->
+    <xacro:include filename="sensor_lidar.xacro" />
     <xacro:include filename="sensor_camera.xacro" />
     <!-- <xacro:include filename="sensor_depth_camera.xacro" /> -->
     <xacro:include filename="visual_face.xacro" />
