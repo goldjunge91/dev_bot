@@ -120,6 +120,24 @@ static void handle_command(const char * buf)
 }
 
 // ---------------------------------------------------------------------------
+// Boot banner — factored out so it can be reprinted on every new USB
+// connection (see loop()), not just once at power-on. A monitor opened
+// after boot has almost always missed the setup()-time print: USB
+// enumeration + host-side reconnect takes longer than the 500ms window
+// below, so the banner is sent into the void before anyone is listening.
+// ---------------------------------------------------------------------------
+static void print_banner()
+{
+  Serial.printf("\n=== %s ===\n", FW_NAME);
+  Serial.printf("Features: %s\n", FW_FEATURES);
+  Serial.printf(
+    "Baud: %d | PID: Kp=%d Kd=%d Ki=%d Ko=%d | AutoStop: %dms\n",
+    BAUD_RATE, DEFAULT_KP, DEFAULT_KD, DEFAULT_KI, DEFAULT_KO, AUTO_STOP_MS);
+}
+
+static bool usb_was_connected = false;
+
+// ---------------------------------------------------------------------------
 // setup() — runs once after boot
 // Do NOT call stdio_init_all() — Arduino framework handles USB-CDC init.
 // Boot banner via Serial.printf; die printf-Diagnose der SDK-Libs (IMU) geht
@@ -130,11 +148,7 @@ void setup()
   Serial.begin(BAUD_RATE);
   sleep_ms(500);    // Wait for USB-CDC enumeration on host
 
-  Serial.printf("\n=== %s ===\n", FW_NAME);
-  Serial.printf("Features: %s\n", FW_FEATURES);
-  Serial.printf(
-    "Baud: %d | PID: Kp=%d Kd=%d Ki=%d Ko=%d | AutoStop: %dms\n",
-    BAUD_RATE, DEFAULT_KP, DEFAULT_KD, DEFAULT_KI, DEFAULT_KO, AUTO_STOP_MS);
+  print_banner();
 
   motor_init_all();
   encoder_init_all();
@@ -143,6 +157,7 @@ void setup()
 
   last_motion_cmd = get_absolute_time();
   next_pid = make_timeout_time_ms(PID_PERIOD_MS);
+  usb_was_connected = (bool)Serial;   // don't reprint immediately if a monitor is already attached
 }
 
 // ---------------------------------------------------------------------------
@@ -150,6 +165,13 @@ void setup()
 // ---------------------------------------------------------------------------
 void loop()
 {
+  // ---- Reprint banner on every new USB connection (DTR rising edge) ----
+  bool usb_connected = (bool)Serial;
+  if (usb_connected && !usb_was_connected) {
+    print_banner();
+  }
+  usb_was_connected = usb_connected;
+
   // ---- Non-blocking serial receive via Arduino Serial ----
   // (replaces getchar_timeout_us under Arduino framework)
   while (Serial.available() > 0) {
