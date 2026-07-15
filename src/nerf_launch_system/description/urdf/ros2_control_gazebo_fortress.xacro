@@ -16,7 +16,7 @@
                 <command_interface name="position"/>
                 <state_interface name="velocity"/>
                 <state_interface name="position">
-                  <param name="initial_value">6.28</param>
+                  <param name="initial_value">0.52</param>
                 </state_interface>
             </joint>
             <joint name="dart_pusher_joint">
@@ -24,18 +24,10 @@
                 <state_interface name="velocity"/>
                 <state_interface name="position"/>
             </joint>
-            <!-- Flywheel Joints entfernt (FSM)
-            <joint name="flywheel_left_joint">
-                <command_interface name="velocity"/>
-                <state_interface name="velocity"/>
+            <joint name="system_arming_joint">
+                <command_interface name="position"/>
                 <state_interface name="position"/>
             </joint>
-            <joint name="flywheel_right_joint">
-                <command_interface name="velocity"/>
-                <state_interface name="velocity"/>
-                <state_interface name="position"/>
-            </joint>
-            -->
 
         </ros2_control>
 
@@ -53,18 +45,10 @@
             <state_interface name="velocity"/>
             <state_interface name="position"/>
         </joint>
-        <!-- Flywheel Joints entfernt (FSM)
-        <joint name="flywheel_left_joint">
-            <command_interface name="velocity"/>
-            <state_interface name="velocity"/>
+        <joint name="system_arming_joint">
+            <command_interface name="position"/>
             <state_interface name="position"/>
         </joint>
-        <joint name="flywheel_right_joint">
-            <command_interface name="velocity"/>
-            <state_interface name="velocity"/>
-            <state_interface name="position"/>
-        </joint>
-        -->
 
     </xacro:macro>
 

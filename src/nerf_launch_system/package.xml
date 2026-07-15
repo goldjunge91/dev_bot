@@ -2,10 +2,10 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>nerf_launch_system</name>
-  <version>0.0.0</version>
-  <description>Standalone Nerf Launcher Simulation</description>
-  <maintainer email="ros@todo.todo">ros</maintainer>
-  <license>TODO: License declaration</license>
+  <version>0.1.0</version>
+  <description>ROS2 hardware interface and control node for the Nerf dart launcher on Gubot One.</description>
+  <maintainer email="m.tozzi91@icloud.com">goldjunge91</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
@@ -18,14 +18,18 @@
   <depend>xacro</depend>
   <depend>launch</depend>
   <depend>launch_ros</depend>
-  <depend>gazebo_ros</depend>
   <depend>robot_state_publisher</depend>
   <depend>ros2_control</depend>
   <depend>ros2_controllers</depend>
-  <depend>gazebo_ros2_control</depend>
   <depend>libserial-dev</depend>
   <depend>diagnostic_msgs</depend>
   <depend>diagnostic_updater</depend>
+
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>ign_ros2_control</exec_depend>
+  <exec_depend>husarion_gz_worlds</exec_depend>
+  <exec_depend>rviz2</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

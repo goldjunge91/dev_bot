@@ -5,15 +5,53 @@
 #include "nerf_launch_system/nerf_system.hpp"
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "nerf_launch_system/nerf_command_logic.hpp"
 #include "rclcpp/logging.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <rclcpp_lifecycle/state.hpp>
-#include <sstream>
 #include <vector>
 
 namespace nerf_launch_system {
+
+namespace {
+
+// Einzige Quelle der Wahrheit für Joint <-> Interface <-> Speicher-Mapping.
+// Ersetzt die vorherigen if-Kaskaden in get_state_ptr()/get_command_ptr()
+// und die manuelle Joint-Namensliste in on_init(): alle drei leiten sich
+// aus dieser einen Tabelle ab.
+struct InterfaceEntry {
+    const char *joint_name;
+    const char *interface_name;
+    double NerfJoints::*command_member;       // nullptr, falls kein Command-Interface
+    double NerfJointStates::*state_member;    // nullptr, falls kein State-Interface
+};
+
+const InterfaceEntry kInterfaceTable[] = {
+    {"trigger_joint",
+     hardware_interface::HW_IF_POSITION,
+     &NerfJoints::tilt_pos,
+     &NerfJointStates::tilt_pos},
+    {"dart_pusher_joint",
+     hardware_interface::HW_IF_VELOCITY,
+     &NerfJoints::shooter_pos,
+     &NerfJointStates::shooter_pos},
+    {"system_arming_joint",
+     hardware_interface::HW_IF_POSITION,
+     &NerfJoints::arming_pos,
+     &NerfJointStates::arming_pos},
+};
+
+bool is_known_joint(const std::string &joint_name) {
+    for (const auto &entry : kInterfaceTable) {
+        if (joint_name == entry.joint_name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+}  // namespace
 
 // --- Lifecycle ---
 
@@ -24,19 +62,52 @@ hardware_interface::CallbackReturn NerfSystem::on_init(
         return hardware_interface::CallbackReturn::ERROR;
     }
 
-    port_ = info_.hardware_parameters["port"];
-    baud_rate_ = std::stoi(info_.hardware_parameters["baud_rate"]);
+    if (!info_.hardware_parameters.count("port")) {
+        RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
+                     "Missing required hardware parameter 'port'");
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+    port_ = info_.hardware_parameters.at("port");
+
+    if (!info_.hardware_parameters.count("baud_rate")) {
+        RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
+                     "Missing required hardware parameter 'baud_rate'");
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+    try {
+        baud_rate_ = std::stoi(info_.hardware_parameters.at("baud_rate"));
+    } catch (const std::exception &e) {
+        RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
+                     "Invalid 'baud_rate' hardware parameter ('%s'): %s",
+                     info_.hardware_parameters.at("baud_rate").c_str(),
+                     e.what());
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    // Optionale numerische Parameter: Key vorhanden, aber Wert nicht
+    // parsebar -> ERROR statt uncaught std::invalid_argument.
+    auto parse_optional_double = [this](const std::string &key, double &target) -> bool {
+        if (!info_.hardware_parameters.count(key)) {
+            return true;
+        }
+        try {
+            target = std::stod(info_.hardware_parameters.at(key));
+        } catch (const std::exception &e) {
+            RCLCPP_FATAL(rclcpp::get_logger("NerfSystem"),
+                         "Invalid '%s' hardware parameter ('%s'): %s",
+                         key.c_str(),
+                         info_.hardware_parameters.at(key).c_str(),
+                         e.what());
+            return false;
+        }
+        return true;
+    };
 
     // Tilt-Range aus URDF (optional, Default: ±0.52 rad = trigger_joint Limits)
-    if (info_.hardware_parameters.count("tilt_min")) {
-        tilt_min_ = std::stod(info_.hardware_parameters.at("tilt_min"));
-    }
-    if (info_.hardware_parameters.count("tilt_max")) {
-        tilt_max_ = std::stod(info_.hardware_parameters.at("tilt_max"));
-    }
-    if (info_.hardware_parameters.count("diagnostics_expected_rate_hz")) {
-        diagnostics_expected_rate_hz_ =
-            std::stod(info_.hardware_parameters.at("diagnostics_expected_rate_hz"));
+    if (!parse_optional_double("tilt_min", tilt_min_) ||
+        !parse_optional_double("tilt_max", tilt_max_) ||
+        !parse_optional_double("diagnostics_expected_rate_hz", diagnostics_expected_rate_hz_)) {
+        return hardware_interface::CallbackReturn::ERROR;
     }
 
     RCLCPP_INFO(rclcpp::get_logger("NerfSystem"),
@@ -50,13 +121,7 @@ hardware_interface::CallbackReturn NerfSystem::on_init(
     for (const hardware_interface::ComponentInfo &joint : info_.joints) {
         RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Joint found: %s", joint.name.c_str());
 
-        // Erlaubte Joints laut URDF (gubot_one/ros2_control_hardware.xacro):
-        // trigger_joint (Tilt), dart_pusher_joint (Shooter), system_arming_joint (Arming)
-        // ALT: tilt_joint und shooter_joint waren Legacy-Aliase vor URDF-Umbenennung
-        if (joint.name != "trigger_joint" &&
-            // joint.name != "tilt_joint" &&    // ALT: Legacy-Alias, URDF nutzt trigger_joint
-            // joint.name != "shooter_joint" && // ALT: Legacy-Alias, URDF nutzt dart_pusher_joint
-            joint.name != "dart_pusher_joint" && joint.name != "system_arming_joint") {
+        if (!is_known_joint(joint.name)) {
             RCLCPP_FATAL(
                 rclcpp::get_logger("NerfSystem"), "Unsupported joint '%s'", joint.name.c_str());
             return hardware_interface::CallbackReturn::ERROR;
@@ -189,14 +254,17 @@ hardware_interface::return_type NerfSystem::read(const rclcpp::Time & /*time*/,
         diagnostics_->note_read_cycle();
     }
 
-    // Open-Loop: Spiegle Commands in States
+    // Open-Loop: Spiegle Commands in States.
+    // tilt_pos ist davon ausgenommen: write() integriert dort inkrementell
+    // (UP/DN-Pulse) auf den tatsächlichen Servo-Fortschritt. Würde read()
+    // den Command hineinspiegeln, wäre delta = target - state in write()
+    // sofort ~0 und es würde nie ein UP/DN-Kommando gesendet.
     auto safe_copy = [](double src, double &dst) {
         if (std::isfinite(src)) {
             dst = src;
         }
     };
 
-    safe_copy(hw_commands_.tilt_pos, hw_states_.tilt_pos);
     safe_copy(hw_commands_.shooter_pos, hw_states_.shooter_pos);
     safe_copy(hw_commands_.arming_pos, hw_states_.arming_pos);
 
@@ -255,42 +323,26 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
 
     if (!armed_) return hardware_interface::return_type::OK;
 
-    // 1. Tilt – UP/DN Commands für kontinuierliche Rotation
-    // Clamp auf die Joint-Range: das Hardware-Interface besitzt die Konvention.
-    // Out-of-Range-Kommandos (z. B. alte Servo-Rohwerte 5.23–6.28) laufen so
-    // nicht mehr endlos gegen die mechanische Grenze.
-    double target_pos = std::clamp(hw_commands_.tilt_pos, tilt_min_, tilt_max_);
-    double current_pos = hw_states_.tilt_pos;
-    double delta = target_pos - current_pos;
-
-    if (std::abs(delta) > 0.01) {
-        int duration = 100;  // Millisekunden
-
-        std::stringstream ss;
-        if (delta > 0) {
-            ss << "UP " << duration;
-            hw_states_.tilt_pos += 0.05;
-            if (hw_states_.tilt_pos > target_pos) hw_states_.tilt_pos = target_pos;
-        } else {
-            ss << "DN " << duration;
-            hw_states_.tilt_pos -= 0.05;
-            if (hw_states_.tilt_pos < target_pos) hw_states_.tilt_pos = target_pos;
-        }
-        send_and_check(ss.str());
+    // 1. Tilt – UP/DN Commands für kontinuierliche Rotation.
+    // Clamp auf die Joint-Range passiert in make_tilt_command(): das
+    // Hardware-Interface besitzt die Konvention. Out-of-Range-Kommandos
+    // (z. B. alte Servo-Rohwerte 5.23–6.28) laufen so nicht mehr endlos
+    // gegen die mechanische Grenze.
+    auto tilt_step = make_tilt_command(hw_commands_.tilt_pos, hw_states_.tilt_pos,
+                                       tilt_min_, tilt_max_);
+    if (tilt_step) {
+        hw_states_.tilt_pos = tilt_step->new_tilt_pos;
+        send_and_check(tilt_step->command);
     }
 
     // 2. Schuss – SHOT delegiert die komplette Sequenz an die FiringFSM
     //    (SPINNING_UP → PUSHING → BRAKING → COOLDOWN → ARMED)
     // shooter_pos = Flywheel Power % (0-100), Wert > 0 löst einmalig SHOT aus
-    int shot_power = static_cast<int>(hw_commands_.shooter_pos);
-    if (shot_power > 0 && !pusher_active_) {
-        std::stringstream shot_ss;
-        shot_ss << "SHOT " << shot_power;
-        send_and_check(shot_ss.str());
-        pusher_active_ = true;
-        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: SHOT %d (via FSM)", shot_power);
-    } else if (shot_power <= 0) {
-        pusher_active_ = false;
+    auto shot_cmd = make_shot_command(hw_commands_.shooter_pos, pusher_active_);
+    if (shot_cmd) {
+        send_and_check(*shot_cmd);
+        RCLCPP_INFO(
+            rclcpp::get_logger("NerfSystem"), "Command: %s (via FSM)", shot_cmd->c_str());
     }
 
     // Hinweis: Flywheels und Pusher-Sequence werden von der Firmware-FSM autonom gesteuert.
@@ -302,49 +354,23 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
 
 double *NerfSystem::get_state_ptr(const std::string &joint_name,
                                   const std::string &interface_name) {
-    if (interface_name == hardware_interface::HW_IF_POSITION) {
-        // trigger_joint ist der aktuelle URDF-Name (gubot_one/ros2_control_hardware.xacro)
-        // ALT: tilt_joint war der Legacy-Name vor der URDF-Umbenennung
-        if (joint_name == "trigger_joint" /* || joint_name == "tilt_joint" */) {
-            return &hw_states_.tilt_pos;
-        }
-        if (joint_name == "system_arming_joint") {
-            return &hw_states_.arming_pos;
+    for (const auto &entry : kInterfaceTable) {
+        if (joint_name == entry.joint_name && interface_name == entry.interface_name &&
+            entry.state_member) {
+            return &(hw_states_.*entry.state_member);
         }
     }
-    // dart_pusher_joint hat velocity command_interface in der URDF
-    if (interface_name == hardware_interface::HW_IF_VELOCITY) {
-        // dart_pusher_joint ist der aktuelle URDF-Name (velocity interface)
-        // ALT: shooter_joint war der Legacy-Name
-        if (joint_name == "dart_pusher_joint" /* || joint_name == "shooter_joint" */) {
-            return &hw_states_.shooter_pos;
-        }
-    }
-
     return nullptr;
 }
 
 double *NerfSystem::get_command_ptr(const std::string &joint_name,
                                     const std::string &interface_name) {
-    // trigger_joint ist der aktuelle URDF-Name (gubot_one/ros2_control_hardware.xacro)
-    // ALT: tilt_joint war der Legacy-Name vor der URDF-Umbenennung
-    if ((joint_name == "trigger_joint" /* || joint_name == "tilt_joint" */) &&
-        interface_name == hardware_interface::HW_IF_POSITION) {
-        return &hw_commands_.tilt_pos;
+    for (const auto &entry : kInterfaceTable) {
+        if (joint_name == entry.joint_name && interface_name == entry.interface_name &&
+            entry.command_member) {
+            return &(hw_commands_.*entry.command_member);
+        }
     }
-
-    // dart_pusher_joint hat velocity command_interface laut URDF (ros2_control_hardware.xacro)
-    // ALT: shooter_joint war der Legacy-Name
-    if ((joint_name == "dart_pusher_joint" /* || joint_name == "shooter_joint" */) &&
-        interface_name == hardware_interface::HW_IF_VELOCITY) {
-        return &hw_commands_.shooter_pos;
-    }
-
-    if (joint_name == "system_arming_joint" &&
-        interface_name == hardware_interface::HW_IF_POSITION) {
-        return &hw_commands_.arming_pos;
-    }
-
     return nullptr;
 }
 

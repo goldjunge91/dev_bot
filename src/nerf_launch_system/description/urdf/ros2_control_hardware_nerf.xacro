@@ -1,14 +1,19 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <xacro:macro name="nerf_ros2_control_hardware" params="port">
+    <!-- tilt_min/tilt_max: Joint-Space-Range (rad) für den Tilt-Servo =
+         trigger_joint URDF-Limits. Einzige Quelle der Wahrheit; NerfSystem
+         clampt Kommandos zusätzlich darauf. Default ±0.52 rad. -->
+    <xacro:macro name="nerf_ros2_control_hardware" params="port tilt_min:=-0.52 tilt_max:=0.52">
         <ros2_control name="NerfSystem" type="system">
             <hardware>
                 <plugin>nerf_launch_system/NerfSystem</plugin>
-                <param name="port">$(arg port)</param>
+                <param name="port">${port}</param>
                 <param name="baud_rate">115200</param>
+                <param name="tilt_min">${tilt_min}</param>
+                <param name="tilt_max">${tilt_max}</param>
             </hardware>
-            
+
             <joint name="trigger_joint">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
@@ -18,19 +23,6 @@
                 <command_interface name="velocity"/>
                 <state_interface name="velocity"/>
             </joint>
-
-            <!-- Flywheel Joints entfernt: Firmware-FSM steuert Flywheels autonom via SHOT -->
-            <!--
-            <joint name="flywheel_left_joint">
-                <command_interface name="velocity"/>
-                <state_interface name="velocity"/>
-            </joint>
-
-            <joint name="flywheel_right_joint">
-                <command_interface name="velocity"/>
-                <state_interface name="velocity"/>
-            </joint>
-            -->
 
             <joint name="system_arming_joint">
                 <command_interface name="position"/>

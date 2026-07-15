@@ -27,10 +27,12 @@ struct NerfJoints {
  * @brief Zustand der Hardware (State Interface)
  *
  * Diese Werte werden in read() aktualisiert und von Controllern gelesen.
- * Open-Loop: Commands werden in States gespiegelt (keine echten Encoder).
+ * shooter_pos/arming_pos: Open-Loop, Commands werden gespiegelt (keine
+ * echten Encoder). tilt_pos ist die Ausnahme: write() integriert ihn
+ * inkrementell entlang der gesendeten UP/DN-Pulse (kein Mirror in read()).
  */
 struct NerfJointStates {
-    double tilt_pos = 0.0;     // Aktuelle Tilt Position
+    double tilt_pos = 0.0;     // Aktuelle Tilt Position (inkrementell in write() integriert)
     double shooter_pos = 0.0;  // Schuss: gespiegelter Wert (Open-Loop)
     double arming_pos = 0.0;   // Arming Status
 };

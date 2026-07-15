@@ -23,6 +23,7 @@ pkg_check_modules(SERIAL REQUIRED libserial)
 
 # C++ Hardware Interface Library
 add_library(nerf_system SHARED
+  hardware/nerf_command_logic.cpp
   hardware/nerf_communication.cpp
   hardware/nerf_diagnostics.cpp
   hardware/nerf_system.cpp
@@ -48,7 +49,8 @@ ament_target_dependencies(nerf_system
 
 pluginlib_export_plugin_description_file(hardware_interface nerf_launch_system_plugins.xml)
 
-# Install C++ headers
+# Install C++ headers (hardware/include/nerf_launch_system/*.hpp already
+# nests the package dir, so keep the plain include/ destination)
 install(
   DIRECTORY hardware/include/
   DESTINATION include
@@ -96,10 +98,19 @@ if(BUILD_TESTING)
   ament_target_dependencies(test_nerf_diagnostics
     diagnostic_msgs diagnostic_updater rclcpp
   )
+
+  # Pure Tilt-/SHOT-Kommandologik (kein ROS/Serial) — Regressionstest für den
+  # read()/write() Tilt-Mirror-Bug (A1).
+  ament_add_gtest(test_nerf_command_logic
+    test/test_nerf_command_logic.cpp
+  )
+  target_include_directories(test_nerf_command_logic PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/hardware/include
+  )
+  target_link_libraries(test_nerf_command_logic nerf_system)
 endif()
 
-ament_export_include_directories(include)
-ament_export_libraries(nerf_system)
+ament_export_targets(export_nerf_system HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   rclcpp
   rclcpp_lifecycle

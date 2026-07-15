@@ -6,8 +6,8 @@
  * Kommuniziert über NerfCommunication mit dem Mikrocontroller.
  *
  * Joints:
- * - tilt_joint: Tilt Servo (Position Control)
- * - shooter_joint: Schuss auslösen (Position = Flywheel Power %)
+ * - trigger_joint: Tilt Servo (Position Control)
+ * - dart_pusher_joint: Schuss auslösen (Velocity = Flywheel Power %)
  * - system_arming_joint: Arming System (Position Control)
  */
 #ifndef NERF_LAUNCH_SYSTEM_NERF_SYSTEM_HPP
@@ -147,16 +147,16 @@ private:
     double tilt_max_ = 0.52;   // URDF trigger_joint upper limit (rad)
 
     // Arming State (Synchron mit Firmware-FSM)
+    bool armed_ = false;
+    bool pusher_active_ = false;
+    bool serial_warned_ = false;
+
     /**
      * @brief Gibt Pointer auf State-Variable zurück
      * @param joint_name Name des Joints
      * @param interface_name Interface-Typ (position/velocity)
      * @return Pointer auf double oder nullptr
      */
-    bool armed_ = false;
-    bool pusher_active_ = false;
-    bool serial_warned_ = false;
-
     double *get_state_ptr(const std::string &joint_name, const std::string &interface_name);
 
     /**

@@ -1,4 +1,0 @@
-# Gazebo parameters for nerf_launch_system simulation
-gazebo:
-  ros__parameters:
-    publish_rate: 100.0

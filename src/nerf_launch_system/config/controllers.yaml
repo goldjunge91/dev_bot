@@ -22,13 +22,6 @@ trigger_controller:
     joints:
       - trigger_joint
 
-# flywheel_controller: Entfernt – Firmware-FSM steuert Flywheels autonom via SHOT
-# flywheel_controller:
-#   ros__parameters:
-#     joints:
-#       - flywheel_left_joint
-#       - flywheel_right_joint
-
 pusher_controller:
   ros__parameters:
     joints:

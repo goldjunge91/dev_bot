@@ -11,8 +11,11 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler
+from launch.event_handlers import OnProcessExit
+from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import Node
-import xacro
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -22,22 +25,26 @@ def generate_launch_description():
     xacro_file = os.path.join(pkg_nerf, "description",
                               "urdf", "nerf_launcher.urdf.xacro")
 
-    # Deklariere Launch-Argumente
-    from launch.actions import DeclareLaunchArgument
-    from launch.substitutions import LaunchConfiguration
-
     arg_port = DeclareLaunchArgument(
         "port",
-        # default_value="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00",  # Standard serieller Port für Arduino
+        default_value="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00",
         description="Serial port for Nerf Arduino",
     )
 
-    # Verarbeite xacro mit use_hardware=true und port-Parameter
-    robot_description_config = xacro.process_file(
-        xacro_file,
-        mappings={"use_hardware": "true", "port": LaunchConfiguration("port")},
-    )
-    robot_description = {"robot_description": robot_description_config.toxml()}
+    # xacro-Mappings brauchen zur Launch-Zeit aufgelöste Strings — eine
+    # LaunchConfiguration direkt in `mappings` wird von xacro.process_file()
+    # nicht aufgelöst (Parse-Zeit != Launch-Zeit). Command(['xacro ...'])
+    # lässt xacro als Subprozess mit den fertig substituierten Argumenten
+    # laufen; ParameterValue(value_type=str) verhindert, dass robot_state_publisher
+    # das Ergebnis als YAML statt als String interpretiert.
+    robot_description_content = Command([
+        "xacro ", xacro_file,
+        " use_hardware:=true",
+        " port:=", LaunchConfiguration("port"),
+    ])
+    robot_description = {
+        "robot_description": ParameterValue(robot_description_content, value_type=str)
+    }
 
     # Robot State Publisher - Publiziert TF-Transformationen basierend auf URDF
     node_robot_state_publisher = Node(
@@ -63,67 +70,43 @@ def generate_launch_description():
         emulate_tty=True,  # Verbesserte Konsolen-Ausgabe
     )
 
-    # Spawner - Laden und Aktivieren der Controller
-    joint_state_broadcaster = Node(
+    # Spawner - ein kombinierter Aufruf statt vier parallele Node-Actions:
+    # verhindert eine Race gegen nerf_control (s.u.) — vier unabhängige
+    # Spawner liefen bisher parallel zu nerf_control_node, dessen Publisher
+    # (u.a. der 1s-Init-Homing auf tilt_max) an einen noch nicht aktiven
+    # trigger_controller-Subscriber gingen und bei volatiler QoS
+    # stillschweigend verworfen wurden. Combined-Spawner-Muster wie
+    # gubot_controller/launch/controller.launch.py.
+    controllers_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
             "joint_state_broadcaster",  # Publiziert Joint-States auf /joint_states
+            "trigger_controller",  # Nerf Tilt/Trigger Controller
+            "pusher_controller",  # Dart-Pusher Controller
+            "arming_controller",  # System Arming/Disarming
             "--controller-manager",
             "/controller_manager",
+            "--controller-manager-timeout",
+            "60",
         ],
         output="screen",
     )
 
-    trigger_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[
-            "trigger_controller",
-            "--controller-manager",
-            "/controller_manager",
-        ],  # Nerf Tilt/Trigger Controller
-        output="screen",
-    )
-
-    # flywheel_controller = Node(
-    #     package="controller_manager",
-    #     executable="spawner",
-    #     arguments=[
-    #         "flywheel_controller",  # Schwungrad-Controller (ESC)
-    #         "--controller-manager",
-    #         "/controller_manager",
-    #     ],
-    #     output="screen",
-    # )
-
-    pusher_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[
-            "pusher_controller",
-            "--controller-manager",
-            "/controller_manager",
-        ],  # Dart-Pusher Controller
-        output="screen",
-    )
-
-    arming_controller = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[
-            "arming_controller",
-            "--controller-manager",
-            "/controller_manager",
-        ],  # System Arming/Disarming
-        output="screen",
-    )
-
-    # High-Level Control Node - Koordiniert Nerf-Aktionen (Schießen, Zielen)
+    # High-Level Control Node - Koordiniert Nerf-Aktionen (Schießen, Zielen).
+    # Startet erst NACH dem Spawner (OnProcessExit), damit trigger_controller
+    # etc. bereits aktiv sind, bevor nerf_control_node Kommandos weiterleitet.
     nerf_control = Node(
         package="nerf_launch_system",
         executable="nerf_control_node",
         output="screen",
+    )
+
+    delayed_nerf_control = RegisterEventHandler(
+        OnProcessExit(
+            target_action=controllers_spawner,
+            on_exit=[nerf_control],
+        )
     )
 
     return LaunchDescription(
@@ -131,11 +114,7 @@ def generate_launch_description():
             arg_port,
             node_robot_state_publisher,
             controller_manager,
-            joint_state_broadcaster,
-            trigger_controller,
-            # flywheel_controller,
-            pusher_controller,
-            arming_controller,
-            nerf_control,
+            controllers_spawner,
+            delayed_nerf_control,
         ]
     )

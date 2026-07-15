@@ -16,7 +16,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Float64MultiArray
+from std_msgs.msg import Float64
 from vision_msgs.msg import Detection2DArray
 import time
 
@@ -31,7 +31,7 @@ class FollowFace(Node):
         )
         self.publisher_ = self.create_publisher(Twist, "/cmd_vel", 10)
         self.tilt_publisher_ = self.create_publisher(
-            Float64MultiArray, "/nerf/tilt", 10
+            Float64, "/nerf/tilt", 10
         )
 
         # --- Parameter ---
@@ -107,7 +107,7 @@ class FollowFace(Node):
 
     def timer_callback(self):
         msg = Twist()
-        tilt_msg = Float64MultiArray()
+        tilt_msg = Float64()
 
         if time.time() - self.lastrcvtime < self.rcv_timeout_secs:
             self.get_logger().debug(
@@ -131,7 +131,7 @@ class FollowFace(Node):
             self.current_tilt += error_y * self.tilt_chase_multiplier
             self.current_tilt = max(0.0, min(1.0, self.current_tilt))
 
-            tilt_msg.data = [self.current_tilt]
+            tilt_msg.data = self.current_tilt
             self.tilt_publisher_.publish(tilt_msg)
         else:
             self.get_logger().debug(
@@ -145,7 +145,7 @@ class FollowFace(Node):
             else:
                 msg.angular.z = 0.0
             # Behalte letzten gültigen Tilt bei
-            tilt_msg.data = [self.current_tilt]
+            tilt_msg.data = self.current_tilt
             self.tilt_publisher_.publish(tilt_msg)
 
         self.publisher_.publish(msg)

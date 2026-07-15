@@ -4,8 +4,8 @@ Encoder Monitor - Echtzeit Encoder-Positions-Anzeige
 ====================================================
 Zeigt kontinuierlich die Encoder-Positionen der Räder an
 
-Verwendung:
-  ros2 run nerf_launch_system monitor_encoders.py
+Verwendung (manuelles Dev-Skript, nicht installiert):
+  python3 src/nerf_launch_system/scripts/monitor_encoders.py
 
 Ausgabe:
   Left: 1.2345  |  Right: 2.3456

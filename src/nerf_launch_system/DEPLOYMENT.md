@@ -39,15 +39,14 @@ source install/setup.bash
 **Terminal 1:**
 Launch the FULL robot (Base + Nerf + EKF + Joystick-Teleop) using the unified launch file:
 ```bash
-ros2 launch gubot_one launch_all_real.launch.py
+ros2 launch gubot_bringup launch_all_real.launch.py
 ```
-<!-- ALT: ros2 launch gubot_one launch_robot.launch.py — Datei wurde durch die
-     modulare Kette ersetzt: launch_all_real.launch.py inkludiert
-     controller/launch/controller.launch.py (controller_manager, Spawner,
-     Nerf-Kette, Twist Mux) + load_urdf + EKF -->
+<!-- ALT: ros2 launch gubot_one launch_all_real.launch.py — gubot_one wurde in
+     gubot_bringup/gubot_controller/gubot_description/gubot_gazebo/
+     gubot_localization/gubot_utils aufgeteilt -->
 *Notes:*
-- *Nerf hardware is enabled by default (`use_nerf_hardware:=true` inside the launch file); serial ports are resolved via `/dev/serial/by-id/...` in the URDF (`ros2_control_hardware.xacro`), not by ACM number.*
-- *For joystick control, run `joy_node` on the remote machine with the gamepad (same `ROS_DOMAIN_ID`, CycloneDDS config from `src/gubot_one/cycloneDDS/`); only `teleop_node`/`nerf_joy` run on the robot.*
+- *Nerf hardware is enabled by default (`use_nerf_hardware:=true` inside the launch file); serial ports are resolved via `/dev/serial/by-id/...` in the URDF (`gubot_description/urdf/ros2_control_hardware.xacro`), not by ACM number.*
+- *For joystick control, run `joy_node` on the remote machine with the gamepad (same `ROS_DOMAIN_ID`, CycloneDDS config from `src/gubot_utils/cycloneDDS/`); only `teleop_node`/`nerf_joy` run on the robot.*
 
 ## 5. Run Full System Test
 **Terminal 2:**

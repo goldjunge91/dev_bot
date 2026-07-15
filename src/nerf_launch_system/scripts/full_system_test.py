@@ -13,8 +13,8 @@ Testet alle Hauptkomponenten des Systems
    - Tilt Servo (verschiedene Positionen)
    - Fire Service (komplette Schuss-Sequenz)
 
-Verwendung:
-  ros2 run nerf_launch_system full_system_test.py
+Verwendung (manuelles Dev-Skript, nicht als colcon-Test registriert):
+  python3 src/nerf_launch_system/scripts/full_system_test.py
 
 WICHTIG:
 - Stelle sicher dass Hardware verbunden ist
@@ -124,8 +124,9 @@ class FullSystemTest(Node):
             time.sleep(0.1)
         time.sleep(1.5)  # Warte auf Arming-Sequenz/Sicherheit
 
-        # Tilt-Positionen testen
-        targets = [5.23, 6.28, 5.75]  # Unten, Oben, Mitte
+        # Tilt-Positionen testen (Joint-Space rad, trigger_joint URDF-Limits
+        # ±0.52 — NerfSystem clampt darauf, siehe tilt_min_/tilt_max_)
+        targets = [-0.52, 0.52, 0.0]  # Unten, Oben, Mitte
         for t in targets:
             self.get_logger().info(f"Tilting to {t:.2f} rad")
             cmd = Float64MultiArray()

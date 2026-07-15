@@ -7,7 +7,7 @@ Commands mit um Simulation + Controller‑Status zu prüfen.
 ## Simulation starten (Gubot + Nerf im Sim)
 
 ```bash
-ros2 launch gubot_one simulation.launch.py
+ros2 launch gubot_gazebo simulation.launch.py
 ```
 
 Nerf‑Launcher-Sim starten:

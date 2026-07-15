@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Referenz: rosbot_ws/src/rosbot_ros/rosbot_description/urdf/common/ros2_control.urdf.xacro
+         und common/gazebo.urdf.xacro.
+         Anpassungen:
+         - Gelenkbezeichnungen: fl/fr/rl/rr_wheel_joint (Referenz-Schema)
+         - controller_config als xacro-Argument (Pfad wird von load_urdf.launch.py injiziert)
+         - transition_event-Remappings hinzugefügt (wie Referenz)
+         - position_proportional_gain entfernt (wird von GazeboSimSystem nicht unterstützt)
+         - Sensor-Name "imu_sensor" konsistent mit controllers.yaml sensor_name und
+           dem Gazebo-Sensor in gubot_one_geometry.xacro
+    -->
+
+    <!-- NEW: controller config path injected by load_urdf.launch.py at runtime -->
+    <!-- ALT: Hard-coded $(find gubot_one)/controller/config/controllers.yaml -->
+    <xacro:arg name="controller_config"
+        default="$(find gubot_controller)/config/controllers.yaml"/>
+
+    <ros2_control name="GubotIgnitionSystem" type="system">
+        <hardware>
+            <!-- ALT: ign_ros2_control/IgnitionSystem (Ignition Fortress plugin name) -->
+            <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+            <!-- ALT: position_proportional_gain — wird von GazeboSimSystem nicht unterstützt -->
+            <!-- <param name="position_proportional_gain">20.0</param> -->
+        </hardware>
+
+        <!-- Gelenkbezeichnungen: fl/fr/rl/rr_wheel_joint (Referenz rosbot_xl-Schema) -->
+        <!-- ALT: front_left/front_right/rear_left/rear_right_wheel_joint -->
+        <joint name="fl_wheel_joint">
+            <command_interface name="velocity">
+                <param name="min">-10</param>
+                <param name="max">10</param>
+            </command_interface>
+            <state_interface name="velocity">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="position">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+        </joint>
+        <joint name="fr_wheel_joint">
+            <command_interface name="velocity">
+                <param name="min">-10</param>
+                <param name="max">10</param>
+            </command_interface>
+            <state_interface name="velocity">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="position">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+        </joint>
+        <joint name="rl_wheel_joint">
+            <command_interface name="velocity">
+                <param name="min">-10</param>
+                <param name="max">10</param>
+            </command_interface>
+            <state_interface name="velocity">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="position">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+        </joint>
+        <joint name="rr_wheel_joint">
+            <command_interface name="velocity">
+                <param name="min">-10</param>
+                <param name="max">10</param>
+            </command_interface>
+            <state_interface name="velocity">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="position">
+                <param name="initial_value">0.0</param>
+            </state_interface>
+        </joint>
+
+        <!-- Nerf-Joints: NUR wenn use_nerf_hardware=true, sonst existieren diese Joints nicht in der URDF -->
+        <!-- ALT: value="${'$(arg use_nerf_hardware)' == 'true'}" - fragile String-Vergleich
+             NEU: Standard xacro:arg Substitution -->
+        <xacro:if value="$(arg use_nerf_hardware)">
+            <joint name="trigger_joint">
+                <command_interface name="position">
+                    <param name="p">50.0</param>
+                    <param name="d">1.0</param>
+                </command_interface>
+                <state_interface name="position">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+            </joint>
+            <joint name="dart_pusher_joint">
+                <command_interface name="velocity"/>
+                <state_interface name="velocity"/>
+                <state_interface name="position"/>
+            </joint>
+            <joint name="system_arming_joint">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+            </joint>
+        </xacro:if>
+
+        <!-- Sensor-Name "imu_sensor": muss übereinstimmen mit:
+             1. Gazebo-Sensor name="imu_sensor" in gubot_one_geometry.xacro
+             2. controllers.yaml: imu_broadcaster.ros__parameters.sensor_name: imu_sensor
+        -->
+        <sensor name="imu_sensor">
+            <state_interface name="linear_acceleration.x"/>
+            <state_interface name="linear_acceleration.y"/>
+            <state_interface name="linear_acceleration.z"/>
+            <state_interface name="angular_velocity.x"/>
+            <state_interface name="angular_velocity.y"/>
+            <state_interface name="angular_velocity.z"/>
+            <state_interface name="orientation.x"/>
+            <state_interface name="orientation.y"/>
+            <state_interface name="orientation.z"/>
+            <state_interface name="orientation.w"/>
+        </sensor>
+    </ros2_control>
+
+    <gazebo>
+        <!-- Referenz: common/gazebo.urdf.xacro macro "controller" -->
+        <!-- ALT: gz_ros2_control::GazeboSimROS2ControlPlugin (Gazebo Garden/Harmonic) -->
+        <!-- <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
+        <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
+            <controller_manager_name>controller_manager</controller_manager_name>
+            <!-- ALT: Hard-coded Pfad $(find gubot_one)/controller/config/controllers.yaml -->
+            <parameters>$(arg controller_config)</parameters>
+            <ros>
+                <!-- Mecanum-Drive Remappings (wie Referenz common/gazebo.urdf.xacro) -->
+                <remapping>mecanum_drive_controller/cmd_vel_unstamped:=cmd_vel</remapping>
+                <remapping>mecanum_drive_controller/odom:=odometry/wheels</remapping>
+                <!-- NEU: transition_event Remappings (fehlten bisher, Referenz-Pattern) -->
+                <remapping>mecanum_drive_controller/transition_event:=_mecanum_drive_controller/transition_event</remapping>
+                <remapping>differential_drive_controller/cmd_vel_unstamped:=cmd_vel</remapping>
+                <remapping>differential_drive_controller/odom:=odometry/wheels</remapping>
+                <remapping>differential_drive_controller/transition_event:=_differential_drive_controller/transition_event</remapping>
+                <remapping>imu_broadcaster/imu:=imu/data</remapping>
+                <remapping>imu_broadcaster/transition_event:=_imu_broadcaster/transition_event</remapping>
+                <remapping>joint_state_broadcaster/transition_event:=_joint_state_broadcaster/transition_event</remapping>
+                <remapping>/diagnostics:=diagnostics</remapping>
+                <remapping>/tf:=tf</remapping>
+                <remapping>/tf_static:=tf_static</remapping>
+            </ros>
+        </plugin>
+    </gazebo>
+</robot>

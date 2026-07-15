@@ -1,143 +1,98 @@
+# nerf_launch_system
 
+ROS 2 (Humble) `ros2_control` hardware interface + high-level control
+node for the Nerf dart launcher mounted on Gubot One. Talks to a Nerf
+Arduino microcontroller (firmware FSM) over serial.
 
+## Package contents
 
+- `hardware/` — `NerfSystem`, a `hardware_interface::SystemInterface`
+  plugin (`nerf_launch_system/NerfSystem`). Joints: `trigger_joint`
+  (tilt, position), `dart_pusher_joint` (shot trigger, velocity),
+  `system_arming_joint` (arm/disarm, position).
+- `nerf_launch_system/nerf_control_node.py` — high-level node exposing
+  a normalized tilt topic and a fire service on top of the raw
+  controller topics.
+- `description/` — standalone URDF/xacro + meshes for the launcher
+  (also included by `gubot_description` for the full robot).
+- `firmware/` — Arduino firmware for the Nerf microcontroller.
+
+Real robot integration lives in `gubot_bringup`/`gubot_controller`
+(`ros2 launch gubot_bringup launch_all_real.launch.py`), which spawns
+this package's controllers and remaps `/trigger_controller/commands`
+to `/tilt_controller/commands`. This package's own launch files
+(`hardware.launch.py`, `simulate.launch.py`) are for standalone
+bring-up/testing of the launcher in isolation.
+
+## Build
+
+```bash
 colcon build --symlink-install --packages-select nerf_launch_system
 source install/setup.bash
-# Starten
+```
+
+## Standalone simulation (Gazebo / Ignition Fortress)
+
+```bash
 ros2 launch nerf_launch_system simulate.launch.py
+```
 
-1. Status prüfen
-Zeigt dir die aktuelle Position und Geschwindigkeit aller Gelenke an.
+## Standalone real hardware
 
+```bash
+ros2 launch nerf_launch_system hardware.launch.py port:=/dev/ttyACM0
+```
+
+## High-level control API
+
+Topic (subscribed): `/nerf/tilt` (`std_msgs/Float64`) — normalized
+tilt position:
+- `0.0` = down (`tilt_min`, default `-0.52` rad)
+- `0.5` = horizontal (`0.0` rad)
+- `1.0` = up (`tilt_max`, default `+0.52` rad)
+
+On startup (1s after the node comes up), the launcher homes to
+`init_tilt_norm` (parameter, default `0.5` = horizontal).
+
+Service: `/nerf/fire` (`std_srvs/srv/Trigger`) — triggers a shot. Sends
+`shot_power` (parameter, default `10.0` = 10% flywheel power) to the
+firmware FSM, which runs the full sequence autonomously
+(`SPINNING_UP → PUSHING → BRAKING → COOLDOWN → ARMED`).
+
+### Quick manual test
+
+```bash
+# Status
 ros2 topic echo /joint_states --once
-1. Topics auflisten
-Zeigt alle verfügbaren Topics an.
 
+# Tilt to horizontal, then fully up
+ros2 topic pub --once /nerf/tilt std_msgs/msg/Float64 "{data: 0.5}"
+ros2 topic pub --once /nerf/tilt std_msgs/msg/Float64 "{data: 1.0}"
 
-ros2 topic list
+# Fire
+ros2 service call /nerf/fire std_srvs/srv/Trigger
+```
 
-3. Steuerung (Sicher!)
-Jetzt nutzt du die neuen "User-Friendly" Topics:
+### Direct controller topics (bypasses the high-level node)
 
-Tilt (0.0 = Unten, 0.5 = Mitte, 1.0 = Oben):
+```bash
+# Tilt to a raw joint angle (rad, clamped to [tilt_min, tilt_max])
+ros2 topic pub --once /trigger_controller/commands std_msgs/msg/Float64MultiArray "{data: [0.0]}"
 
-bash
-# Mitte (Horizontal)
-ros2 topic pub --once /nerf/tilt std_msgs/msg/Float64MultiArray "{data: [0.5]}"
-# Ganz nach oben
-ros2 topic pub --once /nerf/tilt std_msgs/msg/Float64MultiArray "{data: [1.0]}"
-
-
-# Gehe zur Position 5.5
-ros2 topic pub --once /trigger_controller/commands std_msgs/msg/Float64MultiArray "{data: [5.5]}"
-
-# Teste Horizontal
-ros2 topic pub --once /trigger_controller/commands std_msgs/msg/Float64MultiArray "{data: [5.75]}"
-
-
-B. Flywheels (Geschwindigkeit)
-Hier steuerst du die Drehzahl beider Räder. Da der Controller 2 Gelenke hat (left und right), musst du zwei Werte senden!
-
-# Beide an (Geschwindigkeit 100)
-ros2 topic pub /flywheel_controller/commands std_msgs/msg/Float64MultiArray "{data: [100.0, 100.0]}"
-
-# Beide aus
-ros2 topic pub /flywheel_controller/commands std_msgs/msg/Float64MultiArray "{data: [0.0, 0.0]}"
-
-C. Pusher (Geschwindigkeit)
-Das ist der Continuous Servo. Du steuerst die Geschwindigkeit.
-
-# Pushen (drehen)
+# Raw shot power (0-100%); the hardware interface fires once when > 0
 ros2 topic pub --once /pusher_controller/commands std_msgs/msg/Float64MultiArray "{data: [10.0]}"
-
-# Stoppen
 ros2 topic pub --once /pusher_controller/commands std_msgs/msg/Float64MultiArray "{data: [0.0]}"
 
-💡 Tipp für klemmende Simulation
-Falls Gazebo mal "hängt" oder du Fehler wie "Address already in use" bekommst, hilft der "große Hammer" vor dem Neustart:
-
-pkill -f gazebo && pkill -f gzserver && pkill -f gzclient && pkill -f ros2
-
-
-Feuern (Automatische Sequenz): Startet Flywheels -> Pusht Dart -> Stoppt alles.
-
-ros2 service call /nerf/fire std_srvs/srv/Trigger
-ros2 run nerf_launch_system nerf_control_node
-
-Now try launching again in a fresh terminal:
-```bash
-cd /home/ros/projects/my_new_robot
-source install/setup.bash
-ros2 launch nerf_launch_system simulate.launch.py
-Pro tip: If you ever see this issue again, run:
+# Arm / disarm
+ros2 topic pub --once /arming_controller/commands std_msgs/msg/Float64MultiArray "{data: [1.0]}"
+ros2 topic pub --once /arming_controller/commands std_msgs/msg/Float64MultiArray "{data: [0.0]}"
 ```
+
+## Troubleshooting
+
+If Gazebo hangs or you get "Address already in use" on restart:
+
 ```bash
-pkill -9 -f robot_state_publisher
+pkill -f "ign gazebo"
 ros2 daemon stop
-source install/setup.bash
-ros2 launch gubot_one simulation.launch.py
 ```
-
-<!-- 
-
-""""# Robot Nerf Launcher
-
-ROS 2 package for controlling a Nerf dart launcher via Arduino Pro Micro.
-
-## Architecture
-
-```
-ROS 2 Topics → nerf_launcher_node.py → USB Serial → Arduino Pro Micro → ESCs + Servos
-```
-
-## Installation
-
-```bash
-# Build
-colcon build --packages-select nerf_dart_launcher
-
-# Source
-source install/setup.bash
-```
-
-## Usage
-
-```bash
-# Start the node
-ros2 launch nerf_dart_launcher nerf_launcher.launch.py
-
-# With custom serial port
-ros2 launch nerf_dart_launcher nerf_launcher.launch.py serial_port:=/dev/ttyACM1
-```
-
-## ROS Topics
-
-| Topic              | Type      | Description                  |
-| ------------------ | --------- | ---------------------------- |
-| `cmd/arm`          | `Bool`    | `true`=ARM, `false`=DISARM   |
-| `cmd/fire`         | `Bool`    | `true`=execute shot sequence |
-| `cmd/tilt`         | `Float32` | Tilt angle 0-180°            |
-| `cmd/power`        | `Float32` | Shot power 0-80%             |
-| `status/armed`     | `Bool`    | Current armed state          |
-| `status/connected` | `Bool`    | Serial connection status     |
-
-## Parameters
-
-| Parameter     | Default        | Description         |
-| ------------- | -------------- | ------------------- |
-| `serial_port` | `/dev/ttyACM0` | Arduino serial port |
-| `baud_rate`   | `115200`       | Serial baud rate    |
-
-## Firmware
-
-Arduino firmware is in the `firmware/` directory. See [firmware/README.md](firmware/README.md).
-
-## Quick Test
-
-```bash
-ros2 topic pub --once /nerf_launcher/cmd/arm std_msgs/msg/Bool "data: true"
-ros2 topic pub --once /nerf_launcher/cmd/tilt std_msgs/msg/Float32 "data: 45.0"
-ros2 topic pub --once /nerf_launcher/cmd/fire std_msgs/msg/Bool "data: true"
-ros2 topic pub --once /nerf_launcher/cmd/arm std_msgs/msg/Bool "data: false"
-```
-"""" -->

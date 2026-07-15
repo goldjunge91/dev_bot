@@ -89,7 +89,7 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_init(
 
   // --- Detect optional IMU sensor block in URDF --------------------------
   // A sensor is only wired up if the URDF actually declares one under this
-  // <ros2_control> block (see gubot_one/description/urdf/ros2_control_hardware.xacro).
+  // <ros2_control> block (see gubot_description/urdf/ros2_control_hardware.xacro).
   if (!info_.sensors.empty()) {
     const hardware_interface::ComponentInfo & sensor = info_.sensors[0];
 

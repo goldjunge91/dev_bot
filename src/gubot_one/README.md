@@ -4,6 +4,20 @@
 ## 
 This repository contains code and configurations for a robot project using ROS 2 Humble and Gazebo simulation.
 
+## Paketstruktur
+
+`gubot_one` ist ein **Metapaket** (nach dem Muster von `rosbot_ros`). Die
+Funktionalität liegt in sechs Einzelpaketen:
+
+| Paket | Inhalt |
+|-------|--------|
+| `gubot_description`  | URDF/Xacro, Meshes, RViz-Configs, `load_urdf.launch.py` |
+| `gubot_controller`   | ros2_control-Bringup: `controller.launch.py`, `controllers.yaml`, `twist_mux.yaml` |
+| `gubot_gazebo`       | Simulation: `simulation.launch.py`, Welten, Modelle, gz-Bridge-Configs |
+| `gubot_localization` | EKF (`robot_localization`): `ekf.launch.py`, `ekf.yaml` |
+| `gubot_bringup`      | Realer Roboter: `launch_all_real.launch.py`, Joystick, Kamera, LiDAR |
+| `gubot_utils`        | Skripte (`start_robot.sh`, Teleop), Autostart-Service, CycloneDDS-Configs, Doku |
+
 ## Installation
 To set up the necessary ROS 2 packages, run the following command:
 
@@ -159,17 +173,17 @@ git switch humble
 1.  **Source ROS 2 and Workspace:**
     ```bash
     source /opt/ros/humble/setup.bash
-    colcon build --symlink-install --packages-select gubot_one
+    colcon build --symlink-install
     source install/setup.bash
     ```
 
 2.  **Launch Simulation** (Gazebo Fortress + RViz + Controller + EKF):
     ```bash
-    ros2 launch gubot_one simulation.launch.py
+    ros2 launch gubot_gazebo simulation.launch.py
     # Optionen:
-    ros2 launch gubot_one simulation.launch.py use_camera:=false   # schnellere Sim (WSL2)
-    ros2 launch gubot_one simulation.launch.py world:=<pfad/zu/welt.world>
-    ros2 launch gubot_one simulation.launch.py use_nerf_hardware:=false
+    ros2 launch gubot_gazebo simulation.launch.py use_camera:=false   # schnellere Sim (WSL2)
+    ros2 launch gubot_gazebo simulation.launch.py world:=<pfad/zu/welt.world>
+    ros2 launch gubot_gazebo simulation.launch.py use_nerf_hardware:=false
     ```
 
     *Note: If you encounter "Entity already exists" errors, kill old processes first:*
@@ -189,7 +203,7 @@ bash
 ros2 run joy joy_node
 Starte dein Script:
 bash
-ros2 run gubot_one nerf_joy.py
+ros2 run gubot_utils nerf_joy.py
 2. nerf_teleop.py (Tastatur Steuerung)
 Dieses Script nimmst Eingaben direkt aus dem Terminal entgegen.
 
@@ -197,7 +211,7 @@ Dieses Script nimmst Eingaben direkt aus dem Terminal entgegen.
 Starte das Script:
 bash
 source install/setup.bash
-ros2 run gubot_one nerf_teleop.py
+ros2 run gubot_utils nerf_teleop.py
 Navigiere den Roboter mit WASD und steuere den Nerf-Launcher mit den Tasten 1-5, Space, t, g.
 
 
@@ -216,10 +230,10 @@ Um alles (Basis, LiDAR, Kamera, Nerf) auf dem Pi zu starten:
 
 ```bash
 # Workspace bauen (falls noch nicht geschehen)
-cd ~/projects/my_new_robot
-colcon build --symlink-install --packages-select gubot_one
+cd ~/projects/my_new_robot_9e34131
+colcon build --symlink-install
 
-# Starten
+# Starten (oder: ./src/gubot_utils/scripts/start_robot.sh)
 source install/setup.bash
-ros2 launch gubot_one launch_all_real.launch.py
+ros2 launch gubot_bringup launch_all_real.launch.py
 ```

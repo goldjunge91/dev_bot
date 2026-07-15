@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>gubot_description</name>
+  <version>0.1.0</version>
+  <description>URDF/Xacro, Meshes und RViz-Konfigurationen des Gubot One (Schema: rosbot_description)</description>
+  <maintainer email="m.tozzi91@icloud.com">goldjunge91</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <!-- ros2_control_hardware.xacro inkludiert das NerfSystem-Macro aus
+       nerf_launch_system ($(find nerf_launch_system)) statt es zu
+       duplizieren; kein Zyklus, nerf_launch_system hängt nicht von
+       gubot_description ab. -->
+  <exec_depend>nerf_launch_system</exec_depend>
+  <!-- Hinweis: ros2_control_gazebo_ign_fortress.xacro und load_urdf.launch.py
+       referenzieren $(find gubot_controller)/config/controllers.yaml.
+       Bewusst KEINE Abhängigkeit auf gubot_controller deklariert, da
+       gubot_controller seinerseits von gubot_description abhängt (Zyklus).
+       Die Auflösung passiert erst zur Laufzeit. -->
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
