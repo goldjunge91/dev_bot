@@ -36,6 +36,12 @@ const InterfaceEntry kInterfaceTable[] = {
      hardware_interface::HW_IF_VELOCITY,
      &NerfJoints::shooter_pos,
      &NerfJointStates::shooter_pos},
+    // Kein Command-Member: reine State-Interface, in read() aus shooter_pos
+    // integriert (siehe NerfJointStates::dart_pusher_pos).
+    {"dart_pusher_joint",
+     hardware_interface::HW_IF_POSITION,
+     nullptr,
+     &NerfJointStates::dart_pusher_pos},
     {"system_arming_joint",
      hardware_interface::HW_IF_POSITION,
      &NerfJoints::arming_pos,
@@ -249,7 +255,7 @@ std::vector<hardware_interface::CommandInterface> NerfSystem::export_command_int
 // --- Read / Write ---
 
 hardware_interface::return_type NerfSystem::read(const rclcpp::Time & /*time*/,
-                                                 const rclcpp::Duration & /*period*/) {
+                                                 const rclcpp::Duration &period) {
     if (diagnostics_) {
         diagnostics_->note_read_cycle();
     }
@@ -268,6 +274,19 @@ hardware_interface::return_type NerfSystem::read(const rclcpp::Time & /*time*/,
     safe_copy(hw_commands_.shooter_pos, hw_states_.shooter_pos);
     safe_copy(hw_commands_.arming_pos, hw_states_.arming_pos);
 
+    // dart_pusher_joint hat keinen echten Encoder — Position wird aus dem
+    // Geschwindigkeits-Kommando integriert (Standard-Konvention fuer
+    // "position += velocity * dt" bei continuous Joints), nur damit
+    // joint_state_broadcaster kein NaN mehr fuer dieses Joint meldet (siehe
+    // NerfJointStates::dart_pusher_pos). Physikalisch nicht kalibriert, rein
+    // fuer eine gueltige, sich bewegende TF/RViz-Darstellung waehrend eines
+    // Schusses; laeuft frei (kein Wraparound noetig, continuous Joint).
+    if (std::isfinite(hw_commands_.shooter_pos)) {
+        constexpr double kPusherRadPerSecAtFullPower = 2.0 * M_PI;  // willkuerlich: 1 U/s bei 100%
+        hw_states_.dart_pusher_pos +=
+            (hw_commands_.shooter_pos / 100.0) * kPusherRadPerSecAtFullPower * period.seconds();
+    }
+
     // Sicherheitsprüfung: keine NaN/Inf in States
     auto sanitize = [](double &v) {
         if (!std::isfinite(v)) v = 0.0;
@@ -275,6 +294,7 @@ hardware_interface::return_type NerfSystem::read(const rclcpp::Time & /*time*/,
     sanitize(hw_states_.tilt_pos);
     sanitize(hw_states_.shooter_pos);
     sanitize(hw_states_.arming_pos);
+    sanitize(hw_states_.dart_pusher_pos);
 
     return hardware_interface::return_type::OK;
 }

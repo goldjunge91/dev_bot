@@ -35,6 +35,12 @@ struct NerfJointStates {
     double tilt_pos = 0.0;     // Aktuelle Tilt Position (inkrementell in write() integriert)
     double shooter_pos = 0.0;  // Schuss: gespiegelter Wert (Open-Loop)
     double arming_pos = 0.0;   // Arming Status
+    // dart_pusher_joint hat keinen echten Encoder (Open-Loop, nur velocity-Kommando).
+    // Ohne eigene position-State-Interface meldet joint_state_broadcaster NaN fuer
+    // dieses Joint, was robot_state_publisher als kaputte TF fuer pusher_servo_part
+    // weiterreicht. Diese Position wird in read() aus shooter_pos integriert — rein
+    // fuer eine gueltige, sich bewegende TF/RViz-Darstellung, nicht physikalisch kalibriert.
+    double dart_pusher_pos = 0.0;
 };
 
 }  // namespace nerf_launch_system
