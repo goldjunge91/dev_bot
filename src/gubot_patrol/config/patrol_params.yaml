@@ -1,0 +1,9 @@
+patrol_node:
+  ros__parameters:
+    cmd_vel_topic: cmd_vel_nav
+    forward_speed: 0.15
+    angular_speed: 0.6
+    leg_duration_secs: 4.0
+    num_legs: 4
+    enabled: true
+    control_rate_hz: 20.0
