@@ -1,76 +1,97 @@
-# Robot
+# gubot_one
 
+ROS 2 Humble + Gazebo (Ignition Fortress) Roboter-Projekt: 4-Rad-Mecanum-
+Antrieb, IMU, Kamera, optionaler Nerf-Dart-Launcher. Läuft simuliert
+(WSL2/PC) und auf echter Hardware (Raspberry Pi + Companion-PC über
+Tailscale).
 
-## 
-This repository contains code and configurations for a robot project using ROS 2 Humble and Gazebo simulation.
+`gubot_one` ist ein **Metapaket** (nach dem Muster von `rosbot_ros`), das
+nur die Abhängigkeiten der sechs Einzelpakete bündelt. Jedes Paket hat sein
+eigenes README mit Startbefehlen, Launch-Argumenten und Beispielen:
 
-## Paketstruktur
+| Paket | Inhalt | README |
+|-------|--------|--------|
+| `gubot_description`  | URDF/Xacro, Meshes, RViz-Configs, `load_urdf.launch.py` | [→](../gubot_description/README.md) |
+| `gubot_controller`   | ros2_control-Bringup: `controller.launch.py`, `controllers.yaml`, `twist_mux.yaml` | [→](../gubot_controller/README.md) |
+| `gubot_gazebo`       | Simulation: `simulation.launch.py`, Welten, Bridge-Configs — **Haupt-Einstieg für die Sim** | [→](../gubot_gazebo/README.md) |
+| `gubot_localization` | EKF (`robot_localization`): `ekf.launch.py`, `ekf.yaml` | [→](../gubot_localization/README.md) |
+| `gubot_bringup`      | Echter Roboter: `launch_all_real.launch.py`, Joystick, Kamera, LiDAR — **Haupt-Einstieg für Hardware** | [→](../gubot_bringup/README.md) |
+| `gubot_utils`        | Teleop-Skripte, Autostart-Service, CycloneDDS-Configs, Setup-Skripte | [→](../gubot_utils/README.md) |
 
-`gubot_one` ist ein **Metapaket** (nach dem Muster von `rosbot_ros`). Die
-Funktionalität liegt in sechs Einzelpaketen:
+## Installation (Workspace)
 
-| Paket | Inhalt |
-|-------|--------|
-| `gubot_description`  | URDF/Xacro, Meshes, RViz-Configs, `load_urdf.launch.py` |
-| `gubot_controller`   | ros2_control-Bringup: `controller.launch.py`, `controllers.yaml`, `twist_mux.yaml` |
-| `gubot_gazebo`       | Simulation: `simulation.launch.py`, Welten, Modelle, gz-Bridge-Configs |
-| `gubot_localization` | EKF (`robot_localization`): `ekf.launch.py`, `ekf.yaml` |
-| `gubot_bringup`      | Realer Roboter: `launch_all_real.launch.py`, Joystick, Kamera, LiDAR |
-| `gubot_utils`        | Skripte (`start_robot.sh`, Teleop), Autostart-Service, CycloneDDS-Configs, Doku |
-
-## Installation
-To set up the necessary ROS 2 packages, run the following command:
-
-
-### Companion PC
 ```bash
-sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-gazebo-ros2-control 
+sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-gazebo-ros2-control
 sudo apt install python3-colcon-common-extensions
 sudo apt install ros-humble-xacro ros-humble-joint-state-publisher-gui
-sudo apt install ros-humble-gazebo-ros-pkgs ros-humble-twist-mux 
+sudo apt install ros-humble-gazebo-ros-pkgs ros-humble-twist-mux
 sudo apt install libserial-dev v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
-```
+
+cd ~/projects/my_new_robot_9e34131   # Workspace-Root
 colcon build --symlink-install
-```yaml
-network:
-  version: 2
-  renderer: NetworkManager
-  
-  ethernets:
-    eth0:
-      dhcp4: no
-#      addresses: [192.168.178.50/24]
-      gateway4: 192.168.178.1
-      nameservers:
-        addresses: [192.168.178.1]
+source install/setup.bash
 ```
 
-### Raspberry Pi
+## Simulation starten
+
 ```bash
-sudo apt-get install netplan.io python3-colcon-common-extensions libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
-sudo apt install libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
-sudo apt install libserial-dev
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install
+source install/setup.bash
+
+ros2 launch gubot_gazebo simulation.launch.py
 ```
-Tailscale Installation:
+
+Details/Optionen (Welt wechseln, Kamera abschalten, Startpose, …) siehe
+[`gubot_gazebo/README.md`](../gubot_gazebo/README.md).
+
+```bash
+# Karteileichen nach abgebrochenem Lauf beseitigen:
+pkill -9 -f "ign gazebo" ; pkill -9 rviz2
+ps aux | grep -E "(ign gazebo|launch)" | grep -v grep
+ros2 daemon stop
+```
+
+## Echten Roboter starten (Raspberry Pi)
+
+```bash
+cd ~/projects/my_new_robot_9e34131
+colcon build --symlink-install
+source install/setup.bash
+
+ros2 launch gubot_bringup launch_all_real.launch.py
+# oder komfortabler mit Kurz-Flags:
+./src/gubot_utils/scripts/start_robot.sh --face
+```
+
+Details/Optionen (LiDAR, Kamera, Gesichtsverfolgung, Autostart als
+systemd-Service) siehe [`gubot_bringup/README.md`](../gubot_bringup/README.md)
+und [`gubot_utils/README.md`](../gubot_utils/README.md).
+
+### Firmware (Pi Pico)
+
+Pin-Belegung und Flash-Anleitung: `src/diffdrive_arduino/firmware/README.md`.
+Kurzfassung: Arduino IDE + `arduino-pico`-Core installieren,
+`ROSArduinoBridge.ino` öffnen, Board „Raspberry Pi Pico“ wählen, hochladen.
+
+## Netzwerk: PC ↔ Pi über Tailscale
+
+Companion-PC und Raspberry Pi kommunizieren ausschließlich über ein
+Tailscale-VPN (vermeidet Routing-Konflikte im lokalen WLAN). CycloneDDS-
+Konfiguration, Setup-Skripte und Env-Variablen:
+[`gubot_utils/README.md`](../gubot_utils/README.md#cyclonedds-über-tailscale-pc--pi).
+
+<details>
+<summary>Ersteinrichtung Tailscale + Netzwerk (einmalig, pro Rechner)</summary>
 
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh
-```
-
-Dienst aktivieren und starten:
-```bash
 sudo systemctl enable --now tailscaled
-```
-Tailscale anmelden:
-```bash
 sudo tailscale up
-```
-tailscale ssh nutzen um sich vom Companion PC auf den Raspberry Pi zu verbinden:
-```bash
-sudo tailscale set --ssh
+sudo tailscale set --ssh   # SSH über Tailscale vom Companion-PC zum Pi
 ```
 
-Nützliche Prüfbefehle:
+Prüfen:
 ```bash
 tailscale status
 tailscale ip
@@ -78,19 +99,24 @@ ip addr show tailscale0
 sudo systemctl status tailscaled --no-pager
 ```
 
-Backup vorhandener Netplan-Dateien:
-```bash
-sudo mkdir -p /etc/netplan/backup
-sudo cp /etc/netplan/*.yaml /etc/netplan/backup/backup-$(date +%F_%H%M%S).yaml
-```
-danach die neue Netplan-Konfiguration erstellen mit `nano /etc/netplan/50-wifi.yaml` und folgendem Inhalt: 
-
+**Companion-PC** — statisches Ethernet, Beispiel `/etc/netplan/*.yaml`:
 ```yaml
-# Network configuration for Raspberry Pi
 network:
   version: 2
   renderer: NetworkManager
+  ethernets:
+    eth0:
+      dhcp4: no
+      gateway4: 192.168.178.1
+      nameservers:
+        addresses: [192.168.178.1]
+```
 
+**Raspberry Pi** — WLAN, Beispiel `/etc/netplan/50-wifi.yaml`:
+```yaml
+network:
+  version: 2
+  renderer: NetworkManager
   wifis:
     wlan0:
       dhcp4: no
@@ -99,141 +125,31 @@ network:
       nameservers:
         addresses: [192.168.178.1]
       access-points:
-        "MochauMilkhome5G":
-          password: "//PS4kko!!//"
+        "<SSID>":
+          password: "<passwort>"
 ```
-Generieren und anwenden:
 
 ```bash
+sudo mkdir -p /etc/netplan/backup
+sudo cp /etc/netplan/*.yaml /etc/netplan/backup/backup-$(date +%F_%H%M%S).yaml
 sudo netplan generate
 sudo netplan apply
 ```
-Kurz prüfen (IP, Gateway, Tailscale):
 
-
+Raspberry-Pi-Kamera:
 ```bash
+sudo apt-get install netplan.io python3-colcon-common-extensions libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
 sudo usermod -aG video $USER
 vcgencmd get_camera
 v4l2-ctl --list-devices
 ```
+</details>
 
-## CycloneDDS Configuration (VPN Setup)
-
-We use a **Strict VPN** configuration using Tailscale to ensure reliable connectivity between PC and Pi, avoiding local network routing conflicts.
-
-### Quick Setup (Persistence)
-Add these lines to your `~/.bashrc` on both the PC and Raspberry Pi:
+## Externe Pakete (`serial`, `diffdrive_arduino`)
 
 ```bash
-export ROS_DOMAIN_ID=0
-export CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-```
-
-### Troubleshooting
-If connections fail:
-1. Ensure Tailscale is up: `tailscale status`
-2. Check env vars: `echo $CYCLONEDDS_URI`
-3. Restart ROS 2 daemon: `ros2 daemon stop`
-
-## Bash änderungen
-
-```bash
-alias ws='source install/setup.bash'
-
-
-source /opt/ros/humble/setup.bash
-source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
-
-export ROS_DOMAIN_ID=0
-export CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-```
-Umgebungsvariablen prüfen:
-
-printenv | grep -E "ROS|DDS|RMW"
-ROS_VERSION=2
-ROS_PYTHON_VERSION=3
-ROS_DOMAIN_ID=0
-ROS_LOCALHOST_ONLY=0
-CYCLONEDDS_URI=file:///var/tmp/cyclonedds.xml
-ROS_DISTRO=humble
-RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-
-
 cd src/
 git clone https://github.com/joshnewans/serial
-
 git clone https://github.com/joshnewans/diffdrive_arduino
-git branch -a
-git switch humble
-
-### Running the Simulation
-
-1.  **Source ROS 2 and Workspace:**
-    ```bash
-    source /opt/ros/humble/setup.bash
-    colcon build --symlink-install
-    source install/setup.bash
-    ```
-
-2.  **Launch Simulation** (Gazebo Fortress + RViz + Controller + EKF):
-    ```bash
-    ros2 launch gubot_gazebo simulation.launch.py
-    # Optionen:
-    ros2 launch gubot_gazebo simulation.launch.py use_camera:=false   # schnellere Sim (WSL2)
-    ros2 launch gubot_gazebo simulation.launch.py world:=<pfad/zu/welt.world>
-    ros2 launch gubot_gazebo simulation.launch.py use_nerf_hardware:=false
-    ```
-
-    *Note: If you encounter "Entity already exists" errors, kill old processes first:*
-    ```bash
-    pkill -9 -f "ign gazebo" ; pkill -9 rviz2
-    ps aux | grep -E "(ign gazebo|launch)" | grep -v grep
-    ros2 daemon stop
-    ```
-
-
-1. nerf_joy.py (Joystick Steuerung)
-Dieses Script benötigt einen Gamepad/Joystick Node.
-
-Stelle sicher, dass dein Gamepad eingesteckt ist.
-Starte den Joy-Node (falls noch nicht läuft):
-bash
-ros2 run joy joy_node
-Starte dein Script:
-bash
-ros2 run gubot_utils nerf_joy.py
-2. nerf_teleop.py (Tastatur Steuerung)
-Dieses Script nimmst Eingaben direkt aus dem Terminal entgegen.
-
-Öffne ein neues Terminal.
-Starte das Script:
-bash
-source install/setup.bash
-ros2 run gubot_utils nerf_teleop.py
-Navigiere den Roboter mit WASD und steuere den Nerf-Launcher mit den Tasten 1-5, Space, t, g.
-
-
-## Running on Real Robot (Raspberry Pi)
-
-### 1. Firmware Flash (Pi Pico)
-Beachte die Anleitung unter `src/diffdrive_arduino/firmware/README.md` für die genaue Pin-Belegung und Installation.
-Kurzfassung:
-1. Arduino IDE installieren & `arduino-pico` Core hinzufügen.
-2. `ROSArduinoBridge.ino` öffnen.
-3. Board "Raspberry Pi Pico" wählen.
-4. Hochladen.
-
-### 2. Launch
-Um alles (Basis, LiDAR, Kamera, Nerf) auf dem Pi zu starten:
-
-```bash
-# Workspace bauen (falls noch nicht geschehen)
-cd ~/projects/my_new_robot_9e34131
-colcon build --symlink-install
-
-# Starten (oder: ./src/gubot_utils/scripts/start_robot.sh)
-source install/setup.bash
-ros2 launch gubot_bringup launch_all_real.launch.py
+cd diffdrive_arduino && git branch -a && git switch humble
 ```
