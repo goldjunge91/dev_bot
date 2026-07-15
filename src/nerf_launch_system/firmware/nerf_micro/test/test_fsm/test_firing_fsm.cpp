@@ -228,6 +228,30 @@ TEST_F(FiringFSMTest, Calibration_ArmedToCalibratingToIdle) {
     // Disarm im CALIBRATING-Modus -> Sonderfall: geht direkt zu IDLE
     fsm->triggerDisarming();
     EXPECT_EQ(fsm->getCurrentState(), FiringState::IDLE);
+    EXPECT_FALSE(fsm->isArmed());        // Sonderfall darf isArmed nicht haengen lassen
+    EXPECT_GE(detachESCsCalls, 1);       // und muss die ESCs hardwareseitig trennen
+}
+
+// ============================================================================
+// TEST 6b: CALIBRATING -> DISARM -> ARM muss wieder funktionieren
+// (Regression: vorher blieb isArmed()==true haengen und triggerArming()
+// wurde von seinem eigenen "already armed"-Guard abgewiesen.)
+// ============================================================================
+TEST_F(FiringFSMTest, Calibration_ThenDisarm_ThenReArm_Succeeds) {
+    armFSM();
+    fsm->triggerCalibration();
+    fsm->triggerDisarming();
+    ASSERT_FALSE(fsm->isArmed());
+
+    resetCounters();
+    fsm->triggerArming();
+    runCycle();  // -> ARMING (darf NICHT abgewiesen werden)
+    EXPECT_EQ(fsm->getCurrentState(), FiringState::ARMING);
+
+    advanceMillis(Config::ARM_DELAY_MS);
+    runCycle();  // -> ARMED
+    EXPECT_EQ(fsm->getCurrentState(), FiringState::ARMED);
+    EXPECT_TRUE(fsm->isArmed());
 }
 
 // ============================================================================

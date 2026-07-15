@@ -137,6 +137,10 @@ public:
     Servo& getRightESC() {
         return _escRight;
     }
+    // Shot-Servo-Zugriff (fuer Tests/Debug)
+    Servo& getShot() {
+        return _shot;
+    }
 };
 
 #endif  // LAUNCHER_H
