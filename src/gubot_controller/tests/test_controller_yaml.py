@@ -137,12 +137,13 @@ def test_no_flat_kinematics_duplicates():
 
 
 def test_wheels_radius_matches_urdf():
-    """wheels_radius-Wert pruefen: 0.033 m (URDF-Wert aus geometry.xacro).
+    """wheels_radius-Wert pruefen: 0.05 m (URDF-Wert aus geometry.xacro,
+    100mm Aluminum-Mecanum-Rad).
 
     Aendert sich wenn Rad ausgetauscht wird.
     """
     params = _load_mecanum_params()
     radius = params.get("wheel_radius", 0)
-    assert abs(radius - 0.033) < 0.001, (
-        f"wheel_radius={radius} stimmt nicht mit URDF-Wert 0.033 ueberein"
+    assert abs(radius - 0.05) < 0.001, (
+        f"wheel_radius={radius} stimmt nicht mit URDF-Wert 0.05 ueberein"
     )
