@@ -13,6 +13,12 @@ public:
     }
     return "OK\r\n";
   }
+  // set_motor_values()/send_empty_msg() go through this fire-and-forget path
+  // instead of send_msg() (see pico_comms.hpp) — must be overridden too,
+  // otherwise it falls through to the real (unopened) serial port and throws.
+  void send_no_response(const std::string & msg) override {
+    last_sent = msg;
+  }
 };
 
 TEST(PicoCommsTest, SetMotorValuesFormatsCorrectly) {

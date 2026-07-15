@@ -121,7 +121,7 @@ public:
    *
    * @param msg_to_send String to transmit (must include terminator, e.g. "\r").
    */
-  void send_no_response(const std::string & msg_to_send)
+  virtual void send_no_response(const std::string & msg_to_send)
   {
     serial_conn_.FlushIOBuffers();
     serial_conn_.Write(msg_to_send);
