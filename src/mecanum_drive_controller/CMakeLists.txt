@@ -67,4 +67,21 @@ install(TARGETS mecanum_drive_controller mecanum_drive_controller_parameters
 
 ament_export_targets(export_mecanum_drive_controller HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gmock REQUIRED)
+
+  ament_add_gmock(test_speed_limiter test/test_speed_limiter.cpp)
+  target_link_libraries(test_speed_limiter mecanum_drive_controller)
+
+  ament_add_gmock(test_odometry test/test_odometry.cpp)
+  target_link_libraries(test_odometry mecanum_drive_controller)
+
+  ament_add_gmock(test_mecanum_drive_controller test/test_mecanum_drive_controller.cpp)
+  target_link_libraries(test_mecanum_drive_controller mecanum_drive_controller)
+  ament_target_dependencies(
+    test_mecanum_drive_controller
+    geometry_msgs hardware_interface lifecycle_msgs rclcpp)
+endif()
+
 ament_package()
