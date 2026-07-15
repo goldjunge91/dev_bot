@@ -55,8 +55,7 @@ def test_wheel_joints_symmetry():
     urdf_content = get_urdf_xml()
     root = ET.fromstring(urdf_content)
 
-    # ALT: front_left/front_right/rear_left/rear_right_wheel_joint
-    # NEU: Referenz-Schema fl/fr/rl/rr_wheel_joint
+    # Referenz-Schema fl/fr/rl/rr_wheel_joint
     joints = {
         "fl_wheel_joint": None,
         "fr_wheel_joint": None,

@@ -13,7 +13,7 @@ ros2 launch gubot_gazebo simulation.launch.py
 Nerf‑Launcher-Sim starten:
 
 ```bash
-ros2 launch nerf_standalone simulate.launch.py
+ros2 launch nerf_launch_system simulate.launch.py
 ```
 
 ---

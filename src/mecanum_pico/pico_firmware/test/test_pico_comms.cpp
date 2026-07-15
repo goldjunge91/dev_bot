@@ -30,9 +30,6 @@ TEST(PicoCommsFormatTest, SetMotorValuesAllPositive)
   MockPicoComms comms;
   comms.set_motor_values(100, 200, 300, 400);
   EXPECT_EQ(comms.last_sent, "m 100 200 300 400\r");
-  // ALT: // MIGRATION SPRINT 5: float velocity commands (rad/s)
-  // ALT: comms.set_motor_values(1.500, 2.500, 3.500, 4.500);
-  // ALT: EXPECT_EQ(comms.last_sent, "m 1.500 2.500 3.500 4.500\r");
 }
 
 TEST(PicoCommsFormatTest, SetMotorValuesAllNegative)
@@ -40,9 +37,6 @@ TEST(PicoCommsFormatTest, SetMotorValuesAllNegative)
   MockPicoComms comms;
   comms.set_motor_values(-100, -200, -300, -400);
   EXPECT_EQ(comms.last_sent, "m -100 -200 -300 -400\r");
-  // ALT: // MIGRATION SPRINT 5: float velocity commands (rad/s)
-  // ALT: comms.set_motor_values(-1.500, -2.500, -3.500, -4.500);
-  // ALT: EXPECT_EQ(comms.last_sent, "m -1.500 -2.500 -3.500 -4.500\r");
 }
 
 TEST(PicoCommsFormatTest, SetMotorValuesMixed)
@@ -50,9 +44,6 @@ TEST(PicoCommsFormatTest, SetMotorValuesMixed)
   MockPicoComms comms;
   comms.set_motor_values(100, -100, 100, -100);
   EXPECT_EQ(comms.last_sent, "m 100 -100 100 -100\r");
-  // ALT: // MIGRATION SPRINT 5: float velocity commands (rad/s)
-  // ALT: comms.set_motor_values(1.500, -2.500, 3.500, -4.500);
-  // ALT: EXPECT_EQ(comms.last_sent, "m 1.500 -2.500 3.500 -4.500\r");
 }
 
 TEST(PicoCommsFormatTest, SetMotorValuesAllZero)
@@ -60,9 +51,6 @@ TEST(PicoCommsFormatTest, SetMotorValuesAllZero)
   MockPicoComms comms;
   comms.set_motor_values(0, 0, 0, 0);
   EXPECT_EQ(comms.last_sent, "m 0 0 0 0\r");
-  // ALT: // MIGRATION SPRINT 5: float velocity commands (rad/s)
-  // ALT: comms.set_motor_values(0.0, 0.0, 0.0, 0.0);
-  // ALT: EXPECT_EQ(comms.last_sent, "m 0.000 0.000 0.000 0.000\r");
 }
 
 TEST(PicoCommsFormatTest, EncoderRequestSendsCorrectFrame)

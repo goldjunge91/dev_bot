@@ -50,8 +50,7 @@ _WHEEL_COMMAND_KEYS_ROLLING = [
     "rear_right_wheel_command_joint_name",
 ]
 
-# ALT: mecanum_cont — alter Controller-Name
-# NEU: mecanum_drive_controller — Referenz-Schema
+# mecanum_drive_controller — Referenz-Schema
 _CONTROLLER_KEY = "mecanum_drive_controller"
 
 

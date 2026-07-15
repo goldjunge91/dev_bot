@@ -8,8 +8,6 @@ Hauptfunktionen:
 - Arming/Disarming System (LB+RB für 3s halten)
 - Tilt Servo Steuerung (LB/RB einzeln)
 - Feuer-Befehl (RT)
-  # ALT: A-Taste — Konflikt mit teleop_twist_joy Deadman (enable_button 0 = A):
-  #      jeder Fahr-Enable hätte im armed-Zustand einen Schuss ausgelöst
 - Notfall-Disarm (D-Pad beliebige Richtung)
 
 Button Mapping (Xbox Controller):
@@ -18,7 +16,6 @@ Button Mapping (Xbox Controller):
 - 6: LT (Flywheel Speed - digital fallback)
 - 7: RT (Fire - digital fallback)
 - 12-15: D-Pad (Emergency Disarm)
-# ALT: - 0: A (Fire)
 
 Axis Mapping:
 - Axis 5: RT analog (Fire; Ruhe +1.0, gedrückt -1.0)
@@ -65,7 +62,6 @@ class NerfJoy(Node):
 
         # Tilt State — Joint-Space (rad), = trigger_joint URDF-Limits ±0.52.
         # Gilt für Sim UND echte Hardware (NerfSystem clampt auf dieselbe Range).
-        # ALT: 6.28 / 5.23–6.28 — Servo-Rohwerte, in der Sim ans Limit geclampt
         self.tilt_min = -0.52  # DOWN
         self.tilt_max = 0.52  # UP
         self.tilt_pos = self.tilt_max  # Startposition: UP
@@ -170,8 +166,6 @@ class NerfJoy(Node):
                 # nerf_launcher.urdf.xacro entsprechend orientiert).
                 # LB = Tilt Down (−step), RB = Tilt Up (+step) — wie im
                 # Button-Mapping oben dokumentiert.
-                # ALT: LB erhöhte den Wert und loggte "DOWN" — Log und
-                #      Richtung waren gegeneinander verdreht (Servo-Rohwerte)
                 if pressed(4):  # LB
                     self.tilt_pos = max(self.tilt_min, self.tilt_pos - self.tilt_step)
                     self.publish_tilt(self.tilt_pos)
@@ -183,12 +177,12 @@ class NerfJoy(Node):
                     self.get_logger().info(f"Tilt UP: {self.tilt_pos:.2f}")
 
         # --- 3. Fire (RT) ---
-        # ALT: Fire lag auf A (Button 0) — Konflikt mit dem teleop_twist_joy
-        #      Deadman-Button (enable_button: 0): Fahren-Enable hätte im
-        #      armed-Zustand jedes Mal einen Schuss ausgelöst.
+        # Fire liegt bewusst NICHT auf A (Button 0): das ist der
+        # teleop_twist_joy Deadman-Button (enable_button: 0) — Fahren-Enable
+        # hätte im armed-Zustand jedes Mal einen Schuss ausgelöst.
         # RT wird doppelt erkannt: analoge Achse 5 (Ruhe +1.0, voll gedrückt
         # -1.0) ODER digitaler Button 7 (Fallback für Controller, die die
-        # Trigger als Buttons melden). Flanken-Erkennung wie vorher bei A.
+        # Trigger als Buttons melden).
         rt_pressed = False
         if len(msg.axes) > 5 and msg.axes[5] < -0.5:
             rt_pressed = True
@@ -226,7 +220,6 @@ class NerfJoy(Node):
         """
         Sendet Tilt-Servo Position in Radiant (Joint-Space)
         -0.52 rad = DOWN, +0.52 rad = UP
-        # ALT: 5.23 rad ≈ 300° (DOWN), 6.28 rad ≈ 360° (UP) — Servo-Rohwerte
         """
         msg = Float64MultiArray()
         msg.data = [float(pos)]

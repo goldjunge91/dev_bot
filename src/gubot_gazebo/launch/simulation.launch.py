@@ -6,13 +6,9 @@ Referenz: rosbot_ws/src/rosbot_ros/rosbot_gazebo/launch/simulation.launch.py
 
 Änderungen:
 - SetEnvironmentVariable, SetRemap, SetParameter global gesetzt (Referenz-Pattern)
-  ALT: use_sim_time wurde nur per Node-Parameter gesetzt
 - gz_log_level 1 statt -v4 (weniger Ausgabe)
-  ALT: gz_args="-r -v4 <world>"
 - husarion_gz_worlds NICHT verfügbar — lokale World-Datei wird verwendet
-  ALT (Referenz): FindPackageShare("husarion_gz_worlds")
 - ros_gz_image_bridge entfernt — Bild-Bridging jetzt in gubot_bridge.yaml (spawn_robot)
-  ALT: ros_gz_image_bridge Node war hier inline
 - gz_bridge.yaml enthält nur /clock (global); Sensor-Topics in gubot_bridge.yaml (per Robot)
 """
 
@@ -41,7 +37,6 @@ def generate_launch_description():
         # jetzt in gazebo/models/ vendored und werden über den env-hook
         # (IGN_GAZEBO_RESOURCE_PATH, siehe CMakeLists ament_environment_hooks)
         # gefunden.
-        # ALT: empty.world als Default, weil die Modelle nicht installiert waren
         default_value=PathJoinSubstitution([
             FindPackageShare(package_name), "worlds", "obstacles.world"
         ]),
@@ -78,8 +73,6 @@ def generate_launch_description():
     rviz = LaunchConfiguration("rviz")
 
     # Gazebo (Ignition Fortress / gz_sim)
-    # ALT (Referenz): husarion_gz_worlds nicht verfügbar, daher lokale World-Datei
-    # ALT: gz_args="-r -v4 <world>" — zu viel Logging-Ausgabe
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
@@ -93,7 +86,6 @@ def generate_launch_description():
     )
 
     # Globaler Clock-Bridge (nur /clock — Sensor-Topics in gubot_bridge.yaml per Robot)
-    # ALT: gz_bridge.yaml enthielt auch scan und camera/camera_info (falsche Scope)
     gz_bridge_config = PathJoinSubstitution([
         FindPackageShare(package_name), "config", "gz_bridge.yaml"
     ])

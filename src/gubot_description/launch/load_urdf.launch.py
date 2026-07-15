@@ -6,7 +6,6 @@ Referenz: rosbot_ws/src/rosbot_ros/rosbot_description/launch/load_urdf.launch.py
 
 Änderungen gegenüber vorheriger Version:
 - controller_config Argument hinzugefügt (Pfad wird in xacro injiziert)
-  ALT: Pfad war im xacro hard-coded
 - SetParameter(use_sim_time) und SetRemap(/tf, /tf_static) wie Referenz
 - PathJoinSubstitution / FindPackageShare statt os.path.join / get_package_share_directory
 
@@ -14,7 +13,6 @@ Launch Arguments:
 - use_sim_time: false (Standard) - Nutzt echte Hardware-Zeit
 - use_ros2_control: true (Standard) - Aktiviert ros2_control
 - use_nerf_hardware: true (Standard) - Nerf Hardware aktivieren
-# ALT: - use_gazebo_classic: false (Standard) - Ignition Fortress verwenden
 - controller_config: Pfad zu controllers.yaml (Standard: gubot_controller Paket)
 """
 
@@ -32,7 +30,6 @@ def generate_launch_description():
     use_ros2_control = LaunchConfiguration("use_ros2_control")
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
     use_camera = LaunchConfiguration("use_camera")
-    # ALT: use_gazebo_classic = LaunchConfiguration("use_gazebo_classic")
     controller_config = LaunchConfiguration("controller_config")
 
     # Xacro-Datei und Parameter
@@ -41,8 +38,6 @@ def generate_launch_description():
         FindPackageShare("gubot_description"), "urdf", "gubot_one_main.urdf.xacro"
     ])
 
-    # ALT: os.path.join(get_package_share_directory("gubot_one"), ...)
-    # Ersetzt durch PathJoinSubstitution
     robot_description_config = Command([
         "xacro ",
         xacro_file,
@@ -50,9 +45,8 @@ def generate_launch_description():
         " sim_mode:=", use_sim_time,
         " use_nerf_hardware:=", use_nerf_hardware,
         " use_camera:=", use_camera,
-        # ALT: " use_gazebo_classic:=", use_gazebo_classic,
         " use_gazebo_classic:=false",
-        # NEU: controller_config wird in xacro injiziert (ALT: hard-coded im xacro)
+        # NEU: controller_config wird in xacro injiziert
         " controller_config:=", controller_config,
     ])
 
@@ -90,13 +84,7 @@ def generate_launch_description():
             description="Include the Gazebo camera sensor in the URDF "
                         "(false: no render sensor, camera TF frames stay).",
         ),
-        # DeclareLaunchArgument(
-        #     "use_gazebo_classic",
-        #     default_value="false",
-        #     description="Use Gazebo Classic if true (default: Ignition Fortress)",
-        # ),
         # NEU: controller_config Argument — Pfad zu controllers.yaml (Referenz-Pattern)
-        # ALT: Pfad war im xacro ros2_control_gazebo_ign_fortress.xacro hard-coded
         DeclareLaunchArgument(
             "controller_config",
             default_value=PathJoinSubstitution([
@@ -107,6 +95,5 @@ def generate_launch_description():
         # HINWEIS: SetParameter(use_sim_time) und SetRemap werden NICHT hier gesetzt.
         # Sie werden global in simulation.launch.py gesetzt und propagieren
         # durch spawn_robot -> controller.
-        # ALT: SetParameter / SetRemap hier -> gedoppelte Remaps auf Spawner-Cmd.
         node_robot_state_publisher,
     ])

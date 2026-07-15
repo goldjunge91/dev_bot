@@ -7,9 +7,6 @@
     ros__parameters:
       update_rate: 100 # Hz
 
-      # ALT: mecanum_cont — umbenannt auf mecanum_drive_controller (wie Referenz)
-      # mecanum_cont:
-      #   type: mecanum_drive_controller/MecanumDriveController
       mecanum_drive_controller:
         type: mecanum_drive_controller/MecanumDriveController
 
@@ -40,19 +37,10 @@
       static_covariance_linear_acceleration:
         [6.4e-2, 0.0, 0.0, 0.0, 2.2e-2, 0.0, 0.0, 0.0, 0.0]
 
-  # ALT: mecanum_cont block (falsche Parameter, kein Wildcard-NS):
-  # mecanum_cont:
-  #   ros__parameters:
-  #     front_left_wheel_name:  front_left_wheel_joint
-  #     ...
-  #     kinematics:
-  #       wheels_radius: 0.033        # ← UNGÜLTIG in Humble
-  #     enable_odom_tf: true          # ← EKF-Filter fehlt
   mecanum_drive_controller:
     ros__parameters:
       # Robot Specific — Geometrie aus gubot_one_geometry.xacro
       # Gelenkbezeichnungen: Referenz-Schema fl/fr/rl/rr_wheel_joint
-      # ALT: front_left/front_right/rear_left/rear_right_wheel_joint — umbenannt
       tf_frame_prefix_enable: false
       front_left_wheel_name: fl_wheel_joint
       front_right_wheel_name: fr_wheel_joint

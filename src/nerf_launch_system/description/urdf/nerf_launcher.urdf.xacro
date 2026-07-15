@@ -167,8 +167,8 @@
         <parent link="bottom_plate" />
         <child link="motor_bracket" />
         <!-- Achse invertiert: positiv = Launcher hoch (aus dem Körper heraus).
-             ALT: xyz="1.1e-07 2.2e-15 1.0" (CAD-Export) — positiv drehte den
-             Launcher NACH UNTEN in den Roboterkörper; das Init-Kommando
+             Der urspruengliche CAD-Export (xyz="1.1e-07 2.2e-15 1.0") drehte
+             den Launcher NACH UNTEN in den Roboterkoerper; das Init-Kommando
              "UP = +tilt_max" fuhr ihn damit genau falsch herum. Hardware ist
              deltabasiert (UP-Pulse bei steigendem Soll) und bleibt konsistent. -->
         <axis xyz="0 0 -1" />

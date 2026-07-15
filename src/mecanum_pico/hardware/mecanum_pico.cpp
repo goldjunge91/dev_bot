@@ -96,9 +96,9 @@ hardware_interface::CallbackReturn MecanumPicoHardware::on_init(
     // 10-interface layout (like the sim xacro): accel + gyro + orientation.
     // Orientation is COMPUTED here (complementary filter) — the ICM-20948
     // does not measure it, but the Humble imu_sensor_broadcaster requires
-    // orientation.x/y/z/w to activate.
-    // ALT: exactly 6 interfaces (accel + gyro) — the imu_broadcaster could
-    //      never activate on real hardware. 6 is still accepted (legacy).
+    // orientation.x/y/z/w to activate. 6 interfaces (accel + gyro only) is
+    // still accepted for legacy configs, but the imu_broadcaster can never
+    // activate with just those.
     static const char * const kExpectedImuInterfaces[10] = {
       "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
       "angular_velocity.x", "angular_velocity.y", "angular_velocity.z",
@@ -397,8 +397,8 @@ hardware_interface::return_type MecanumPicoHardware::read(
     } else {
       // Non-fatal: keep the last known IMU values and continue. The wheel
       // odometry (the safety-critical path) must not be blocked by a flaky
-      // IMU read on the same serial link.
-      // ALT: unthrottled RCLCPP_WARN — bei 100 Hz read() flutete das Log
+      // IMU read on the same serial link. Throttled to avoid flooding the
+      // log at the 100 Hz read() rate.
       static rclcpp::Clock steady_clock(RCL_STEADY_TIME);
       RCLCPP_WARN_THROTTLE(
         rclcpp::get_logger("MecanumPicoHardware"), steady_clock, 5000,
@@ -437,14 +437,6 @@ hardware_interface::return_type MecanumPicoHardware::write(
     to_ticks_per_loop(wheel_rl_),
     to_ticks_per_loop(wheel_rr_)
   );
-
-  // ALT: // MIGRATION SPRINT 5: float velocity commands (rad/s)
-  // ALT: comms_.set_motor_values(
-  // ALT:   wheel_fl_.cmd,
-  // ALT:   wheel_fr_.cmd,
-  // ALT:   wheel_rl_.cmd,
-  // ALT:   wheel_rr_.cmd
-  // ALT: );
 
   return hardware_interface::return_type::OK;
 }

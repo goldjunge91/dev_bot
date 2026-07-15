@@ -6,13 +6,9 @@ Referenz: rosbot_ws/src/rosbot_ros/rosbot_gazebo/launch/spawn_robot.launch.py
 
 Änderungen:
 - Pose-Argumente (x, y, z, roll, pitch, yaw) hinzugefügt (Referenz-Pattern)
-  ALT: Roboter spawnete immer bei Z=0.1 ohne konfigurierbare Pose
 - -allow_renaming true hinzugefügt (Referenz-Pattern)
-  ALT: fehlte — Konflikte bei mehreren Instanzen
 - Per-Robot gz_bridge (gubot_bridge.yaml) für Sensor-Topics (Referenz-Pattern)
-  ALT: Sensor-Topics wurden global in simulation.launch.py gebridget
 - SetParameter / SetRemap für korrekte Namespace-Propagation
-  ALT: fehlten
 - LogInfo Welcome-Message (Referenz-Pattern)
 """
 
@@ -28,7 +24,6 @@ def generate_launch_description():
     package_name = "gubot_gazebo"
 
     # Pose-Argumente (wie Referenz spawn_robot.launch.py)
-    # ALT: Kein x/y/z/roll/pitch/yaw — Roboter spawnete immer bei fester Position
     x = LaunchConfiguration("x")
     y = LaunchConfiguration("y")
     z = LaunchConfiguration("z")
@@ -73,7 +68,6 @@ def generate_launch_description():
     )
 
     # 1. Spawn Robot Entity
-    # ALT: kein -allow_renaming, kein x/y/z/roll/pitch/yaw
     gz_spawn_entity = Node(
         package="ros_gz_sim",
         executable="create",
@@ -92,7 +86,6 @@ def generate_launch_description():
     )
 
     # 2. Per-Robot Sensor Bridge (Referenz: rosbot_bridge.yaml per Robot in spawn_robot)
-    # ALT: Sensor-Topics (scan, camera) wurden global in simulation.launch.py gebridget
     gz_robot_bridge_config = PathJoinSubstitution([
         FindPackageShare(package_name), "config", "gubot_bridge.yaml"
     ])
@@ -144,10 +137,6 @@ def generate_launch_description():
         # Sie wurden bereits global in simulation.launch.py angewendet
         # und propagieren automatisch. Doppelte Setzung fuehrt zu doppelten
         # --ros-args auf rviz2 und anderen Nodes in simulation.launch.py.
-        # ALT: SetParameter(name="use_sim_time", value=True),
-        # ALT: SetRemap("/diagnostics", "diagnostics"),
-        # ALT: SetRemap("/tf", "tf"),
-        # ALT: SetRemap("/tf_static", "tf_static"),
         welcome_msg,
         gz_spawn_entity,
         gz_robot_bridge,

@@ -3,7 +3,6 @@
     <xacro:arg name="integrated_mode" default="true"/>
     <xacro:include filename="$(find nerf_launch_system)/description/urdf/nerf_launcher.urdf.xacro" />
     <joint name="nerf_mount_joint" type="fixed">
-  <!-- ALT: <parent link="chassis"/> -->
         <parent link="body_link"/>
         <child link="bottom_plate"/>
         <origin xyz="0.155 0 0.165" rpy="0 0 ${pi/2}"/>

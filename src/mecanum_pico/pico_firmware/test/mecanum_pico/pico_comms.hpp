@@ -3,7 +3,6 @@
 
 #include <string>
 #include <sstream>
-// ALT: #include <iomanip>
 #include <vector>
 #include <cstdlib>
 
@@ -23,13 +22,6 @@ public:
     os << "m " << fl << " " << fr << " " << rl << " " << rr << "\r";
     send_msg(os.str(), false);
   }
-  // ALT: void set_motor_values(double fl, double fr, double rl, double rr)
-  // ALT: {
-  // ALT:   std::ostringstream os;
-  // ALT:   os << std::fixed << std::setprecision(3);
-  // ALT:   os << "m " << fl << " " << fr << " " << rl << " " << rr << "\r";
-  // ALT:   send_msg(os.str(), false);
-  // ALT: }
 
   void read_encoder_values(int & fl, int & fr, int & rl, int & rr)
   {

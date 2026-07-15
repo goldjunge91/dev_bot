@@ -38,7 +38,6 @@ _LAUNCHER_URDF = os.path.join(
 _CONTROLLERS_YAML = os.path.join(
     _BASE_DIR, "gubot_controller", "config", "controllers.yaml"
 )
-# ALT: description/ros2_control_gazebo_ign_fortress.xacro (falscher Pfad, liegt in urdf/)
 _RSP_XACRO = os.path.join(
     _BASE_DIR, "gubot_description", "urdf", "ros2_control_gazebo_ign_fortress.xacro"
 )
@@ -57,7 +56,7 @@ _WRONG_SIM_PLUGIN = "wrong_plugin_placeholder"
 def _trigger_joint_limits():
     """Gibt (lower, upper) des aktiven trigger_joint-Limits aus dem URDF zurueck."""
     src = open(_LAUNCHER_URDF).read()
-    # Kommentare entfernen damit auskommentierte ALT-Werte nicht matchen
+    # Kommentare entfernen damit auskommentierte Werte nicht matchen
     src_no_comments = re.sub(r'<!--.*?-->', '', src, flags=re.DOTALL)
     block = re.search(
         r'<joint name="trigger_joint".*?</joint>', src_no_comments, re.DOTALL
@@ -72,9 +71,6 @@ def _trigger_joint_limits():
 def test_urdf_limits_match_teleop_range():
     """Fix 1: URDF-Limits muessen zum Wertebereich passen.
 
-    # ALT: Die trigger_joint Limits sind bedingt auf use_gazebo_classic:
-    # ALT: - Classic: [-1.05, 0.0]
-    # ALT: - Ignition: [-0.52, 0.52]
     Die trigger_joint Limits sind auf [-0.52, 0.52] festgesetzt.
     Der Teleop-Skript sendet Werte im Bereich [5.23, 6.28].
     Wir pruefen nur dass Limits im URDF vorhanden sind.
@@ -97,12 +93,10 @@ def test_urdf_limits_match_teleop_range():
 def test_tilt_controller_configured():
     """Fix 2: tilt_controller muss vollstaendig konfiguriert sein.
 
-    # ALT: Test prüfte PID-Gains ("ohne Gains Kraft=0") — falsche Prämisse:
-    # position_controllers/JointGroupPositionController ist ein Forward-
-    # Controller ohne PID; in der Sim kommt die Stellkraft vom
-    # position_proportional_gain des gz_ros2_control-Plugins.
-    # ALT: Test las controllers.yaml ohne den /**-Wildcard-Namespace
-    #      und schlug seit dessen Einführung immer fehl.
+    position_controllers/JointGroupPositionController ist ein Forward-
+    Controller ohne PID; in der Sim kommt die Stellkraft vom
+    position_proportional_gain des gz_ros2_control-Plugins. Die Config
+    muss ueber den /**-Wildcard-Namespace gelesen werden.
     """
     cfg = yaml.safe_load(open(_CONTROLLERS_YAML))
     # Wildcard-Namespace (/**:) — Betrieb mit und ohne ROS-Namespace
@@ -135,7 +129,6 @@ def test_initial_value_within_joint_limits():
         r'xacro:if value="\$\(arg sim_mode\)".*?xacro:if',
         src_no_comments, re.DOTALL
     )
-    # ALT: assert sim_block, "sim_mode-Block nicht gefunden"
     # Fallback: Die gesamte Datei verwenden wenn kein sim_mode-Block
     if sim_block_match:
         search_text = sim_block_match.group()
@@ -240,7 +233,6 @@ def test_hardware_interface_has_tilt_range_params():
     # Der NerfSystem-Block ist in das Makro nerf_ros2_control_hardware
     # (nerf_launch_system) ausgelagert; ros2_control_hardware.xacro ruft
     # es mit den Range-Argumenten auf.
-    # ALT: Block lag direkt in ros2_control_hardware.xacro
     hw_xacro = os.path.join(
         _BASE_DIR, "gubot_description", "urdf", "ros2_control_hardware.xacro"
     )
@@ -283,8 +275,8 @@ def test_hardware_imu_declares_all_ten_interfaces():
     Der Humble imu_sensor_broadcaster verlangt beim Aktivieren zwingend
     orientation.x/y/z/w zusätzlich zu accel+gyro. Die Orientierung wird im
     MecanumPicoHardware per Komplementärfilter berechnet (imu_fusion.hpp).
-    ALT: nur 6 Interfaces — Broadcaster-Aktivierung schlug auf echter
-    Hardware fehl und der Fatal-Monitor beendete den kompletten Launch.
+    Mit nur 6 Interfaces schlägt die Broadcaster-Aktivierung auf echter
+    Hardware fehl und der Fatal-Monitor beendet den kompletten Launch.
     """
     hw_xacro = os.path.join(
         _BASE_DIR, "gubot_description", "urdf", "ros2_control_hardware.xacro"

@@ -96,7 +96,6 @@
 // ---------------------------------------------------------------------------
 // Timing
 // ---------------------------------------------------------------------------
-// ALT: #define ENC_COUNTS_PER_REV 1440     ///< Encoder counts per full wheel revolution
 #define PID_RATE_HZ     30       ///< PID + encoder update rate [Hz]
 #define AUTO_STOP_MS  2000       ///< Stop motors if no 'm'/'o' command for this long [ms]
 #define BAUD_RATE     115200     ///< USB-CDC baud rate (informational; USB-CDC is virtual)

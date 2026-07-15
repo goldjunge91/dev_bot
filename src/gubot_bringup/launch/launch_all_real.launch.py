@@ -10,8 +10,6 @@ Komponenten:
    - Controller Spawner (mecanum_drive_controller, imu_broadcaster,
      joint_state_broadcaster) + Nerf-Kette (tilt/shooter/arming + control node)
    - Twist Mux
-   # ALT: launch_robot.launch.py — gelöscht, Pfade zeigten auf die alte
-   #      Paketstruktur (launch/, config/) und existierten nicht mehr
 
 2. EKF Localization (gubot_localization/launch/ekf.launch.py)
    - Publiziert odom -> base_link TF (enable_odom_tf ist im Controller aus)
@@ -26,8 +24,6 @@ Komponenten:
    - teleop_node + nerf_joy laufen auf dem Roboter
    - joy_node läuft NICHT hier (launch_joy_node:=false) — er läuft auf der
      Remote-Maschine mit dem Gamepad und publiziert /joy über DDS/Tailscale
-   # ALT: war ausgehängt, weil config/joystick.yaml gelöscht war —
-   #      wiederhergestellt nach controller/config/joystick.yaml
 
 Launch Arguments:
 - launch_lidar: false (Standard, da kein Lidar vorhanden)
@@ -90,8 +86,6 @@ def generate_launch_description():
 
     # Controller-Kette starten (neue modulare Kette)
     # Enthält: RSP (load_urdf), controller_manager, Spawner, Nerf-Kette, Twist Mux
-    # ALT: IncludeLaunchDescription(".../launch/launch_robot.launch.py") —
-    #      Datei installierte unter bringup/launch/, Include-Pfad war kaputt
     base_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
@@ -231,8 +225,6 @@ def generate_launch_description():
 
     # Gesichtserkennung modular einbinden
     # Das Bild wird von real_camera.launch.py bereitgestellt.
-    # ALT: get_package_share_directory("ball_tracker") — Paket existiert nicht,
-    #      crashte die gesamte Launch-Datei beim Parsen (PackageNotFoundError)
     face_tracker_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [

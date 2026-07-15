@@ -7,11 +7,8 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 
-# --- ALTE FOLLOW-BALL LOGIK (auskommentiert) ---
-# Die ursprüngliche FollowBall-Node subscribed /detected_ball (Point)
-# und publiziert /cmd_vel (Twist) um dem Ball zu folgen.
-# Ersetzt durch FollowFace, die /face_detections (Detection2DArray) subscribed.
-# ---
+# Ersetzt die urspruengliche FollowBall-Node (subscribed /detected_ball
+# Point) durch FollowFace, die /face_detections (Detection2DArray) subscribed.
 
 import rclpy
 from rclpy.node import Node

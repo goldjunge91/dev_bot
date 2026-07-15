@@ -8,10 +8,8 @@
 # 4. Nodes - ROS2-Knoten die gestartet werden
 # 5. LaunchDescription - Rückgabe aller Komponenten
 #
-# ALT: Startete Gazebo Classic (gazebo_ros/gazebo.launch.py + spawn_entity.py),
-# während die URDF-Sim-Branch das Ignition-Fortress-Plugin (ign_ros2_control)
-# lud — beide Hälften der Sim liefen gegeneinander. Jetzt durchgängig
-# Ignition Fortress, nach dem etablierten Muster aus gubot_gazebo.
+# Durchgängig Ignition Fortress (ign_ros2_control), nach dem etablierten
+# Muster aus gubot_gazebo.
 
 import os
 from ament_index_python.packages import get_package_share_directory

@@ -51,8 +51,7 @@ static void do_pid(SetPointInfo * p)
   long output = (Kp * perror - Kd * (input - p->prev_input) + p->iterm) / Ko;
   p->prev_enc = p->encoder;
 
-  // ALT (BUG — Akkumulation des Outputs): output += p->output;
-  // FIX: Direktzuweisung statt Akkumulation
+  // FIX: Direktzuweisung statt Akkumulation (output += p->output waere ein Bug)
 
   // Clamp and conditional integral accumulation (anti-windup)
   if (output >= MAX_PWM) {

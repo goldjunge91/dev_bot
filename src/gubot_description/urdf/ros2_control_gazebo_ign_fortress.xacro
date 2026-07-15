@@ -12,20 +12,15 @@
     -->
 
     <!-- NEW: controller config path injected by load_urdf.launch.py at runtime -->
-    <!-- ALT: Hard-coded $(find gubot_one)/controller/config/controllers.yaml -->
     <xacro:arg name="controller_config"
         default="$(find gubot_controller)/config/controllers.yaml"/>
 
     <ros2_control name="GubotIgnitionSystem" type="system">
         <hardware>
-            <!-- ALT: ign_ros2_control/IgnitionSystem (Ignition Fortress plugin name) -->
             <plugin>gz_ros2_control/GazeboSimSystem</plugin>
-            <!-- ALT: position_proportional_gain — wird von GazeboSimSystem nicht unterstützt -->
-            <!-- <param name="position_proportional_gain">20.0</param> -->
         </hardware>
 
         <!-- Gelenkbezeichnungen: fl/fr/rl/rr_wheel_joint (Referenz rosbot_xl-Schema) -->
-        <!-- ALT: front_left/front_right/rear_left/rear_right_wheel_joint -->
         <joint name="fl_wheel_joint">
             <command_interface name="velocity">
                 <param name="min">-10</param>
@@ -76,8 +71,6 @@
         </joint>
 
         <!-- Nerf-Joints: NUR wenn use_nerf_hardware=true, sonst existieren diese Joints nicht in der URDF -->
-        <!-- ALT: value="${'$(arg use_nerf_hardware)' == 'true'}" - fragile String-Vergleich
-             NEU: Standard xacro:arg Substitution -->
         <xacro:if value="$(arg use_nerf_hardware)">
             <joint name="trigger_joint">
                 <command_interface name="position">
@@ -119,11 +112,8 @@
 
     <gazebo>
         <!-- Referenz: common/gazebo.urdf.xacro macro "controller" -->
-        <!-- ALT: gz_ros2_control::GazeboSimROS2ControlPlugin (Gazebo Garden/Harmonic) -->
-        <!-- <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
         <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
             <controller_manager_name>controller_manager</controller_manager_name>
-            <!-- ALT: Hard-coded Pfad $(find gubot_one)/controller/config/controllers.yaml -->
             <parameters>$(arg controller_config)</parameters>
             <ros>
                 <!-- Mecanum-Drive Remappings (wie Referenz common/gazebo.urdf.xacro) -->

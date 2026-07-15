@@ -3,12 +3,10 @@
   Ignition Fortress leere Welt — identisch mit Husarion Referenz
   (rosbot_ws/src/husarion_gz_worlds/worlds/empty_with_plugins.sdf)
 
-  ALT: SDF 1.8 mit ignition::gazebo::systems::* Plugin-Namespace
-       + fehlende imu-system und contact-system Plugins
-       -> IMU nicht funktional, Rad-Bodenkontakt instabil -> Flackern
-
-  NEU: SDF 1.6 mit gz::sim::systems::* Plugin-Namespace (Fortress-kompatibel)
-       + alle benoetigen Plugins (physics, sensors, imu, contact, broadcaster)
+  SDF 1.6 mit gz::sim::systems::* Plugin-Namespace (Fortress-kompatibel)
+  + alle benoetigen Plugins (physics, sensors, imu, contact, broadcaster) —
+  SDF 1.8 mit ignition::gazebo::systems::* fehlten imu-system und
+  contact-system, dadurch IMU nicht funktional und Rad-Bodenkontakt instabil.
 -->
 <sdf version="1.6">
   <world name="empty">

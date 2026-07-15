@@ -1,6 +1,5 @@
 ---
 # Globaler Gazebo-Bridge — nur /clock (wie Referenz rosbot_gazebo/config/gz_bridge.yaml)
-# ALT: enthielt auch scan und camera/camera_info (falscher Scope — jetzt in gubot_bridge.yaml)
 # Sensor-Topics werden per-Robot in gubot_bridge.yaml gebridget (spawn_robot.launch.py)
   - topic_name: /clock
     ros_type_name: rosgraph_msgs/msg/Clock

@@ -57,17 +57,6 @@ static void handle_command(const char * buf)
       moving = (v[0] || v[1] || v[2] || v[3]) ? 1 : 0;
       last_motion_cmd = get_absolute_time();
     } else {printf("ERR\n");}
-    // ALT: // MIGRATION SPRINT 5: float velocity commands (rad/s)
-    // ALT: double targets[4] = {0.0, 0.0, 0.0, 0.0};
-    // ALT: if (sscanf(buf + 1, "%lf %lf %lf %lf", &targets[0], &targets[1], &targets[2], &targets[3]) == 4) {
-    // ALT:   raw_pwm_mode = false;
-    // ALT:   double ticks_scale = (double)ENC_COUNTS_PER_REV / (2.0 * 3.141592653589793 * (double)PID_RATE_HZ);
-    // ALT:   for (int i = 0; i < 4; i++) {
-    // ALT:     motors_pid[i].target = targets[i] * ticks_scale;
-    // ALT:   }
-    // ALT:   moving = (targets[0] != 0.0 || targets[1] != 0.0 || targets[2] != 0.0 || targets[3] != 0.0) ? 1 : 0;
-    // ALT:   last_motion_cmd = get_absolute_time();
-    // ALT: } else {printf("ERR\n");}
 
     // ---- o: MOTOR_RAW_PWM — bypass PID ----
   } else if (buf[0] == 'o') {

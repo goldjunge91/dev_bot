@@ -13,10 +13,6 @@
 # limitations under the License.
 """Test: controller.launch.py — Mecanum Konfiguration.
 
-# ALT: Datei hieß test_launch_robot.py und prüfte bringup/launch/launch_robot.launch.py.
-#      launch_robot.launch.py wurde durch die modulare Kette
-#      controller/launch/controller.launch.py ersetzt.
-
 - Der Spawner muss 'mecanum_drive_controller' starten.
 - Das twist_mux Remapping muss auf '/mecanum_drive_controller/cmd_vel_unstamped' zeigen.
 - Der controller_manager (ros2_control_node) muss für echte Hardware gestartet werden.
@@ -32,7 +28,6 @@ from launch import LaunchDescription  # noqa: F401
 from launch.actions import DeclareLaunchArgument
 
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-# ALT: bringup/launch/launch_robot.launch.py — Datei geloescht
 _LAUNCH_FILE = os.path.join(
     _TEST_DIR, "..", "launch", "controller.launch.py"
 )
@@ -132,7 +127,6 @@ def test_twist_mux_remap():
         "twist_mux remap auf /cmd_vel fehlt in aktiven Zeilen"
     )
 
-    # ALT diff_cont remap darf nicht aktiv sein
     assert "/diff_cont/cmd_vel_unstamped" not in active_source, (
         "Altes diff_cont remap ist noch aktiv — muss auskommentiert sein"
     )

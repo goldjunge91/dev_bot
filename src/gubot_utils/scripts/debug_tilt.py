@@ -117,17 +117,13 @@ if "trigger_joint" not in received:
 else:
     start_pos = received["trigger_joint"]
     start_pos = received["trigger_joint"]
-    # ALT: in_limits = -1.05 <= start_pos <= 0.0
     in_limits = -0.52 <= start_pos <= 0.52
     print(f"  {OK if in_limits else FAIL} "
           f"trigger_joint = {start_pos:.4f} rad  "
-          # ALT: f"({'in Limits [-1.05, 0.0]' if in_limits else 'AUSSERHALB Limits!'})")
           f"({'in Limits [-0.52, 0.52]' if in_limits else 'AUSSERHALB Limits!'})")
 
-    # ALT: print(f"\n  {INFO} Sende -0.5 rad auf /tilt_controller/commands ...")
     print(f"\n  {INFO} Sende 0.2 rad auf /tilt_controller/commands ...")
     msg_out = Float64MultiArray()
-    # ALT: msg_out.data = [-0.5]
     msg_out.data = [0.2]
     for _ in range(10):
         pub.publish(msg_out)
@@ -163,7 +159,6 @@ else:
         print(
             f"  {sym} {'Tilt funktioniert!' if moved else 'Joint reagiert nicht auf Befehl'}")
         if not moved:
-            # ALT: print("       Pruefe: URDF-Limits vs gesendeter Wert (-0.5 in [-1.05,0.0]?)")
             print(
                 "       Pruefe: URDF-Limits vs gesendeter Wert (0.2 in [-0.52,0.52]?)")
             print("       Pruefe: PID p-Gain > 0 in my_controllers.yaml?")

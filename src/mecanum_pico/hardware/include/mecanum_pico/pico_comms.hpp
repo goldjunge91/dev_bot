@@ -13,7 +13,6 @@
 #define MECANUM_PICO__PICO_COMMS_HPP_
 
 #include <sstream>
-// ALT: #include <iomanip>
 #include <iostream>
 #include <string>
 #include <libserial/SerialPort.h>
@@ -124,13 +123,6 @@ public:
     ss << "m " << fl << " " << fr << " " << rl << " " << rr << "\r";
     send_msg(ss.str());
   }
-  // ALT: void set_motor_values(double fl, double fr, double rl, double rr)
-  // ALT: {
-  // ALT:   std::stringstream ss;
-  // ALT:   ss << std::fixed << std::setprecision(3);
-  // ALT:   ss << "m " << fl << " " << fr << " " << rl << " " << rr << "\r";
-  // ALT:   send_msg(ss.str());
-  // ALT: }
 
   // -------------------------------------------------------------------------
   // 4-wheel encoder read

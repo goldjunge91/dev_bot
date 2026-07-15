@@ -8,8 +8,6 @@ import tempfile
 from ament_index_python.packages import get_package_share_directory
 
 # Workspace-Root dynamisch aus der Testdatei ableiten
-# ALT: workspace_dir war hartkodiert auf /home/ros/projects/my_new_robot
-#      (existiert nicht — Workspace heißt my_new_robot_9e34131)
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 _WORKSPACE_DIR = os.path.abspath(os.path.join(_TEST_DIR, "..", "..", ".."))
 
@@ -65,7 +63,6 @@ def test_start_robot_sh_execution_dry_run():
 
     # Mock-Script innerhalb des Workspace anlegen (Projektregel: nicht nach
     # /tmp schreiben) und nach dem Test aufräumen
-    # ALT: fester Pfad /tmp/test_start_robot.sh ohne Cleanup
     with tempfile.NamedTemporaryFile(
         mode="w",
         suffix=".sh",

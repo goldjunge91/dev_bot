@@ -19,9 +19,6 @@ TEST(PicoCommsTest, SetMotorValuesFormatsCorrectly) {
   MockPicoComms comms;
   comms.set_motor_values(100, -100, 200, -200);
   EXPECT_EQ(comms.last_sent, "m 100 -100 200 -200\r");
-  // ALT: // MIGRATION SPRINT 5: float velocity commands (rad/s)
-  // ALT: comms.set_motor_values(1.5, -2.5, 3.5, -4.5);
-  // ALT: EXPECT_EQ(comms.last_sent, "m 1.500 -2.500 3.500 -4.500\r");
 }
 
 TEST(PicoCommsTest, ParseEncoderResponseValid) {

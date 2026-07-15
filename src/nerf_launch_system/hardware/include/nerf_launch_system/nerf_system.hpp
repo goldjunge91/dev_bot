@@ -141,8 +141,6 @@ private:
     // Konvention: alle Nodes kommandieren im URDF-Joint-Bereich, write()
     // clampt darauf. Die Firmware selbst ist einheitenlos (relative UP/DN-
     // Pulse), daher genügt der Clamp hier.
-    // ALT: Nodes kommandierten Servo-Rohwerte 5.23–6.28 rad — kollidierte
-    //      mit den URDF-Limits (±0.52) in der Simulation.
     double tilt_min_ = -0.52;  // URDF trigger_joint lower limit (rad)
     double tilt_max_ = 0.52;   // URDF trigger_joint upper limit (rad)
 

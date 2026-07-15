@@ -102,10 +102,6 @@ def generate_launch_description():
     )
 
     # 4. Controller Spawner — Referenz-Pattern: einzelner Aufruf mit allen Controllern
-    # ALT: 3 separate spawner mit TimerAction(2s/3s/4s) — mögliche Race Condition
-    # ALT: joint_state_broadcaster_spawner = Node(...)
-    # ALT: mecanum_drive_controller_spawner = Node(...)
-    # ALT: imu_broadcaster_spawner = Node(...)
     controllers_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -119,12 +115,10 @@ def generate_launch_description():
     )
 
     # TimerAction: controller_manager muss bereit sein (wie Referenz: 2.0s)
-    # ALT: periode war unterschiedlich pro Spawner (2s, 3s, 4s)
     delayed_controllers_spawner = TimerAction(
         period=2.0, actions=[controllers_spawner])
 
     # Stderr-Monitor: Shutdown bei fatalen Fehlern (Referenz-Pattern)
-    # ALT: keine Fehlerüberwachung — Fehler beim Spawnen wurden ignoriert
     def check_if_log_is_fatal(event):
         red_color = "\033[91m"
         reset_color = "\033[0m"
