@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
+
+# Copyright 2026 goldjunge91
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
-Nerf Launcher Joystick Control Node
+Nerf Launcher Joystick Control Node.
+
 ====================================
 Steuert den Nerf-Launcher über einen Xbox/PlayStation Controller.
 
@@ -80,9 +96,7 @@ class NerfJoy(Node):
         self.create_timer(0.05, self.loop)
 
     def loop(self):
-        """
-        Timer-Callback: Verwaltet Pusher-Puls
-        """
+        """Timer-Callback: Verwaltet Pusher-Puls."""
         # Handle Pusher Pulse
         if self.pusher_active:
             self.pusher_timer -= 1
@@ -92,7 +106,7 @@ class NerfJoy(Node):
 
     def joy_callback(self, msg):
         """
-        Hauptlogik: Verarbeitet alle Joystick-Eingaben
+        Hauptlogik: Verarbeitet alle Joystick-Eingaben.
 
         Prioritäten:
         1. D-Pad → Notfall-Disarm (höchste Priorität)
@@ -107,7 +121,7 @@ class NerfJoy(Node):
             return
 
         def pressed(idx):
-            """Erkennt Button-Press (Flanke 0→1)"""
+            """Erkennt Button-Press (Flanke 0→1)."""
             return (
                 idx < len(msg.buttons)
                 and msg.buttons[idx] == 1
@@ -205,20 +219,21 @@ class NerfJoy(Node):
         self.last_rt_pressed = rt_pressed
 
     def publish_arming(self, val):
-        """Sendet Arming-Befehl (0.0=Disarm, 1.0=Arm)"""
+        """Sendet Arming-Befehl (0.0=Disarm, 1.0=Arm)."""
         msg = Float64MultiArray()
         msg.data = [float(val)]
         self.pub_arming.publish(msg)
 
     def publish_shooter(self, speed):
-        """Sendet Shooter/Pusher-Geschwindigkeit"""
+        """Sendet Shooter/Pusher-Geschwindigkeit."""
         msg = Float64MultiArray()
         msg.data = [float(speed)]
         self.pub_shooter.publish(msg)
 
     def publish_tilt(self, pos):
         """
-        Sendet Tilt-Servo Position in Radiant (Joint-Space)
+        Sendet Tilt-Servo Position in Radiant (Joint-Space).
+
         -0.52 rad = DOWN, +0.52 rad = UP
         """
         msg = Float64MultiArray()

@@ -1,4 +1,16 @@
-# Copyright 2026 - Face Registration Node
+# Copyright 2026 goldjunge91
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # Registriert Gesichter für die face_recognition Bibliothek.
 # Nimmt Fotos per Kamera auf, berechnet Encodings und speichert sie.
@@ -163,7 +175,8 @@ class RegisterFace(Node):
             pickle.dump({"encodings": all_encodings, "names": all_names}, f)
 
         self.get_logger().info(
-            f'Erfolgreich gespeichert: {len(collected_encodings)} Encodings für "{self.person_name}"\n'
+            f'Erfolgreich gespeichert: {len(collected_encodings)} Encodings '
+            f'für "{self.person_name}"\n'
             f"Alle registrierten Personen: {list(set(all_names))}"
         )
 

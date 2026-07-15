@@ -1,15 +1,29 @@
 #!/usr/bin/env python3
+
+# Copyright 2026 goldjunge91
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
-Tilt Controller Debug Script
+Tilt Controller Debug Script.
+
 Aufruf (waehrend simulation.launch.py laeuft):
   ws && python3 src/gubot_utils/scripts/debug_tilt.py 2>&1 | tee debug_tilt.log
 """
-import subprocess
 import sys
 import time
 
 import rclpy
-from rclpy.node import Node
 from controller_manager_msgs.srv import ListControllers, ListHardwareInterfaces
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64MultiArray
@@ -146,7 +160,8 @@ else:
 section("6. Zusammenfassung")
 if "trigger_joint/position" not in all_ifaces:
     print(f"  {FAIL} Hardware-Interface fehlt → ign_ros2_control nicht geladen")
-    print("       Pruefe: ros2_control_gazebo_fortress.xacro nutzt ign_ros2_control/IgnitionSystem?")
+    print("       Pruefe: ros2_control_gazebo_fortress.xacro nutzt "
+          "ign_ros2_control/IgnitionSystem?")
 elif names_states.get("tilt_controller") != "active":
     state = names_states.get("tilt_controller", "FEHLT")
     print(f"  {FAIL} tilt_controller nicht active (state={state})")

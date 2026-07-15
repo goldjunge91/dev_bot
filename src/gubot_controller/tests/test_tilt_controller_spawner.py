@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Regression-Test: Tilt-Joint Konfiguration Ignition Gazebo.
+"""
+Regression-Test: Tilt-Joint Konfiguration Ignition Gazebo.
 
 Die drei konkreten Fehler die dazu gefuehrt haben, dass sich trigger_joint
 in der Simulation nicht bewegt hat:
@@ -69,7 +70,8 @@ def _trigger_joint_limits():
 
 
 def test_urdf_limits_match_teleop_range():
-    """Fix 1: URDF-Limits muessen zum Wertebereich passen.
+    """
+    Fix 1: URDF-Limits muessen zum Wertebereich passen.
 
     Die trigger_joint Limits sind auf [-0.52, 0.52] festgesetzt.
     Der Teleop-Skript sendet Werte im Bereich [5.23, 6.28].
@@ -91,7 +93,8 @@ def test_urdf_limits_match_teleop_range():
 
 
 def test_tilt_controller_configured():
-    """Fix 2: tilt_controller muss vollstaendig konfiguriert sein.
+    """
+    Fix 2: tilt_controller muss vollstaendig konfiguriert sein.
 
     position_controllers/JointGroupPositionController ist ein Forward-
     Controller ohne PID; in der Sim kommt die Stellkraft vom
@@ -114,7 +117,8 @@ def test_tilt_controller_configured():
 
 
 def test_initial_value_within_joint_limits():
-    """Fix 3: initial_value muss innerhalb der URDF-Limits liegen.
+    """
+    Fix 3: initial_value muss innerhalb der URDF-Limits liegen.
 
     War initial_value=0.0 bei Limits [5.23, 6.28] startet Ignition in
     ungueltigem Zustand.
@@ -149,7 +153,8 @@ def test_initial_value_within_joint_limits():
 
 
 def test_trigger_joint_axis_points_up():
-    """Regression: trigger_joint-Achse muss invertiert sein (positiv = hoch).
+    """
+    Regression: trigger_joint-Achse muss invertiert sein (positiv = hoch).
 
     Die CAD-exportierte Achse (~ 0 0 +1) drehte den Launcher bei positiven
     Kommandos NACH UNTEN in den Roboterkörper — das Init-Kommando
@@ -172,7 +177,8 @@ def test_trigger_joint_axis_points_up():
 
 
 def test_nodes_use_joint_space_tilt_range():
-    """Regression: Alle Nodes kommandieren Tilt in Joint-Space (±0.52 rad).
+    """
+    Regression: Alle Nodes kommandieren Tilt in Joint-Space (±0.52 rad).
 
     Servo-Rohwerte (5.23–6.28 rad) kollidierten mit den URDF-Limits — in
     der Simulation wurde der Joint dauerhaft ans Limit geclampt. NerfSystem
@@ -225,7 +231,8 @@ def test_nodes_use_joint_space_tilt_range():
 
 
 def test_hardware_interface_has_tilt_range_params():
-    """Regression: NerfSystem bekommt tilt_min/tilt_max aus dem URDF.
+    """
+    Regression: NerfSystem bekommt tilt_min/tilt_max aus dem URDF.
 
     Das Hardware-Interface besitzt die Range-Konvention und clampt
     Kommandos darauf (write() in nerf_system.cpp).
@@ -270,7 +277,8 @@ def test_hardware_interface_has_tilt_range_params():
 
 
 def test_hardware_imu_declares_all_ten_interfaces():
-    """Regression: Real-HW-URDF muss 10 IMU-Interfaces deklarieren.
+    """
+    Regression: Real-HW-URDF muss 10 IMU-Interfaces deklarieren.
 
     Der Humble imu_sensor_broadcaster verlangt beim Aktivieren zwingend
     orientation.x/y/z/w zusätzlich zu accel+gyro. Die Orientierung wird im
@@ -303,7 +311,8 @@ def test_hardware_imu_declares_all_ten_interfaces():
 
 
 def test_correct_ignition_plugin_in_ros2_control_xacro():
-    """Sim-Plugin muss zum Gazebo-Version passen.
+    """
+    Sim-Plugin muss zum Gazebo-Version passen.
 
     Ignition Gazebo 6: ign_ros2_control.
     Gazebo Garden/Harmonic (7+): gz_ros2_control.

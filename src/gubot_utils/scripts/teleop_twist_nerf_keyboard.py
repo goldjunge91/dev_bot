@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
+
+# Copyright 2026 goldjunge91
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
-Nerf Launcher Keyboard Teleop Node
+Nerf Launcher Keyboard Teleop Node.
+
 ===================================
 Tastatur-Steuerung für Gubot One + Nerf Launcher
 
@@ -51,7 +67,7 @@ Launcher Controls:
    2 : ARM System
 
    SPACE : Fire Single Shot (Pulse Pusher)
-   
+
    t : Tilt Servo (UP - +0.52)
    g : Tilt Servo (DOWN - -0.52)
 
@@ -63,11 +79,11 @@ Launcher Controls:
 
 moveBindings = {
     "w": (0.5, 0.0, 0.0),  # Vorwärts: x=0.5
-    "s": (-0.5, 0.0, 0.0), # Rückwärts: x=-0.5
+    "s": (-0.5, 0.0, 0.0),  # Rückwärts: x=-0.5
     "a": (0.0, 0.0, 1.0),  # Links drehen: z=1.0
-    "d": (0.0, 0.0, -1.0), # Rechts drehen: z=-1.0
+    "d": (0.0, 0.0, -1.0),  # Rechts drehen: z=-1.0
     "A": (0.0, 0.5, 0.0),  # Links strafen: y=0.5
-    "D": (0.0, -0.5, 0.0), # Rechts strafen: y=-0.5
+    "D": (0.0, -0.5, 0.0),  # Rechts strafen: y=-0.5
 }
 
 # Test-Modus: scripted key sequence ohne TTY (für Integrationstests)
@@ -85,7 +101,8 @@ except termios.error:
 
 def getKey():
     """
-    Liest einzelne Tastatureingabe ohne Enter
+    Liest einzelne Tastatureingabe ohne Enter.
+
     Timeout: 0.1s (non-blocking)
     """
     if _TEST_MODE:
@@ -136,7 +153,7 @@ class NerfTeleop(Node):
 
         # Zustandsvariablen
         self.speed = 0.0  # Linear-Geschwindigkeit X
-        self.strafe = 0.0 # Linear-Geschwindigkeit Y (Mecanum)
+        self.strafe = 0.0  # Linear-Geschwindigkeit Y (Mecanum)
         self.turn = 0.0  # Winkel-Geschwindigkeit
         self.armed = False  # Arming-Status
         self.pusher_active = False  # Pusher aktiv während Schuss
@@ -144,7 +161,7 @@ class NerfTeleop(Node):
         self.tilt_min = -0.52
         self.tilt_max = 0.52
         self.tilt_pos = 0.0
-            
+
         self.tilt_step = 0.05  # Schrittweite für Tilt
         self.shot_power = 5.0  # Standard Schuss-Power (0-100)
         self.input_count = 0  # Zähler für Reprints
@@ -154,7 +171,8 @@ class NerfTeleop(Node):
 
     def loop(self):
         """
-        Hauptschleife: Liest Tastatur und steuert Roboter + Launcher
+        Hauptschleife: Liest Tastatur und steuert Roboter + Launcher.
+
         Läuft mit 10Hz
         """
         key = getKey()

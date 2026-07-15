@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Test: controllers.yaml — Keine doppelten Parameter.
+"""
+Test: controllers.yaml — Keine doppelten Parameter.
 
 Prueft gemaess mecanum_drive_controller Schema (ROS2 Humble):
 - Wheel-Namen: nur front_left_wheel_name (nicht _command_joint_name)
@@ -77,7 +78,8 @@ def test_yaml_is_valid():
 
 
 def test_wheel_names_present():
-    """Alle vier front/rear_{left/right}_wheel_name muessen vorhanden sein.
+    """
+    Alle vier front/rear_{left/right}_wheel_name muessen vorhanden sein.
 
     Dies ist laut Doku ein Pflichtparameter fuer ROS2 Humble.
     """
@@ -88,7 +90,8 @@ def test_wheel_names_present():
 
 
 def test_no_rolling_command_joint_names():
-    """Rolling/Jazzy _command_joint_name Parameter duerfen nicht vorhanden sein.
+    """
+    Rolling/Jazzy _command_joint_name Parameter duerfen nicht vorhanden sein.
 
     Diese Parameter sind auf Humble nicht gueltig und fuehren zu
     uneindeutigem Verhalten.
@@ -102,7 +105,8 @@ def test_no_rolling_command_joint_names():
 
 
 def test_kinematics_in_nested_block():
-    """wheel_separation_x/y und wheel_radius muessen in ros__parameters stehen.
+    """
+    wheel_separation_x/y und wheel_radius muessen in ros__parameters stehen.
 
     Im Humble-Schema (nicht Rolling) stehen diese direkt unter ros__parameters,
     nicht in einem separaten kinematics-Block.
@@ -124,7 +128,8 @@ def test_kinematics_in_nested_block():
 
 
 def test_no_flat_kinematics_duplicates():
-    """sum_of_robot_center_projection Schluessel darf nicht vorhanden sein.
+    """
+    sum_of_robot_center_projection Schluessel darf nicht vorhanden sein.
 
     Dieser Schluessel gehoert zum Rolling/Jazzy kinematics-Block-Schema,
     nicht zu Humble.
@@ -137,8 +142,8 @@ def test_no_flat_kinematics_duplicates():
 
 
 def test_wheels_radius_matches_urdf():
-    """wheels_radius-Wert pruefen: 0.05 m (URDF-Wert aus geometry.xacro,
-    100mm Aluminum-Mecanum-Rad).
+    """
+    wheels_radius-Wert pruefen: 0.05 m (URDF-Wert aus geometry.xacro, 100mm Aluminum-Mecanum-Rad).
 
     Aendert sich wenn Rad ausgetauscht wird.
     """

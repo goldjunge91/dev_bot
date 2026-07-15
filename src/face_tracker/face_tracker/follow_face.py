@@ -1,11 +1,18 @@
-# Copyright 2026 - Follow Face Node
-# Basierend auf follow_ball.py von Josh Newans
+# Copyright 2026 goldjunge91
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Basierend auf follow_ball.py von Josh Newans
 
 # Ersetzt die urspruengliche FollowBall-Node (subscribed /detected_ball
 # Point) durch FollowFace, die /face_detections (Detection2DArray) subscribed.
@@ -99,7 +106,8 @@ class FollowFace(Node):
         self.lastrcvtime = time.time() - 10000
 
         self.get_logger().info(
-            f'FollowFace gestartet. Ziel-Person: "{self.target_person or "beliebig"}", allow_search: {self.allow_search}'
+            f'FollowFace gestartet. Ziel-Person: "{self.target_person or "beliebig"}", '
+            f'allow_search: {self.allow_search}'
         )
 
     def timer_callback(self):
@@ -108,7 +116,8 @@ class FollowFace(Node):
 
         if time.time() - self.lastrcvtime < self.rcv_timeout_secs:
             self.get_logger().debug(
-                f"Verfolge: x={self.target_val:.3f}, y={self.target_y:.3f}, size={self.target_dist:.3f}"
+                f"Verfolge: x={self.target_val:.3f}, y={self.target_y:.3f}, "
+                f"size={self.target_dist:.3f}"
             )
             if self.target_dist < self.max_size_thresh:
                 msg.linear.x = self.forward_chase_speed

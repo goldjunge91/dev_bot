@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Test: controller.launch.py — Mecanum Konfiguration.
+"""
+Test: controller.launch.py — Mecanum Konfiguration.
 
 - Der Spawner muss 'mecanum_drive_controller' starten.
 - Das twist_mux Remapping muss auf '/mecanum_drive_controller/cmd_vel_unstamped' zeigen.
@@ -90,7 +91,8 @@ def test_controller_configuration():
 
 
 def test_controller_manager_node():
-    """Prueft ob der controller_manager (ros2_control_node) gestartet wird.
+    """
+    Prueft ob der controller_manager (ros2_control_node) gestartet wird.
 
     Ohne ihn laufen die Spawner auf echter Hardware ins Leere — in der
     Simulation uebernimmt das gz_ros2_control-Plugin.
@@ -133,7 +135,8 @@ def test_twist_mux_remap():
 
 
 def test_controller_manager_remappings():
-    """Prueft die Sim/Real-Topic-Paritaet am ros2_control_node.
+    """
+    Prueft die Sim/Real-Topic-Paritaet am ros2_control_node.
 
     Die Remappings muessen die <ros>-Remappings des gz-Plugins spiegeln,
     sonst bekommt die EKF (odometry/wheels, imu/data) auf echter Hardware

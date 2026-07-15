@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
+
+# Copyright 2026 goldjunge91
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
-Real Camera Launch - USB Kamera für echten Roboter
+Real Camera Launch - USB Kamera für echten Roboter.
+
 ===================================================
 Startet usb_cam Node für USB-Kamera
 
@@ -56,7 +72,8 @@ def generate_launch_description():
         parameters=[
             {
                 "video_device": "/dev/video0",  # USB Kamera Device
-                "pixel_format": "mjpeg2rgb",  # WICHTIG: v4l2_camera nutzt 'mjpeg', usb_cam braucht 'mjpeg2rgb'
+                # WICHTIG: v4l2_camera nutzt 'mjpeg', usb_cam braucht 'mjpeg2rgb'
+                "pixel_format": "mjpeg2rgb",
                 "output_encoding": "bgr8",
                 "image_width": 320,  # Reduzierte Auflösung für Tailscale/WLAN
                 "image_height": 240,
