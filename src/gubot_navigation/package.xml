@@ -3,7 +3,7 @@
 <package format="3">
   <name>gubot_navigation</name>
   <version>0.0.1</version>
-  <description>SLAM mapping and map/area saving for Gubot One (slam_toolbox + nav2_map_server).</description>
+  <description>SLAM mapping, map saving and Nav2 navigation stack for Gubot One (slam_toolbox + Nav2).</description>
   <maintainer email="30201929+goldjunge91@users.noreply.github.com">ros</maintainer>
   <license>Apache-2.0</license>
 
@@ -12,6 +12,15 @@
   <exec_depend>slam_toolbox</exec_depend>
   <exec_depend>nav2_map_server</exec_depend>
   <exec_depend>nav2_lifecycle_manager</exec_depend>
+  <exec_depend>nav2_amcl</exec_depend>
+  <exec_depend>nav2_controller</exec_depend>
+  <exec_depend>nav2_dwb_controller</exec_depend>
+  <exec_depend>nav2_planner</exec_depend>
+  <exec_depend>nav2_navfn_planner</exec_depend>
+  <exec_depend>nav2_smoother</exec_depend>
+  <exec_depend>nav2_behaviors</exec_depend>
+  <exec_depend>nav2_bt_navigator</exec_depend>
+  <exec_depend>nav2_waypoint_follower</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
