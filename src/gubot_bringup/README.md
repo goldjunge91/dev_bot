@@ -14,6 +14,7 @@ launch/joystick.launch.py          # joy_node + teleop_node + nerf_joy
 launch/camera.launch.py            # v4l2_camera (Standard-Kameratreiber)
 launch/real_camera.launch.py       # usb_cam (Alternative, MJPEG-optimiert)
 launch/rplidar.launch.py           # RPLidar-Treiber
+launch/sentry.launch.py            # Sentry-Modus: Nav2 + Face Tracking + Nerf-Feuer
 config/joystick.yaml               # joy_node + teleop_node Parameter
 ```
 
@@ -62,6 +63,43 @@ ros2 launch gubot_bringup launch_all_real.launch.py \
 # Nerf-System sofort scharf (nur wenn du weißt was du tust!)
 ros2 launch gubot_bringup launch_all_real.launch.py auto_arm:=true
 ```
+
+## Sentry-Modus (`sentry.launch.py`)
+
+Startet die komplette Sentry-Kette **auf einem bereits laufenden
+Basis-Bringup**: Nav2 (autonomes Fahren) + Face Tracker (Verfolgung) +
+`fire_at_face` (Nerf-Feuer bei zentriertem, nahem Ziel).
+
+Prioritäten (twist_mux): Joystick 100 > Tracker 20 > Nav2 10 — der
+Tracker übersteuert Nav2, der Joystick übersteuert alles.
+
+Voraussetzung (echte Hardware):
+
+```bash
+ros2 launch gubot_bringup launch_all_real.launch.py \
+    launch_lidar:=true launch_camera:=true use_nerf_hardware:=true
+```
+
+| Argument | Standard | Bedeutung |
+|---|---|---|
+| `slam` | `false` | `false`: AMCL gegen gespeicherte Karte. `true`: slam_toolbox (Online-Mapping). |
+| `map` | `gubot_navigation/maps/test_area.yaml` | Karten-YAML für AMCL (nur `slam:=false`). |
+| `use_sim_time` | `false` | `true` in der Gazebo-Simulation. |
+| `target_person` | `""` (leer) | Zu verfolgende/beschießende Person (leer = beliebiges Gesicht). |
+| `image_topic` | `/camera/image_raw` | Eingangs-Bildtopic für `detect_face`. |
+| `launch_face_tracker` | `true` | Face-Tracking + Feuer-Kette starten (`false` = nur Nav2). |
+
+```bash
+ros2 launch gubot_bringup sentry.launch.py
+ros2 launch gubot_bringup sentry.launch.py slam:=true
+ros2 launch gubot_bringup sentry.launch.py target_person:=Marco
+
+# In der Simulation (nach gubot_gazebo/simulation.launch.py):
+ros2 launch gubot_bringup sentry.launch.py use_sim_time:=true slam:=true
+```
+
+Alle Nav2-Details (Argumente, Parameter, AMCL-Erklärung) stehen in
+[`gubot_navigation/README.md`](../gubot_navigation/README.md).
 
 ## Joystick separat (`joystick.launch.py`)
 

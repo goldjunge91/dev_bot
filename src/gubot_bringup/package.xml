@@ -14,6 +14,7 @@
   <exec_depend>gubot_localization</exec_depend>
   <exec_depend>gubot_utils</exec_depend>
   <exec_depend>face_tracker</exec_depend>
+  <exec_depend>gubot_navigation</exec_depend>
   <exec_depend>joy</exec_depend>
   <exec_depend>teleop_twist_joy</exec_depend>
   <exec_depend>v4l2_camera</exec_depend>
