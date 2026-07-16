@@ -77,6 +77,21 @@ eingebunden), aber für Mehrfach-Spawns oder eine andere Startpose nützlich:
 ros2 launch gubot_gazebo spawn_robot.launch.py x:=2.0 y:=1.0 yaw:=1.57
 ```
 
+## Nav2 / Sentry in der Simulation
+
+Die Simulation liefert alles, was Nav2 braucht (`/scan`, Kamera, EKF,
+twist_mux). In einem zweiten Terminal:
+
+```bash
+# Nur Navigation (Online-SLAM, da die Sim-Welt keine gespeicherte Karte hat):
+ros2 launch gubot_navigation nav2.launch.py use_sim_time:=true slam:=true
+
+# Komplette Sentry-Kette (Nav2 + Face Tracking + Nerf-Feuer):
+ros2 launch gubot_bringup sentry.launch.py use_sim_time:=true slam:=true
+```
+
+Details: [`gubot_navigation/README.md`](../gubot_navigation/README.md).
+
 ## Bekannte Stolpersteine
 
 ```bash

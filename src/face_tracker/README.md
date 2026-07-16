@@ -20,6 +20,38 @@ Uses the `face_recognition` library for face detection and identification agains
 - `face_tracker_sim.launch.py` – Face tracking configured for Gazebo simulation
 - `face_tracker_udp.launch.py` – Face tracking with UDP camera stream for remote processing
 
+### `face_tracker.launch.py` arguments
+
+| Argument | Default | Meaning |
+|---|---|---|
+| `params_file` | `config/face_tracker_params.yaml` | Parameter file for all face_tracker nodes. |
+| `detect_only` | `false` | Only start `detect_face` (no `follow_face`, no `fire_at_face`). |
+| `follow_only` | `false` | Only start `follow_face` (no `detect_face`). |
+| `use_sim_time` | `false` | Enable sim time (Gazebo). |
+| `image_topic` | `/camera/image_raw` | Input image topic for `detect_face`. |
+| `cmd_vel_topic` | `/cmd_vel_tracker` | Output topic for drive commands (twist_mux input, priority 20). |
+| `target_person` | `""` (empty) | Person to track/fire at (empty = any face). |
+| `allow_search` | `false` | Rotate the robot to search when no face is visible. |
+
+### `face_tracker_sim.launch.py` arguments
+
+| Argument | Default | Meaning |
+|---|---|---|
+| `detect_only` | `false` | Detection only, robot does not move. |
+
+Wraps `face_tracker.launch.py` with `image_topic:=/camera/image_raw`
+(images come from Gazebo via `ros_gz_bridge`, no camera driver started).
+
+### `face_tracker_udp.launch.py` arguments
+
+| Argument | Default | Meaning |
+|---|---|---|
+| `detect_only` | `false` | Detection only, robot does not move. |
+| `follow_only` | `false` | Only start `follow_face`. |
+
+Runs `udp_cam_receiver` on the remote PC and feeds the received stream
+into the detection pipeline (`udp_cam_sender` runs on the robot).
+
 ## Getting Started
 
 1. Register a face: `ros2 run face_tracker register_face --ros-args -p person_name:=<name>`
