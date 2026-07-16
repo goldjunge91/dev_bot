@@ -82,6 +82,18 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
+    # Spawn-Pose durchreichen (z. B. Sonoma Raceway: Terrain liegt nicht
+    # bei z=0 — mit z:=1.0 spawnen und fallen lassen).
+    pose_args = [
+        DeclareLaunchArgument(
+            name, default_value=default,
+            description=f"Spawn-Pose {name} (an spawn_robot durchgereicht).",
+        )
+        for name, default in (
+            ("x", "0.0"), ("y", "0.0"), ("z", "0.05"), ("yaw", "0.0"),
+        )
+    ]
+
     world = LaunchConfiguration("world")
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
     use_camera = LaunchConfiguration("use_camera")
@@ -121,6 +133,10 @@ def generate_launch_description():
         launch_arguments={
             "use_nerf_hardware": use_nerf_hardware,
             "use_camera": use_camera,
+            "x": LaunchConfiguration("x"),
+            "y": LaunchConfiguration("y"),
+            "z": LaunchConfiguration("z"),
+            "yaw": LaunchConfiguration("yaw"),
         }.items(),
     )
 
@@ -140,6 +156,7 @@ def generate_launch_description():
         use_nerf_hardware_arg,
         use_camera_arg,
         declare_rviz_arg,
+        *pose_args,
         # NEU: Globale SetEnvironmentVariable, SetRemap, SetParameter (Referenz-Pattern)
         SetEnvironmentVariable(name="RCUTILS_COLORIZED_OUTPUT", value="1"),
         # NEU: Software-Rendering erzwingen (verhindert GL3PlusTextureGpu/OGRE-Absturz unter WSL2)
