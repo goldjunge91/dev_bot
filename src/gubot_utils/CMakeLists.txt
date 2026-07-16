@@ -18,6 +18,7 @@ install(
     scripts/teleop_twist_nerf_keyboard.py
     scripts/teleop__nerf_joystick.py
     scripts/debug_tilt.py
+    scripts/imu_hw_test.py
   DESTINATION lib/${PROJECT_NAME}
   PERMISSIONS
     OWNER_READ OWNER_WRITE OWNER_EXECUTE

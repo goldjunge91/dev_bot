@@ -10,6 +10,7 @@ Setup-/Kalibrierungs-Skripte und Doku.
 scripts/teleop__nerf_joystick.py         # Joystick-Steuerung Nerf-Launcher (ros2 run)
 scripts/teleop_twist_nerf_keyboard.py    # Tastatur-Steuerung Roboter + Nerf (ros2 run)
 scripts/debug_tilt.py                    # Debug-Tool: prüft Tilt-Controller-Zustand
+scripts/imu_hw_test.py                   # IMU-Hardware-Test (Rate, Bias, Drift, Gravitation)
 scripts/start_robot.sh                   # Ein-Befehl-Start auf dem Roboter (Pi)
 scripts/setup_dds_config.sh              # Kopiert CycloneDDS-Config nach /var/tmp/cyclonedds.xml
 scripts/apply_bashrc_settings.sh         # Trägt ROS2/DDS-Env dauerhaft in ~/.bashrc ein
@@ -51,6 +52,29 @@ Tastenbelegung `teleop_twist_nerf_keyboard.py`:
 Button-Mapping `teleop__nerf_joystick.py` (Xbox-Controller): `LB`+`RB`
 3 s halten = Arm/Disarm, `LB`/`RB` einzeln = Tilt, `RT` = Feuern, D-Pad =
 Notfall-Disarm.
+
+## IMU-Hardware-Test (`imu_hw_test.py`)
+
+Prüft die live IMU-Daten (`/imu/data`), während der Roboter **still
+steht** (nicht bewegen!). Läuft auf dem Pi oder dem PC (gleiche
+DDS-Config). Checks: Rate (~100 Hz), `frame_id` (`imu_link`),
+Quaternion-Norm, Gyro-Bias im Stand, Gravitation (|accel| ≈ 9.81),
+Yaw-Drift (Komplementärfilter), Timestamps. Exit-Code 0 = alles OK.
+
+```bash
+# Voraussetzung: launch_all_real.launch.py läuft
+ros2 run gubot_utils imu_hw_test.py                      # 10 s Messung
+ros2 run gubot_utils imu_hw_test.py --duration 30        # längere Messung
+ros2 run gubot_utils imu_hw_test.py --min-rate 80        # strengere Rate
+```
+
+| Check | FAIL wenn | typische Ursache |
+|---|---|---|
+| Rate | < 50 Hz | controller_manager überlastet / DDS-Problem |
+| frame_id | ≠ `imu_link` | controllers.yaml verstellt |
+| Gyro-Ruhe | Bias > 0.05 rad/s | Roboter bewegt / Gyro-Kalibrierung |
+| Yaw-Drift | > 2 °/s | Komplementärfilter/Gyro-Bias (Interim-Filter driftet leicht — WARN ab 0.2 °/s ist normal) |
+| Gravitation | nur WARN | Accel-Skalierung/Achsen prüfen |
 
 ## Debug-Tool
 
