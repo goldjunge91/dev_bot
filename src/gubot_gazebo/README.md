@@ -77,6 +77,9 @@ eingebunden), aber für Mehrfach-Spawns oder eine andere Startpose nützlich:
 ros2 launch gubot_gazebo spawn_robot.launch.py x:=2.0 y:=1.0 yaw:=1.57
 ```
 
+> **Schritt-für-Schritt-Anleitung** (Mapping + Navigation in der Sim,
+> für neue Nutzer): [`docs/sim_mapping_workflow.md`](../../docs/sim_mapping_workflow.md)
+
 ## Nav2 / Sentry in der Simulation
 
 Die Simulation liefert alles, was Nav2 braucht (`/scan`, Kamera, EKF,

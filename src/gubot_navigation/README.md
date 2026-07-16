@@ -44,6 +44,9 @@ darauf. `slam_toolbox` baut die Karte gleichzeitig neu auf (und liefert
 dasselbe `map->odom`). Deshalb ist in `nav2.launch.py` genau **eines von
 beiden** aktiv: `slam:=false` → AMCL + Karte, `slam:=true` → slam_toolbox.
 
+> **Neu hier?** Schritt-für-Schritt-Workflow (Karte erstellen +
+> navigieren, Sim): [`docs/sim_mapping_workflow.md`](../../docs/sim_mapping_workflow.md)
+
 ## Voraussetzung (immer)
 
 Basis-Bringup läuft — Controller, EKF (`odom->base_link`), Lidar (`/scan`):
