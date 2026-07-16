@@ -12,23 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import sys
+
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from preflight import LIDAR_PORT, check_lidar, preflight_action  # noqa: E402
 
 
 def generate_launch_description():
 
     return LaunchDescription([
 
+        DeclareLaunchArgument(
+            'check_hardware',
+            default_value='true',
+            description='Vor dem Start prüfen, ob das Lidar am Port hängt.',
+        ),
+        preflight_action(check_lidar),
+
         Node(
             package='rplidar_ros',
             executable='rplidar_composition',
             output='screen',
             parameters=[{
-                'serial_port': (
-                    '/dev/serial/by-path/platform-fd500000.pcie-pci-'
-                    '0000:01:00.0-usb-0:1.3:1.0-port0'
-                ),
+                'serial_port': LIDAR_PORT,  # zentral in preflight.py
                 'frame_id': 'laser_frame',
                 'angle_compensate': True,
                 'scan_mode': 'Standard'

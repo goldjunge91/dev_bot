@@ -53,6 +53,7 @@ Verwendung:
 """
 
 import os
+import sys
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -62,6 +63,9 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from preflight import check_nerf, check_pico, preflight_action  # noqa: E402
+
 
 def generate_launch_description():
     package_name = "gubot_bringup"
@@ -70,6 +74,15 @@ def generate_launch_description():
     # Launch Configuration Variablen
     launch_lidar = LaunchConfiguration("launch_lidar")
     launch_camera = LaunchConfiguration("launch_camera")
+
+    # Pre-Flight: Pico + Nerf hängen immer an der Controller-Kette.
+    # Lidar/Kamera prüfen ihre eigenen Launches (rplidar/camera/real_camera).
+    check_hardware_arg = DeclareLaunchArgument(
+        "check_hardware",
+        default_value="true",
+        description="Vor dem Start prüfen, ob die erwartete Hardware da ist.",
+    )
+    preflight = preflight_action(check_pico, check_nerf)
 
     # Argument: Lidar starten?
     launch_lidar_arg = DeclareLaunchArgument(
@@ -163,6 +176,9 @@ def generate_launch_description():
                 )
             ]
         ),
+        launch_arguments={
+            "check_hardware": LaunchConfiguration("check_hardware"),
+        }.items(),
         condition=IfCondition(launch_lidar),  # Nur starten wenn aktiviert
     )
 
@@ -201,6 +217,9 @@ def generate_launch_description():
                 )
             ]
         ),
+        launch_arguments={
+            "check_hardware": LaunchConfiguration("check_hardware"),
+        }.items(),
         condition=IfCondition(
             PythonExpression(
                 [
@@ -225,6 +244,9 @@ def generate_launch_description():
                 )
             ]
         ),
+        launch_arguments={
+            "check_hardware": LaunchConfiguration("check_hardware"),
+        }.items(),
         condition=IfCondition(
             PythonExpression(
                 [
@@ -265,6 +287,8 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            check_hardware_arg,
+            preflight,
             launch_lidar_arg,
             launch_camera_arg,
             launch_face_tracker_arg,

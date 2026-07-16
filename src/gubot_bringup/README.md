@@ -41,6 +41,7 @@ Joint States, Nerf-Kette), Twist Mux, EKF, Joystick-Teleop
 
 | Argument | Standard | Bedeutung |
 |---|---|---|
+| `check_hardware` | `true` | Pre-Flight-Check: bricht sofort mit klarer Meldung ab, wenn erwartete Hardware fehlt (Pico, Nerf; Lidar/Kamera je nach Flags). `false` auf Rechnern ohne Hardware. |
 | `launch_lidar` | `false` | RPLidar starten (kein Lidar standardmäßig verbaut). |
 | `launch_camera` | `false` | Kamera starten (aktuell defekt/optional). |
 | `camera_type` | `v4l2` | `v4l2` (→ `camera.launch.py`) oder `usb_cam` (→ `real_camera.launch.py`, MJPEG). |
@@ -137,9 +138,32 @@ ros2 launch gubot_bringup real_camera.launch.py camera_namespace:=my_camera
 ros2 launch gubot_bringup rplidar.launch.py
 ```
 
-Serial-Port ist hart kodiert
-(`/dev/serial/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.3:1.0-port0`)
-— bei anderem Lidar-Kabel/Port in `launch/rplidar.launch.py` anpassen.
+Serial-Port ist zentral in `launch/preflight.py` definiert
+(`/dev/serial/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.3:1.0-port0`).
+**Achtung:** der `by-path`-Name kodiert die physische USB-Buchse am Pi —
+Lidar immer in dieselbe Buchse stecken, sonst Pfad anpassen.
+
+## Pre-Flight Hardware-Checks (`launch/preflight.py`)
+
+Alle Hardware-Launches prüfen **vor** dem Start der Treiber, ob die
+erwarteten Geräte da sind, und brechen sonst sofort ab mit z. B.:
+
+```
+PRE-FLIGHT CHECK FAILED: Lidar (RPLidar) not found on expected port.
+  expected:      /dev/serial/by-path/platform-fd500000...port0
+  found instead: (none — is it plugged in / powered?)
+```
+
+| Gerät | Erwarteter Pfad | Geprüft von |
+|---|---|---|
+| Antrieb (Pico) | `/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00` | `launch_all_real` (immer) |
+| Nerf (Pro Micro) | `/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00` | `launch_all_real` (immer) |
+| Lidar (RPLidar) | `/dev/serial/by-path/...usb-0:1.3:1.0-port0` | `rplidar.launch.py` |
+| Kamera | `/dev/video0` | `camera.launch.py` / `real_camera.launch.py` |
+
+Überspringen (z. B. Entwicklungs-PC): `check_hardware:=false` —
+funktioniert auf jedem der Launches. Erwartete Pfade ändern: nur in
+`launch/preflight.py` (das Lidar-Launch nutzt dieselbe Konstante).
 
 ## Nützliche Introspektions-Befehle
 

@@ -46,14 +46,26 @@ Aufbau:
 3. LaunchDescription - Kombiniert Arguments und Node
 """
 
+import os
+import sys
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from preflight import check_camera, preflight_action  # noqa: E402
 
 
 def generate_launch_description():
 
     # Launch Configuration Variable
+
+    check_hardware_arg = DeclareLaunchArgument(
+        "check_hardware",
+        default_value="true",
+        description="Vor dem Start prüfen, ob die Kamera da ist.",
+    )
 
     # Argument: Namespace für Kamera-Topics
     camera_namespace_arg = DeclareLaunchArgument(
@@ -84,4 +96,9 @@ def generate_launch_description():
         ],
     )
 
-    return LaunchDescription([camera_namespace_arg, usb_cam_node])
+    return LaunchDescription([
+        check_hardware_arg,
+        preflight_action(check_camera),
+        camera_namespace_arg,
+        usb_cam_node,
+    ])

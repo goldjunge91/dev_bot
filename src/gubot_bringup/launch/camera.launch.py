@@ -31,14 +31,27 @@ Verwendung:
   ros2 launch gubot_bringup camera.launch.py
 """
 
+import os
+import sys
+
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from preflight import check_camera, preflight_action  # noqa: E402
 
 
 def generate_launch_description():
 
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                "check_hardware",
+                default_value="true",
+                description="Vor dem Start prüfen, ob die Kamera da ist.",
+            ),
+            preflight_action(check_camera),
             Node(
                 package="v4l2_camera",  # Video4Linux2 Kamera-Treiber
                 executable="v4l2_camera_node",
