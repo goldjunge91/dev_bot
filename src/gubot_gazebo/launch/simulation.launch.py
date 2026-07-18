@@ -38,6 +38,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
+    PythonExpression,
 )
 from launch_ros.actions import Node, SetParameter, SetRemap
 from launch_ros.substitutions import FindPackageShare
@@ -82,6 +83,16 @@ def generate_launch_description():
         choices=["True", "true", "False", "false"],
     )
 
+    # Headless-Modus fuer automatisierte Tests/CI: Gazebo-Server ohne GUI
+    # (--headless-rendering -s via husarion gz_sim.launch.py) und ohne RViz.
+    # Standard bleibt False — interaktive Sim laeuft immer mit GUI + RViz.
+    declare_headless_arg = DeclareLaunchArgument(
+        "headless",
+        default_value="False",
+        description="Run Gazebo server-only without GUI and RViz (for tests/CI).",
+        choices=["True", "true", "False", "false"],
+    )
+
     # Spawn-Pose durchreichen (z. B. Sonoma Raceway: Terrain liegt nicht
     # bei z=0 — mit z:=1.0 spawnen und fallen lassen).
     pose_args = [
@@ -98,6 +109,7 @@ def generate_launch_description():
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
     use_camera = LaunchConfiguration("use_camera")
     rviz = LaunchConfiguration("rviz")
+    headless = LaunchConfiguration("headless")
 
     # Gazebo (Ignition Fortress / gz_sim)
     gz_sim = IncludeLaunchDescription(
@@ -109,6 +121,12 @@ def generate_launch_description():
         launch_arguments={
             "gz_world": world,
             "gz_log_level": "1",
+            # husarion gz_sim.launch.py macht eval() auf den Wert — auf die
+            # Python-Literale "True"/"False" normalisieren (akzeptiert auch
+            # headless:=true).
+            "gz_headless_mode": PythonExpression(
+                ["'True' if '", headless, "'.lower() == 'true' else 'False'"]
+            ),
         }.items(),
     )
 
@@ -144,11 +162,15 @@ def generate_launch_description():
     rviz_config = PathJoinSubstitution([
         FindPackageShare("gubot_description"), "rviz", "main.rviz"
     ])
+    # headless unterdrueckt RViz unabhaengig vom rviz-Arg (kein GUI in CI).
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         arguments=["-d", rviz_config],
-        condition=IfCondition(rviz),
+        condition=IfCondition(PythonExpression([
+            "'", rviz, "'.lower() == 'true' and '",
+            headless, "'.lower() != 'true'",
+        ])),
     )
 
     return LaunchDescription([
@@ -156,6 +178,7 @@ def generate_launch_description():
         use_nerf_hardware_arg,
         use_camera_arg,
         declare_rviz_arg,
+        declare_headless_arg,
         *pose_args,
         # NEU: Globale SetEnvironmentVariable, SetRemap, SetParameter (Referenz-Pattern)
         SetEnvironmentVariable(name="RCUTILS_COLORIZED_OUTPUT", value="1"),
