@@ -26,6 +26,7 @@ from vision_msgs.msg import (
 )
 
 import face_tracker.process_image as proc
+from face_tracker.detection_mapping import face_location_to_bbox, score_for_name
 
 
 class DetectFace(Node):
@@ -99,34 +100,32 @@ class DetectFace(Node):
             rows = float(cv_image.shape[0])
             cols = float(cv_image.shape[1])
 
-            for (top, right, bottom, left), name in zip(face_locations, face_names):
+            for face_location, name in zip(face_locations, face_names):
                 det = Detection2D()
                 det.header = data.header
 
                 # Bounding Box (Mittelpunkt normalisiert auf [0,1])
+                cx, cy, size_x, size_y = face_location_to_bbox(
+                    face_location, rows, cols
+                )
                 bbox = BoundingBox2D()
-                cx = (left + right) / 2.0
-                cy = (top + bottom) / 2.0
-
-                # Center ist ein vision_msgs/Pose2D, hat 'position' (Point2D) und 'theta'
-                bbox.center.position.x = cx / cols
-                bbox.center.position.y = cy / rows
+                bbox.center.position.x = cx
+                bbox.center.position.y = cy
                 bbox.center.theta = 0.0
-
-                bbox.size_x = float(right - left) / cols
-                bbox.size_y = float(bottom - top) / rows
+                bbox.size_x = size_x
+                bbox.size_y = size_y
                 det.bbox = bbox
 
                 # Klasse (Personenname) + Score
                 hyp = ObjectHypothesisWithPose()
                 hyp.hypothesis.class_id = name
-                hyp.hypothesis.score = 0.0 if name == "unknown" else 1.0
+                hyp.hypothesis.score = score_for_name(name)
                 det.results.append(hyp)
 
                 det_array.detections.append(det)
 
                 self.get_logger().debug(
-                    f"Gesicht erkannt: {name} @ ({cx:.0f}, {cy:.0f})"
+                    f"Gesicht erkannt: {name} @ ({cx * cols:.0f}, {cy * rows:.0f})"
                 )
 
             self.detections_pub.publish(det_array)

@@ -20,6 +20,8 @@ from vision_msgs.msg import Detection2DArray
 from std_srvs.srv import Trigger
 import time
 
+from face_tracker.targeting import FireParams, evaluate_fire, select_target
+
 
 class FireAtFace(Node):
     def __init__(self):
@@ -79,52 +81,28 @@ class FireAtFace(Node):
         if not msg.detections:
             return
 
-        target_det = None
-
-        # Find target
-        if self.target_person:
-            for det in msg.detections:
-                if (
-                    det.results
-                    and det.results[0].hypothesis.class_id == self.target_person
-                ):
-                    target_det = det
-                    break
-        else:
-            # Any face
-            for det in msg.detections:
-                if det.results and det.results[0].hypothesis.class_id != "unknown":
-                    target_det = det
-                    break
-            if target_det is None and msg.detections:
-                target_det = msg.detections[0]
-
+        target_det = select_target(msg.detections, self.target_person)
         if target_det is None:
             return
 
-        # bbox.center.position.x/y is 0.0 to 1.0.
-        # Mit Camera Offset vergleichen (Zentrum der Kamera ist 0.5)
-        target_center_x = 0.5 + self.camera_offset_x
-        target_center_y = 0.5 + self.camera_offset_y
+        params = FireParams(
+            threshold_x=self.threshold_x,
+            threshold_y=self.threshold_y,
+            min_size_thresh=self.min_size_thresh,
+            cooldown_secs=self.cooldown_secs,
+            camera_offset_x=self.camera_offset_x,
+            camera_offset_y=self.camera_offset_y,
+        )
+        locked_on, is_cooldown_ready = evaluate_fire(
+            target_det.bbox.center.position.x,
+            target_det.bbox.center.position.y,
+            target_det.bbox.size_x,
+            time.time(),
+            self.last_fire_time,
+            params,
+        )
 
-        center_x = target_det.bbox.center.position.x
-        center_y = target_det.bbox.center.position.y
-
-        offset_x = abs(center_x - target_center_x)
-        offset_y = abs(center_y - target_center_y)
-
-        size_x = target_det.bbox.size_x
-
-        # Logic:
-        # 1. Subject is centered in X AND Y ?
-        # 2. Subject is close enough ?
-        # 3. Cooldown expired ?
-
-        is_centered = (offset_x < self.threshold_x) and (offset_y < self.threshold_y)
-        is_close_enough = size_x > self.min_size_thresh
-        is_cooldown_ready = (time.time() - self.last_fire_time) > self.cooldown_secs
-
-        if is_centered and is_close_enough:
+        if locked_on:
             if is_cooldown_ready:
                 target_id = (
                     target_det.results[0].hypothesis.class_id

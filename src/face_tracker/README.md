@@ -56,3 +56,25 @@ into the detection pipeline (`udp_cam_sender` runs on the robot).
 
 1. Register a face: `ros2 run face_tracker register_face --ros-args -p person_name:=<name>`
 2. Launch: `ros2 launch face_tracker face_tracker.launch.py`
+## Tests
+
+```bash
+colcon test --packages-select face_tracker
+```
+
+Die reine Logik ist aus den Nodes in testbare Module extrahiert
+(verhaltensidentisch): `targeting.py` (Ziel-Auswahl + Feuerbedingungen),
+`follow_logic.py` (Tiefpass + Verfolgungs-Kommando),
+`detection_mapping.py` (Pixel → normierte Bounding-Box).
+
+| Datei | Ebene | Inhalt |
+|---|---|---|
+| `test/test_targeting.py` | Pure Unit | `select_target`-Fälle, `evaluate_fire` (strikte Thresholds, Cooldown, Kamera-Offset) |
+| `test/test_follow_logic.py` | Pure Unit | Tiefpass, Lenk-Vorzeichen, Vorwärts-Stopp, Tilt-Integrator + Klemmung |
+| `test/test_detection_mapping.py` | Pure Unit | bbox-Normierung, Scores |
+| `test/test_process_image.py` | Unit (gemockt) | Encodings-I/O, argmin-Match, unknown-Fälle, Box-Zeichnung |
+| `test/test_fire_at_face_rclpy.py` | rclpy-Integration | Echter Graph mit Mock-`/nerf/fire`-Server: feuert genau 1×, Cooldown blockt, `target_person` wird respektiert |
+| `test/test_detect_face_rclpy.py` | rclpy-Integration | Bild-Callback mit CvBridge-Images, Publisher abgefangen |
+
+**Out of scope** (bewusst untestet): `register_face.py` (interaktive
+GUI), `udp_cam_sender.py` / `udp_cam_receiver.py` (Socket-I/O).

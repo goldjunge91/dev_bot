@@ -14,17 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
 from std_srvs.srv import SetBool
 
+from gubot_patrol.patrol_logic import (
+    PatrolParams,
+    PatrolPhase,
+    advance_phase,
+    command_for_phase,
+    turn_duration_secs,
+)
+
 
 class PatrolNode(Node):
-    """Dead-reckoning square patrol on cmd_vel_nav.
+    """
+    Dead-reckoning square patrol on cmd_vel_nav.
 
     Publishes at twist_mux's lowest priority so follow_face's
     cmd_vel_tracker automatically pre-empts it the moment a face
@@ -67,7 +74,7 @@ class PatrolNode(Node):
         )
 
         # 90 degree turn at angular_speed, one turn per completed leg.
-        self.turn_duration_secs = (math.pi / 2.0) / self.angular_speed
+        self.turn_duration_secs = turn_duration_secs(self.angular_speed)
 
         self.cmd_pub = self.create_publisher(Twist, cmd_vel_topic, 10)
         self.active_pub = self.create_publisher(Bool, "~/active", 10)
@@ -102,24 +109,24 @@ class PatrolNode(Node):
             return
 
         elapsed = (self.get_clock().now() - self._phase_start).nanoseconds / 1e9
-        phase_duration = (
-            self.turn_duration_secs if self._turning else self.leg_duration_secs
+        params = PatrolParams(
+            forward_speed=self.forward_speed,
+            angular_speed=self.angular_speed,
+            leg_duration_secs=self.leg_duration_secs,
+            num_legs=self.num_legs,
         )
-
-        if elapsed >= phase_duration:
+        phase, phase_reset = advance_phase(
+            PatrolPhase(leg_index=self._leg_index, turning=self._turning),
+            elapsed,
+            params,
+        )
+        if phase_reset:
             self._phase_start = self.get_clock().now()
-            if self._turning:
-                self._turning = False
-                self._leg_index = (self._leg_index + 1) % self.num_legs
-            else:
-                self._turning = True
-            elapsed = 0.0
+        self._leg_index = phase.leg_index
+        self._turning = phase.turning
 
         msg = Twist()
-        if self._turning:
-            msg.angular.z = self.angular_speed
-        else:
-            msg.linear.x = self.forward_speed
+        msg.linear.x, msg.angular.z = command_for_phase(phase, params)
         self.cmd_pub.publish(msg)
 
 

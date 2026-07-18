@@ -30,9 +30,10 @@ ros2 launch gubot_gazebo simulation.launch.py
 Das startet: Ignition Gazebo (GUI) + `obstacles.world` + `gubot_one`
 (Spawn bei `x=0 y=0 z=0.05`) + Controller-Kette + EKF + RViz.
 
-> **Hinweis (Memory):** Immer mit GUI starten (`rviz`-Argument nicht auf
-> `false` setzen) — keine Headless-Simulation. Vor dem Start prüfen, ob
-> bereits eine Instanz läuft: `ps aux | grep -E "ign gazebo|rviz2"`.
+> **Hinweis:** Interaktive Läufe immer mit GUI + RViz (Defaults nicht
+> abschalten). `headless:=true` ist nur für automatisierte Tests/CI gedacht.
+> Vor dem Start prüfen, ob bereits eine Instanz läuft:
+> `ps aux | grep -E "ign gazebo|rviz2"`.
 
 ## Launch-Argumente (`simulation.launch.py`)
 
@@ -42,6 +43,8 @@ Das startet: Ignition Gazebo (GUI) + `obstacles.world` + `gubot_one`
 | `use_nerf_hardware` | `true` | An `spawn_robot.launch.py` → `controller.launch.py` durchgereicht. |
 | `use_camera` | `true` | Gazebo-Kamerasensor an/aus (RTF-Boost unter WSL2/llvmpipe bei `false`). |
 | `rviz` | `True` | RViz parallel starten (`True`/`true`/`False`/`false`). |
+| `headless` | `False` | Gazebo server-only ohne GUI (`--headless-rendering -s`) und ohne RViz — für automatisierte Tests/CI. |
+| `x` / `y` / `z` / `yaw` | `0.0` / `0.0` / `0.05` / `0.0` | Spawn-Pose, an `spawn_robot.launch.py` durchgereicht. |
 
 Beispiele:
 
@@ -57,6 +60,9 @@ ros2 launch gubot_gazebo simulation.launch.py use_nerf_hardware:=false
 
 # Ohne RViz (nur Gazebo)
 ros2 launch gubot_gazebo simulation.launch.py rviz:=false
+
+# Headless (Tests/CI): Gazebo-Server ohne GUI, RViz automatisch aus
+ros2 launch gubot_gazebo simulation.launch.py headless:=true
 ```
 
 ## Launch-Argumente (`spawn_robot.launch.py`)
@@ -117,3 +123,35 @@ ros2 topic hz /scan
 ros2 service call /world/<world_name>/control ros_gz_interfaces/srv/ControlWorld "{}"
 gz topic -l          # Ignition-native Topics (vor der Bridge)
 ```
+
+## Tests
+
+```bash
+# Config-/Bridge-Konsistenztests (schnell, ohne Gazebo):
+colcon test --packages-select gubot_gazebo
+```
+
+`tests/test_bridge_config.py` sichert den Topic-Kontrakt: Bridge-YAMLs ↔
+URDF-`<topic>`-Tags ↔ EKF-Eingänge (`odometry/wheels`, `imu/data`),
+plus World-XML und `--show-args` beider Launch-Dateien.
+
+### E2E-Test (Bringup + Seitwärtsfahrt)
+
+`tests/test_e2e_sim_drive.py` startet die komplette Sim headless
+(ROS_DOMAIN_ID 77, keine Interferenz mit einer laufenden User-Sim),
+wartet auf `/odometry/filtered` und fährt 8 s seitwärts über
+`/cmd_vel_joy`. Eine echte Y-Verschiebung ist der Kanarienvogel für die
+Mecanum-`fdir1`-Reibungsvektoren.
+
+Der Test ist doppelt gegated (CMake-Option + `GUBOT_E2E=1`-Guard) und
+läuft nur auf explizite Anforderung:
+
+```bash
+colcon build --packages-select gubot_gazebo --cmake-args -DGUBOT_E2E=ON
+colcon test --packages-select gubot_gazebo --ctest-args -L e2e
+# danach Zombie-Check:
+ps aux | grep -E "ign gazebo|ruby" | grep -v grep
+```
+
+Auf WSL2 dauert der Lauf ~3–5 min (langsamer gz-Start, Timeout 300 s).
+Vor dem Lauf sicherstellen, dass keine interaktive Sim läuft.

@@ -24,6 +24,14 @@ from std_msgs.msg import Float64
 from vision_msgs.msg import Detection2DArray
 import time
 
+from face_tracker.follow_logic import (
+    FollowParams,
+    chase_command,
+    low_pass,
+    normalise_detection,
+)
+from face_tracker.targeting import select_target
+
 
 class FollowFace(Node):
     def __init__(self):
@@ -119,23 +127,21 @@ class FollowFace(Node):
                 f"Verfolge: x={self.target_val:.3f}, y={self.target_y:.3f}, "
                 f"size={self.target_dist:.3f}"
             )
-            if self.target_dist < self.max_size_thresh:
-                msg.linear.x = self.forward_chase_speed
-
-            # X-Achse: Rotation des Roboters
-            # target_val ist bereits im Wertebereich [-1, 1], wir fügen den Offset skaliert hinzu
-            # Ein offset von 0 bedeutet, dass target_val 0 das Zentrum ist
-            offset_scaled_x = self.camera_offset_x * 2.0
-            error_x = self.target_val - offset_scaled_x
-            msg.angular.z = -self.angular_chase_multiplier * error_x
-
-            # Y-Achse: Tilt Servo anpassen
-            target_center_y = 0.5 + self.camera_offset_y
-            error_y = target_center_y - self.target_y
-
-            # Passe aktuellen Tilt an
-            self.current_tilt += error_y * self.tilt_chase_multiplier
-            self.current_tilt = max(0.0, min(1.0, self.current_tilt))
+            params = FollowParams(
+                angular_chase_multiplier=self.angular_chase_multiplier,
+                forward_chase_speed=self.forward_chase_speed,
+                max_size_thresh=self.max_size_thresh,
+                tilt_chase_multiplier=self.tilt_chase_multiplier,
+                camera_offset_x=self.camera_offset_x,
+                camera_offset_y=self.camera_offset_y,
+            )
+            msg.linear.x, msg.angular.z, self.current_tilt = chase_command(
+                self.target_val,
+                self.target_y,
+                self.target_dist,
+                self.current_tilt,
+                params,
+            )
 
             tilt_msg.data = self.current_tilt
             self.tilt_publisher_.publish(tilt_msg)
@@ -161,42 +167,21 @@ class FollowFace(Node):
         if not msg.detections:
             return
 
-        target_det = None
-
-        if self.target_person:
-            # Bestimmte Person suchen
-            for det in msg.detections:
-                if (
-                    det.results
-                    and det.results[0].hypothesis.class_id == self.target_person
-                ):
-                    target_det = det
-                    break
-        else:
-            # Erstes bekanntes Gesicht nehmen (kein 'unknown')
-            for det in msg.detections:
-                if det.results and det.results[0].hypothesis.class_id != "unknown":
-                    target_det = det
-                    break
-            # Fallback: erstes Gesicht überhaupt
-            if target_det is None and msg.detections:
-                target_det = msg.detections[0]
-
+        target_det = select_target(msg.detections, self.target_person)
         if target_det is None:
             return
 
-        # bbox.center.position.x ist [0,1] → umrechnen auf [-1, 1] für Steuerung (Basis Drehung)
+        # bbox.center.position.x ist [0,1] → umrechnen auf [-1, 1] für Steuerung
         f = self.filter_value
-        raw_x = (target_det.bbox.center.position.x - 0.5) * 2.0
+        raw_x, raw_y, raw_size = normalise_detection(
+            target_det.bbox.center.position.x,
+            target_det.bbox.center.position.y,
+            target_det.bbox.size_x,
+        )
 
-        # Y-Position (für Tilt) behalten wir im [0,1] Format (oben 0.0, unten 1.0 meistens)
-        raw_y = target_det.bbox.center.position.y
-
-        raw_size = target_det.bbox.size_x
-
-        self.target_val = self.target_val * f + raw_x * (1 - f)
-        self.target_y = self.target_y * f + raw_y * (1 - f)
-        self.target_dist = self.target_dist * f + raw_size * (1 - f)
+        self.target_val = low_pass(self.target_val, raw_x, f)
+        self.target_y = low_pass(self.target_y, raw_y, f)
+        self.target_dist = low_pass(self.target_dist, raw_size, f)
         self.lastrcvtime = time.time()
 
 
