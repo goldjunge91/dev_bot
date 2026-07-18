@@ -39,7 +39,8 @@
 
   mecanum_drive_controller:
     ros__parameters:
-      # Robot Specific — Geometrie aus gubot_one_geometry.xacro
+      # Robot Specific — Geometrie aus gubot_description/config/robot_dimensions.yaml
+      # (Konsistenz geprueft von gubot_description/tests/test_urdf_variants.py)
       # Gelenkbezeichnungen: Referenz-Schema fl/fr/rl/rr_wheel_joint
       tf_frame_prefix_enable: false
       front_left_wheel_name: fl_wheel_joint

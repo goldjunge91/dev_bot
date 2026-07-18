@@ -5,6 +5,8 @@
         <child link="camera_link"/>
         <origin xyz="0.276 0 0.181" rpy="0 0.18 0"/>
     </joint>
+    <!-- camera_link bewusst ohne inertial/collision: der fixe Joint wird von
+         Gazebo in body_link gelumpt (fixed joint lumping). -->
     <link name="camera_link">
         <visual>
             <geometry>
@@ -48,11 +50,7 @@
                     <far>8.0</far>
                 </clip>
             </camera>
-            <!-- <xacro:if value="$(arg use_gazebo_classic)"> -->
-            <!--     <plugin name="camera_controller" filename="libgazebo_ros_camera.so"> -->
-            <!--         <frame_name>camera_link_optical</frame_name> -->
-            <!--     </plugin> -->
-            <!-- NEU: Expliziter Frame-ID damit Ignition nicht den auto-generierten
+            <!-- Expliziter Frame-ID damit Ignition nicht den auto-generierten
                  Pfad 'gubot_one/base_link/camera' verwendet, sondern den TF-Frame
                  'camera_link_optical' der von robot_state_publisher veroeffentlicht wird -->
             <topic>camera/image_raw</topic>

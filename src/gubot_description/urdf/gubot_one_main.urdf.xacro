@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="gubot_one">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" xmlns:ignition="http://ignitionrobotics.org/schema" name="gubot_one">
     <xacro:arg name="use_ros2_control" default="true"/>
     <xacro:arg name="sim_mode" default="false"/>
     <xacro:arg name="use_nerf_hardware" default="false"/>
@@ -7,7 +7,13 @@
          WSL2/llvmpipe: RTF ~8% mit Kamera). Links/Joints/TF-Frames der Kamera
          bleiben immer erhalten. -->
     <xacro:arg name="use_camera" default="true"/>
+    <!-- use_depth_camera=true fuegt eine (Sim-)Tiefenkamera hinzu; Standard aus. -->
+    <xacro:arg name="use_depth_camera" default="false"/>
+    <xacro:include filename="properties.xacro" />
     <xacro:include filename="gubot_one_geometry.xacro" />
+    <xacro:if value="$(arg sim_mode)">
+        <xacro:include filename="gazebo_sim.xacro" />
+    </xacro:if>
     <xacro:if value="$(arg use_ros2_control)">
         <xacro:if value="$(arg sim_mode)">
             <xacro:include filename="ros2_control_gazebo_ign_fortress.xacro" />
@@ -18,7 +24,9 @@
     </xacro:if>
     <xacro:include filename="sensor_lidar.xacro" />
     <xacro:include filename="sensor_camera.xacro" />
-    <!-- <xacro:include filename="sensor_depth_camera.xacro" /> -->
+    <xacro:if value="$(arg use_depth_camera)">
+        <xacro:include filename="sensor_depth_camera.xacro" />
+    </xacro:if>
     <xacro:include filename="visual_face.xacro" />
     <xacro:if value="$(arg use_nerf_hardware)">
         <xacro:include filename="nerf_launch_system.xacro" />

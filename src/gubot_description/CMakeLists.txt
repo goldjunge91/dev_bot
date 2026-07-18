@@ -12,10 +12,14 @@ if(BUILD_TESTING)
     tests/test_urdf_geometry.py
     TIMEOUT 30
   )
+  ament_add_pytest_test(test_urdf_variants
+    tests/test_urdf_variants.py
+    TIMEOUT 60
+  )
 endif()
 
 install(
-  DIRECTORY urdf meshes rviz launch
+  DIRECTORY urdf meshes rviz launch config
   DESTINATION share/${PROJECT_NAME}
 )
 

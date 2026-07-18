@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" xmlns:ignition="http://ignitionrobotics.org/schema">
+    <!-- Sim-spezifische Gazebo-Tags (Ignition Fortress). Wird von
+         gubot_one_main.urdf.xacro nur bei sim_mode:=true eingebunden;
+         die reale Hardware bekommt diese Bloecke nicht. -->
+
+    <!-- Mecanum-Reibung pro Rad. fdir1 im base_link-Frame, X-Anordnung der
+         Rollen: fdir1_y = -x_reflect * y_reflect
+         (fl "1 -1 0", fr "1 1 0", rl "1 1 0", rr "1 -1 0"). -->
+    <xacro:macro name="mecanum_wheel_friction" params="prefix fdir1">
+        <gazebo reference="${prefix}_wheel_link">
+            <material>Gazebo/Blue</material>
+            <collision>
+                <surface><friction><ode>
+                    <mu>${wheel_mu}</mu><mu2>${wheel_mu2}</mu2>
+                    <slip1>${wheel_slip1}</slip1><slip2>0.0</slip2>
+                    <fdir1 ignition:expressed_in="base_link">${fdir1}</fdir1>
+                </ode></friction></surface>
+            </collision>
+        </gazebo>
+    </xacro:macro>
+    <xacro:mecanum_wheel_friction prefix="fl" fdir1="1 -1 0"/>
+    <xacro:mecanum_wheel_friction prefix="fr" fdir1="1 1 0"/>
+    <xacro:mecanum_wheel_friction prefix="rl" fdir1="1 1 0"/>
+    <xacro:mecanum_wheel_friction prefix="rr" fdir1="1 -1 0"/>
+
+    <gazebo reference="body_link">
+        <material>Gazebo/Orange</material>
+    </gazebo>
+    <gazebo reference="imu_joint">
+        <disableFixedJointLumping>true</disableFixedJointLumping>
+    </gazebo>
+    <gazebo reference="imu_link">
+        <material>Gazebo/Black</material>
+        <!-- IMU Sensor — Ignition Fortress Konfiguration (wie Referenz rosbot_xl) -->
+        <sensor name="imu_sensor" type="imu">
+            <always_on>true</always_on>
+            <update_rate>${imu_update_rate}</update_rate>
+            <visualize>false</visualize>
+            <topic>imu/data_raw</topic>
+            <ignition_frame_id>imu_link</ignition_frame_id>
+            <enable_metrics>false</enable_metrics>
+            <imu>
+                <angular_velocity>
+                    <x><noise type="gaussian"><mean>0.0</mean><stddev>5.24e-3</stddev><bias_mean>2.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></x>
+                    <y><noise type="gaussian"><mean>0.0</mean><stddev>5.24e-3</stddev><bias_mean>2.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></y>
+                    <z><noise type="gaussian"><mean>0.0</mean><stddev>5.24e-3</stddev><bias_mean>2.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></z>
+                </angular_velocity>
+                <linear_acceleration>
+                    <x><noise type="gaussian"><mean>0.0</mean><stddev>1.86e-3</stddev><bias_mean>1.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></x>
+                    <y><noise type="gaussian"><mean>0.0</mean><stddev>1.86e-3</stddev><bias_mean>1.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></y>
+                    <z><noise type="gaussian"><mean>0.0</mean><stddev>1.86e-3</stddev><bias_mean>1.0e-3</bias_mean><bias_stddev>0.0</bias_stddev></noise></z>
+                </linear_acceleration>
+            </imu>
+        </sensor>
+    </gazebo>
+</robot>

@@ -1,0 +1,15 @@
+# Einzige Quelle der Wahrheit fuer die Roboter-Abmessungen (gubot_one).
+# Konsumenten:
+#   - urdf/properties.xacro (xacro.load_yaml)
+#   - gubot_controller/config/controllers.yaml haelt davon abgeleitete Werte:
+#       wheel_separation_x = 2 * wheel_offset_x
+#       wheel_separation_y = 2 * wheel_offset_y
+#       wheel_radius       = wheel_radius
+#     Konsistenz wird von gubot_description/tests/test_urdf_variants.py geprueft.
+chassis_length: 0.335
+chassis_width: 0.265
+chassis_height: 0.138
+wheel_radius: 0.05
+wheel_thickness: 0.05
+wheel_offset_x: 0.113
+wheel_offset_y: 0.1485

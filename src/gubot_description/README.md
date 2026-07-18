@@ -14,12 +14,20 @@ reicht dieses Paket allein.
 ## Inhalt
 
 ```
+config/
+└── robot_dimensions.yaml              # Einzige Quelle der Wahrheit: Chassis-/Rad-Maße
 urdf/
 ├── gubot_one_main.urdf.xacro          # Einstiegspunkt (bindet alles zusammen)
-├── gubot_one_geometry.xacro           # Chassis, Räder, IMU (Meshes: waffle_pi_base.stl, mecanum_a/b.dae)
-├── ros2_control_gazebo_ign_fortress.xacro   # sim_mode:=true
-├── ros2_control_hardware.xacro        # sim_mode:=false (echte Hardware)
-├── sensor_camera.xacro / sensor_lidar.xacro / sensor_depth_camera.xacro
+├── properties.xacro                   # Alle xacro-Properties + Materialien (lädt robot_dimensions.yaml)
+├── gubot_one_geometry.xacro           # Reine Geometrie: Chassis, Räder, IMU (keine Gazebo-Tags)
+├── mecanum_wheel.xacro                # Rad-Makro (Joint + Link + Inertial), 4x instanziiert
+├── gazebo_sim.xacro                   # Sim-only: IMU-Sensor, Mecanum-Reibung (fdir1), Gazebo-Materialien — nur bei sim_mode:=true
+├── inertial_macros.xacro              # inertial_sphere/box/cylinder
+├── ros2_control_common.xacro          # Gemeinsame ros2_control-Makros (Rad-Joint, IMU-Sensor)
+├── ros2_control_gazebo_ign_fortress.xacro   # sim_mode:=true (GubotIgnitionSystem)
+├── ros2_control_hardware.xacro        # sim_mode:=false (RealRobot, mecanum_pico; Params als xacro-Args)
+├── sensor_camera.xacro / sensor_lidar.xacro
+├── sensor_depth_camera.xacro          # Optionale Tiefenkamera (use_depth_camera:=true, Standard aus)
 ├── visual_face.xacro                  # Gesichts-Display-Link
 └── nerf_launch_system.xacro           # bindet src/nerf_launch_system ein (use_nerf_hardware:=true)
 meshes/bases/waffle_pi_base.stl        # Chassis-Visual
@@ -27,6 +35,8 @@ meshes/wheels/mecanum_a.dae            # rechtes Mecanum-Rad (fr, rr)
 meshes/wheels/mecanum_b.dae            # linkes Mecanum-Rad (fl, rl)
 rviz/main.rviz
 launch/load_urdf.launch.py
+tests/test_urdf_geometry.py            # Rad-Symmetrie
+tests/test_urdf_variants.py            # Varianten-Matrix, stabile Namen, fdir1, check_urdf, Drift-Wache controllers.yaml
 ```
 
 ## Schnellstart
@@ -64,7 +74,15 @@ check_urdf /tmp/gubot_one.urdf
 | `sim_mode` | `false` | Wählt zwischen `ros2_control_gazebo_ign_fortress.xacro` (`true`) und `ros2_control_hardware.xacro` (`false`). Wird i.d.R. automatisch mit `use_sim_time` synchron gesetzt (siehe `gubot_controller`/`gubot_gazebo`). |
 | `use_nerf_hardware` | `true` | Bindet `nerf_launch_system.xacro` (Launcher-Links, -Joints, -ros2_control-Interfaces) ein. |
 | `use_camera` | `true` | Bindet den Gazebo-Kamerasensor ein. `false` entfernt nur den Render-Sensor (spart Rechenzeit, z. B. unter WSL2) — Kamera-Link/TF bleiben erhalten. |
+| `use_depth_camera` | `false` | Bindet die optionale Tiefenkamera (`depth_camera_*`-Frames, gz-Fortress-`depth_camera`-Sensor, Topic `camera/depth`) ein. |
 | `controller_config` | `gubot_controller/config/controllers.yaml` | Pfad zu `controllers.yaml`, wird in den `<ros2_control>`-Xacro-Block injiziert (Pluginlib-Namen/Update-Rate). |
+| `drive_device` | Pico by-id-Pfad | Serielles Gerät der Antriebs-Hardware (`mecanum_pico`), nur `sim_mode:=false`. |
+| `nerf_port` | Leonardo by-id-Pfad | Serielles Gerät des Nerf-Launchers, nur `sim_mode:=false` + `use_nerf_hardware:=true`. |
+
+Weitere Hardware-Parameter (`drive_baud_rate`, `drive_loop_rate`,
+`drive_timeout_ms`, `enc_counts_per_rev`, `nerf_tilt_min/max`) sind als
+xacro-Args in `ros2_control_hardware.xacro` deklariert und können direkt an
+`xacro` übergeben werden (Defaults = bisherige Festwerte).
 
 Beispiel mit allen Optionen:
 
@@ -74,19 +92,27 @@ ros2 launch gubot_description load_urdf.launch.py \
   use_ros2_control:=true \
   sim_mode:=true \
   use_nerf_hardware:=true \
-  use_camera:=false
+  use_camera:=false \
+  use_depth_camera:=true
 ```
 
-## Wichtige Xacro-Properties (`gubot_one_geometry.xacro`)
+## Roboter-Maße ändern (`config/robot_dimensions.yaml`)
 
-Falls du Chassis- oder Radmaße änderst, hier ansetzen (keine Launch-Argumente,
-sondern `xacro:property`-Werte in der Datei selbst):
+Chassis- und Radmaße liegen zentral in `config/robot_dimensions.yaml`
+(von `urdf/properties.xacro` per `xacro.load_yaml` geladen — **nicht** mehr
+in den xacro-Dateien selbst):
 
-| Property | Wert | Bedeutung |
+| Schlüssel | Wert | Bedeutung |
 |---|---|---|
 | `chassis_length/width/height` | 0.335 / 0.265 / 0.138 m | Chassis-Box (Collision) + Skalierungsbasis für `waffle_pi_base.stl` (Visual). |
-| `wheel_radius` / `wheel_thickness` | 0.05 / 0.05 m | Reale Maße des 100mm-Aluminum-Mecanum-Rads (`mecanum_a/b.dae`). **Muss** synchron zu `gubot_controller/config/controllers.yaml → mecanum_drive_controller.wheel_radius` gehalten werden, sonst driftet die Odometrie. |
+| `wheel_radius` / `wheel_thickness` | 0.05 / 0.05 m | Reale Maße des 100mm-Aluminum-Mecanum-Rads (`mecanum_a/b.dae`). Muss synchron zu `gubot_controller/config/controllers.yaml → mecanum_drive_controller.wheel_radius` gehalten werden, sonst driftet die Odometrie. |
 | `wheel_offset_x` / `wheel_offset_y` | 0.113 / 0.1485 m | Radstand halbe Länge/Breite. Muss synchron zu `wheel_separation_x/y` in `controllers.yaml` sein (`separation = 2 × offset`). |
+
+Die Synchronität mit `controllers.yaml` wird automatisch geprüft:
+`tests/test_urdf_variants.py::test_wheel_geometry_consistent_with_controllers_yaml`
+schlägt fehl, wenn die Werte auseinanderlaufen. Weitere Stellschrauben
+(Joint-Limits, Reibungs-µ/slip, IMU-Rate) sind benannte Properties in
+`urdf/properties.xacro`.
 
 ## Abhängigkeiten
 

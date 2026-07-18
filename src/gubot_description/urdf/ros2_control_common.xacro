@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Gemeinsame ros2_control-Makros fuer Sim (GazeboSimSystem) und
+         reale Hardware (MecanumPicoHardware). -->
+
+    <!-- Rad-Joint. sim=true: Interface-Reihenfolge + initial_value wie
+         GazeboSimSystem erwartet; sim=false: Reihenfolge der Hardware-Variante. -->
+    <xacro:macro name="ros2_control_wheel_joint" params="name sim:=false">
+        <joint name="${name}">
+            <command_interface name="velocity">
+                <param name="min">-10</param>
+                <param name="max">10</param>
+            </command_interface>
+            <xacro:if value="${sim}">
+                <state_interface name="velocity">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+                <state_interface name="position">
+                    <param name="initial_value">0.0</param>
+                </state_interface>
+            </xacro:if>
+            <xacro:unless value="${sim}">
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </xacro:unless>
+        </joint>
+    </xacro:macro>
+
+    <!-- IMU-Sensor. Name muss uebereinstimmen mit:
+         1. Gazebo-Sensor name="imu_sensor" in gazebo_sim.xacro
+         2. controllers.yaml: imu_broadcaster.ros__parameters.sensor_name: imu_sensor -->
+    <xacro:macro name="ros2_control_imu_sensor" params="name:=imu_sensor">
+        <sensor name="${name}">
+            <state_interface name="linear_acceleration.x"/>
+            <state_interface name="linear_acceleration.y"/>
+            <state_interface name="linear_acceleration.z"/>
+            <state_interface name="angular_velocity.x"/>
+            <state_interface name="angular_velocity.y"/>
+            <state_interface name="angular_velocity.z"/>
+            <state_interface name="orientation.x"/>
+            <state_interface name="orientation.y"/>
+            <state_interface name="orientation.z"/>
+            <state_interface name="orientation.w"/>
+        </sensor>
+    </xacro:macro>
+</robot>

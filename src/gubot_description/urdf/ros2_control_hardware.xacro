@@ -2,72 +2,39 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:arg name="use_nerf_hardware" default="true"/>
     <xacro:arg name="nerf_port" default="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00"/>
+    <!-- Hardware-Parameter als xacro-Args (Defaults = bisherige Festwerte),
+         von aussen ueberschreibbar, z. B. drive_device:=/dev/ttyACM0 -->
+    <xacro:arg name="drive_device" default="/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00"/>
+    <xacro:arg name="drive_baud_rate" default="115200"/>
+    <xacro:arg name="drive_loop_rate" default="30"/>
+    <xacro:arg name="drive_timeout_ms" default="1000"/>
+    <xacro:arg name="enc_counts_per_rev" default="3436"/>
+    <xacro:arg name="nerf_tilt_min" default="-0.52"/>
+    <xacro:arg name="nerf_tilt_max" default="0.52"/>
     <xacro:include filename="$(find nerf_launch_system)/description/urdf/ros2_control_hardware_nerf.xacro" />
+    <xacro:include filename="ros2_control_common.xacro"/>
     <ros2_control name="RealRobot" type="system">
         <hardware>
             <plugin>mecanum_pico/MecanumPicoHardware</plugin>
-            <!-- <param name="front_left_wheel_name">front_left_wheel_joint</param> -->
-            <!-- <param name="front_right_wheel_name">front_right_wheel_joint</param> -->
-            <!-- <param name="rear_left_wheel_name">rear_left_wheel_joint</param> -->
-            <!-- <param name="rear_right_wheel_name">rear_right_wheel_joint</param> -->
             <param name="front_left_wheel_name">fl_wheel_joint</param>
             <param name="front_right_wheel_name">fr_wheel_joint</param>
             <param name="rear_left_wheel_name">rl_wheel_joint</param>
             <param name="rear_right_wheel_name">rr_wheel_joint</param>
-            <param name="loop_rate">30</param>
-            <param name="device">/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00</param>
-            <param name="baud_rate">115200</param>
-            <param name="timeout_ms">1000</param>
-            <param name="enc_counts_per_rev">3436</param>
+            <param name="loop_rate">$(arg drive_loop_rate)</param>
+            <param name="device">$(arg drive_device)</param>
+            <param name="baud_rate">$(arg drive_baud_rate)</param>
+            <param name="timeout_ms">$(arg drive_timeout_ms)</param>
+            <param name="enc_counts_per_rev">$(arg enc_counts_per_rev)</param>
         </hardware>
-        <joint name="fl_wheel_joint">
-            <command_interface name="velocity">
-                <param name="min">-10</param>
-                <param name="max">10</param>
-            </command_interface>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-        <joint name="fr_wheel_joint">
-            <command_interface name="velocity">
-                <param name="min">-10</param>
-                <param name="max">10</param>
-            </command_interface>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-        <joint name="rl_wheel_joint">
-            <command_interface name="velocity">
-                <param name="min">-10</param>
-                <param name="max">10</param>
-            </command_interface>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-        <joint name="rr_wheel_joint">
-            <command_interface name="velocity">
-                <param name="min">-10</param>
-                <param name="max">10</param>
-            </command_interface>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-        <sensor name="imu_sensor">
-            <state_interface name="linear_acceleration.x"/>
-            <state_interface name="linear_acceleration.y"/>
-            <state_interface name="linear_acceleration.z"/>
-            <state_interface name="angular_velocity.x"/>
-            <state_interface name="angular_velocity.y"/>
-            <state_interface name="angular_velocity.z"/>
-            <state_interface name="orientation.x"/>
-            <state_interface name="orientation.y"/>
-            <state_interface name="orientation.z"/>
-            <state_interface name="orientation.w"/>
-        </sensor>
+        <xacro:ros2_control_wheel_joint name="fl_wheel_joint" sim="false"/>
+        <xacro:ros2_control_wheel_joint name="fr_wheel_joint" sim="false"/>
+        <xacro:ros2_control_wheel_joint name="rl_wheel_joint" sim="false"/>
+        <xacro:ros2_control_wheel_joint name="rr_wheel_joint" sim="false"/>
+        <xacro:ros2_control_imu_sensor/>
     </ros2_control>
     <xacro:if value="$(arg use_nerf_hardware)">
         <!-- Einzige Quelle der Wahrheit für den NerfSystem-Block: Macro aus
              nerf_launch_system statt lokal dupliziert (vermeidet Drift). -->
-        <xacro:nerf_ros2_control_hardware port="$(arg nerf_port)" tilt_min="-0.52" tilt_max="0.52"/>
+        <xacro:nerf_ros2_control_hardware port="$(arg nerf_port)" tilt_min="$(arg nerf_tilt_min)" tilt_max="$(arg nerf_tilt_max)"/>
     </xacro:if>
 </robot>

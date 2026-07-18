@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Zentrale xacro-Eigenschaften und Materialien fuer gubot_one.
+         Abmessungen kommen aus config/robot_dimensions.yaml (einzige Quelle
+         der Wahrheit, siehe Kommentar dort zur Kopplung an
+         gubot_controller/config/controllers.yaml). -->
+    <xacro:property name="dims" value="${xacro.load_yaml('$(find gubot_description)/config/robot_dimensions.yaml')}"/>
+
+    <!-- Chassis -->
+    <xacro:property name="chassis_length" value="${dims['chassis_length']}"/>
+    <xacro:property name="chassis_width" value="${dims['chassis_width']}"/>
+    <xacro:property name="chassis_height" value="${dims['chassis_height']}"/>
+    <xacro:property name="chassis_mass" value="3.5"/>
+    <!-- waffle_pi_base.stl Rohmasse in Metern (STL-Einheit ist mm, Faktor 0.001);
+         chassis_mesh_scale_* streckt das Mesh non-uniform auf die Chassis-Box. -->
+    <xacro:property name="chassis_mesh_native_length" value="0.274046234"/>
+    <xacro:property name="chassis_mesh_native_width" value="0.278799988"/>
+    <xacro:property name="chassis_mesh_native_height" value="0.118922503"/>
+    <xacro:property name="chassis_mesh_scale_x" value="${0.001 * chassis_length / chassis_mesh_native_length}"/>
+    <xacro:property name="chassis_mesh_scale_y" value="${0.001 * chassis_width / chassis_mesh_native_width}"/>
+    <xacro:property name="chassis_mesh_scale_z" value="${0.001 * chassis_height / chassis_mesh_native_height}"/>
+
+    <!-- 100mm Aluminum-Mecanum-Rad (mecanum_a.dae=R, mecanum_b.dae=L); ersetzt den
+         urspruenglichen 33mm-Platzhalter, echte Raeder sind die 100mm-Mecanum-Raeder. -->
+    <xacro:property name="wheel_radius" value="${dims['wheel_radius']}"/>
+    <xacro:property name="wheel_thickness" value="${dims['wheel_thickness']}"/>
+    <xacro:property name="wheel_mass" value="0.4"/>
+    <xacro:property name="wheel_offset_x" value="${dims['wheel_offset_x']}"/>
+    <xacro:property name="wheel_offset_y" value="${dims['wheel_offset_y']}"/>
+
+    <!-- Rad-Joint-Limits und -Dynamik -->
+    <xacro:property name="wheel_effort_limit" value="1.5"/>
+    <xacro:property name="wheel_velocity_limit" value="30.0"/>
+    <xacro:property name="wheel_damping" value="0.001"/>
+    <xacro:property name="wheel_friction" value="0.001"/>
+
+    <!-- Gazebo-Reibungsmodell der Mecanum-Raeder (nur Simulation) -->
+    <xacro:property name="wheel_mu" value="0.8"/>
+    <xacro:property name="wheel_mu2" value="0.2"/>
+    <xacro:property name="wheel_slip1" value="0.035"/>
+
+    <!-- IMU-Simulationsrate -->
+    <xacro:property name="imu_update_rate" value="25"/>
+
+    <material name="white">
+        <color rgba="1 1 1 1" />
+    </material>
+    <material name="orange">
+        <color rgba="1 0.3 0.1 1"/>
+    </material>
+    <material name="blue">
+        <color rgba="0.2 0.2 1 1"/>
+    </material>
+    <material name="black">
+        <color rgba="0 0 0 1"/>
+    </material>
+    <material name="red">
+        <color rgba="1 0 0 1"/>
+    </material>
+</robot>

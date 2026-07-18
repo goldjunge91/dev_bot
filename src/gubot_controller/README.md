@@ -86,11 +86,11 @@ damit es mit und ohne Namespace funktioniert).
 
 **Wichtiger Kinematik-Parameter:** `mecanum_drive_controller.wheel_radius`
 (aktuell `0.05` m) und `wheel_separation_x/y` (`0.226`/`0.297` m) müssen zu
-den Xacro-Properties in
-[`gubot_description/urdf/gubot_one_geometry.xacro`](../gubot_description/urdf/gubot_one_geometry.xacro)
+den Maßen in
+[`gubot_description/config/robot_dimensions.yaml`](../gubot_description/config/robot_dimensions.yaml)
 passen (`wheel_radius`, `2 × wheel_offset_x/y`) — sonst driftet die
-Odometrie. Wird durch `gubot_controller/tests/test_controller_yaml.py`
-abgesichert.
+Odometrie. Wird durch `gubot_controller/tests/test_controller_yaml.py` und
+`gubot_description/tests/test_urdf_variants.py` (Drift-Wache) abgesichert.
 
 ## Nützliche Introspektions-Befehle
 

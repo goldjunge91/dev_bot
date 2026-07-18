@@ -46,6 +46,8 @@ def generate_launch_description():
     use_nerf_hardware = LaunchConfiguration("use_nerf_hardware")
     use_camera = LaunchConfiguration("use_camera")
     controller_config = LaunchConfiguration("controller_config")
+    drive_device = LaunchConfiguration("drive_device")
+    nerf_port = LaunchConfiguration("nerf_port")
 
     # Xacro-Datei und Parameter
     # Command() führt xacro zur Laufzeit aus und injiziert alle Argumente
@@ -60,9 +62,13 @@ def generate_launch_description():
         " sim_mode:=", use_sim_time,
         " use_nerf_hardware:=", use_nerf_hardware,
         " use_camera:=", use_camera,
-        " use_gazebo_classic:=false",
-        # NEU: controller_config wird in xacro injiziert
+        # controller_config wird in xacro injiziert
         " controller_config:=", controller_config,
+        # Hardware-Overrides (Defaults stehen in ros2_control_hardware.xacro;
+        # weitere Parameter wie drive_baud_rate koennen direkt als xacro-Args
+        # ueberschrieben werden)
+        " drive_device:=", drive_device,
+        " nerf_port:=", nerf_port,
     ])
 
     params = {
@@ -106,6 +112,16 @@ def generate_launch_description():
                 FindPackageShare("gubot_controller"), "config", "controllers.yaml"
             ]),
             description="Absolute path to controllers.yaml, injected into URDF xacro.",
+        ),
+        DeclareLaunchArgument(
+            "drive_device",
+            default_value="/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00",
+            description="Serial device of the mecanum_pico drive hardware.",
+        ),
+        DeclareLaunchArgument(
+            "nerf_port",
+            default_value="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00",
+            description="Serial device of the Nerf launcher hardware.",
         ),
         # HINWEIS: SetParameter(use_sim_time) und SetRemap werden NICHT hier gesetzt.
         # Sie werden global in simulation.launch.py gesetzt und propagieren

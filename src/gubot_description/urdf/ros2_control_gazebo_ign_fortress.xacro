@@ -8,12 +8,14 @@
          - transition_event-Remappings hinzugefügt (wie Referenz)
          - position_proportional_gain entfernt (wird von GazeboSimSystem nicht unterstützt)
          - Sensor-Name "imu_sensor" konsistent mit controllers.yaml sensor_name und
-           dem Gazebo-Sensor in gubot_one_geometry.xacro
+           dem Gazebo-Sensor in gazebo_sim.xacro
     -->
 
     <!-- NEW: controller config path injected by load_urdf.launch.py at runtime -->
     <xacro:arg name="controller_config"
         default="$(find gubot_controller)/config/controllers.yaml"/>
+
+    <xacro:include filename="ros2_control_common.xacro"/>
 
     <ros2_control name="GubotIgnitionSystem" type="system">
         <hardware>
@@ -21,54 +23,10 @@
         </hardware>
 
         <!-- Gelenkbezeichnungen: fl/fr/rl/rr_wheel_joint (Referenz rosbot_xl-Schema) -->
-        <joint name="fl_wheel_joint">
-            <command_interface name="velocity">
-                <param name="min">-10</param>
-                <param name="max">10</param>
-            </command_interface>
-            <state_interface name="velocity">
-                <param name="initial_value">0.0</param>
-            </state_interface>
-            <state_interface name="position">
-                <param name="initial_value">0.0</param>
-            </state_interface>
-        </joint>
-        <joint name="fr_wheel_joint">
-            <command_interface name="velocity">
-                <param name="min">-10</param>
-                <param name="max">10</param>
-            </command_interface>
-            <state_interface name="velocity">
-                <param name="initial_value">0.0</param>
-            </state_interface>
-            <state_interface name="position">
-                <param name="initial_value">0.0</param>
-            </state_interface>
-        </joint>
-        <joint name="rl_wheel_joint">
-            <command_interface name="velocity">
-                <param name="min">-10</param>
-                <param name="max">10</param>
-            </command_interface>
-            <state_interface name="velocity">
-                <param name="initial_value">0.0</param>
-            </state_interface>
-            <state_interface name="position">
-                <param name="initial_value">0.0</param>
-            </state_interface>
-        </joint>
-        <joint name="rr_wheel_joint">
-            <command_interface name="velocity">
-                <param name="min">-10</param>
-                <param name="max">10</param>
-            </command_interface>
-            <state_interface name="velocity">
-                <param name="initial_value">0.0</param>
-            </state_interface>
-            <state_interface name="position">
-                <param name="initial_value">0.0</param>
-            </state_interface>
-        </joint>
+        <xacro:ros2_control_wheel_joint name="fl_wheel_joint" sim="true"/>
+        <xacro:ros2_control_wheel_joint name="fr_wheel_joint" sim="true"/>
+        <xacro:ros2_control_wheel_joint name="rl_wheel_joint" sim="true"/>
+        <xacro:ros2_control_wheel_joint name="rr_wheel_joint" sim="true"/>
 
         <!-- Nerf-Joints: NUR wenn use_nerf_hardware=true, sonst existieren diese Joints nicht in der URDF -->
         <xacro:if value="$(arg use_nerf_hardware)">
@@ -92,22 +50,7 @@
             </joint>
         </xacro:if>
 
-        <!-- Sensor-Name "imu_sensor": muss übereinstimmen mit:
-             1. Gazebo-Sensor name="imu_sensor" in gubot_one_geometry.xacro
-             2. controllers.yaml: imu_broadcaster.ros__parameters.sensor_name: imu_sensor
-        -->
-        <sensor name="imu_sensor">
-            <state_interface name="linear_acceleration.x"/>
-            <state_interface name="linear_acceleration.y"/>
-            <state_interface name="linear_acceleration.z"/>
-            <state_interface name="angular_velocity.x"/>
-            <state_interface name="angular_velocity.y"/>
-            <state_interface name="angular_velocity.z"/>
-            <state_interface name="orientation.x"/>
-            <state_interface name="orientation.y"/>
-            <state_interface name="orientation.z"/>
-            <state_interface name="orientation.w"/>
-        </sensor>
+        <xacro:ros2_control_imu_sensor/>
     </ros2_control>
 
     <gazebo>

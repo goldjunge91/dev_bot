@@ -29,6 +29,7 @@ in der Simulation nicht bewegt hat:
 
 import os
 import re
+import subprocess
 import yaml
 
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -286,14 +287,22 @@ def test_hardware_imu_declares_all_ten_interfaces():
     Mit nur 6 Interfaces schlägt die Broadcaster-Aktivierung auf echter
     Hardware fehl und der Fatal-Monitor beendet den kompletten Launch.
     """
+    # Der IMU-Block kommt aus dem Makro ros2_control_imu_sensor
+    # (ros2_control_common.xacro) — daher wird hier das gerenderte URDF
+    # geprueft statt des Roh-Texts.
     hw_xacro = os.path.join(
         _BASE_DIR, "gubot_description", "urdf", "ros2_control_hardware.xacro"
     )
-    src_no_comments = re.sub(
-        r'<!--.*?-->', '', open(hw_xacro).read(), flags=re.DOTALL
+    result = subprocess.run(
+        ["xacro", hw_xacro, "use_nerf_hardware:=false"],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, (
+        f"xacro-Rendering von ros2_control_hardware.xacro fehlgeschlagen: "
+        f"{result.stderr}"
     )
     sensor_block = re.search(
-        r'<sensor name="imu_sensor">.*?</sensor>', src_no_comments, re.DOTALL
+        r'<sensor name="imu_sensor">.*?</sensor>', result.stdout, re.DOTALL
     )
     assert sensor_block, "imu_sensor-Block fehlt in ros2_control_hardware.xacro"
 
