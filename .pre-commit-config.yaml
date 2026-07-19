@@ -1,4 +1,6 @@
 ---
+# Fremdpakete nicht umformatieren (siehe src/third_party/README.md)
+exclude: ^src/(third_party|serial|husarion_gz_worlds|mecanum_drive_controller)/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
