@@ -39,7 +39,10 @@ class FollowFace(Node):
 
         # --- Subscriber & Publisher ---
         self.subscription = self.create_subscription(
-            Detection2DArray, "/face_detections", self.listener_callback, 10
+            Detection2DArray,
+            "/face_detections",
+            self.listener_callback,
+            rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value,
         )
         self.publisher_ = self.create_publisher(Twist, "/cmd_vel", 10)
         self.tilt_publisher_ = self.create_publisher(

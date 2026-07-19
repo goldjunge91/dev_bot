@@ -29,7 +29,9 @@ class UdpCamReceiver(Node):
         self.declare_parameter("port", 9999)
         self.port = self.get_parameter("port").value
 
-        self.publisher_ = self.create_publisher(Image, "/image_raw", 10)
+        self.publisher_ = self.create_publisher(
+            Image, "/image_raw", rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value
+        )
         self.bridge = CvBridge()
 
         # UDP Socket erstellen

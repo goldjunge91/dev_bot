@@ -68,7 +68,10 @@ class FireAtFace(Node):
 
         # --- Subscriber ---
         self.subscription = self.create_subscription(
-            Detection2DArray, "/face_detections", self.listener_callback, 10
+            Detection2DArray,
+            "/face_detections",
+            self.listener_callback,
+            rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value,
         )
 
         self.last_fire_time = 0.0

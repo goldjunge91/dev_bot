@@ -42,9 +42,13 @@ class DetectFace(Node):
             self.callback,
             rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value,
         )
-        self.image_out_pub = self.create_publisher(Image, "/image_out", 1)
+        self.image_out_pub = self.create_publisher(
+            Image, "/image_out", rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value
+        )
         self.detections_pub = self.create_publisher(
-            Detection2DArray, "/face_detections", 1
+            Detection2DArray,
+            "/face_detections",
+            rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value,
         )
 
         # --- Parameter ---

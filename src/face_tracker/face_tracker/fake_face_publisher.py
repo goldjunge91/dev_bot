@@ -24,7 +24,9 @@ class FakeFacePublisher(Node):
     def __init__(self):
         super().__init__("fake_face_publisher")
         self.publisher_ = self.create_publisher(
-            Detection2DArray, "/face_detections", 10
+            Detection2DArray,
+            "/face_detections",
+            rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value,
         )
         self.timer = self.create_timer(0.1, self.timer_callback)
         self.start_time = self.get_clock().now()
