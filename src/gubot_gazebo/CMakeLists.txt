@@ -15,12 +15,12 @@ if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_pytest REQUIRED)
   ament_lint_auto_find_test_dependencies()
-  ament_add_pytest_test(test_bridge_config tests/test_bridge_config.py
+  ament_add_pytest_test(test_bridge_config test/test_bridge_config.py
     TIMEOUT 120)
 
   if(GUBOT_E2E)
     find_package(launch_testing_ament_cmake REQUIRED)
-    add_launch_test(tests/test_e2e_sim_drive.py
+    add_launch_test(test/test_e2e_sim_drive.py
       TARGET test_e2e_sim_drive
       TIMEOUT 300
       ENV GUBOT_E2E=1 ROS_DOMAIN_ID=77

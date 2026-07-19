@@ -9,7 +9,7 @@ if(BUILD_TESTING)
 
   find_package(ament_cmake_pytest REQUIRED)
   ament_add_pytest_test(test_launch_args
-    tests/test_launch_args.py
+    test/test_launch_args.py
     TIMEOUT 60
   )
 endif()

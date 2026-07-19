@@ -9,15 +9,15 @@ if(BUILD_TESTING)
 
   find_package(ament_cmake_pytest REQUIRED)
   ament_add_pytest_test(test_tilt_controller_spawner
-    tests/test_tilt_controller_spawner.py
+    test/test_tilt_controller_spawner.py
     TIMEOUT 30
   )
   ament_add_pytest_test(test_controller_yaml
-    tests/test_controller_yaml.py
+    test/test_controller_yaml.py
     TIMEOUT 30
   )
   ament_add_pytest_test(test_controller_launch
-    tests/test_controller_launch.py
+    test/test_controller_launch.py
     TIMEOUT 30
   )
 endif()
