@@ -5,7 +5,7 @@
   <version>1.0.0</version>
 
   <description>Controller for a mecanum drive mobile base.</description>
-  <license>Apache License 2.0</license>
+  <license>Apache-2.0</license>
 
   <author email="jakub.delicat@husarion.com">Jakub Delicat</author>
   <author email="maciej.stepien@husarion.com">Maciej Stępień</author>

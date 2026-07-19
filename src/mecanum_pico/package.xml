@@ -9,9 +9,9 @@
     (front_left, front_right, rear_left, rear_right).
   </description>
 
-  <maintainer email="your@email.com">Your Name</maintainer>
+  <maintainer email="m.tozzi91@icloud.com">goldjunge91</maintainer>
   <license>Apache-2.0</license>
-  <author email="your@email.com">Your Name</author>
+  <author email="m.tozzi91@icloud.com">goldjunge91</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
