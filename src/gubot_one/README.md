@@ -92,6 +92,7 @@ sudo tailscale set --ssh   # SSH über Tailscale vom Companion-PC zum Pi
 ```
 
 Prüfen:
+
 ```bash
 tailscale status
 tailscale ip
@@ -100,6 +101,7 @@ sudo systemctl status tailscaled --no-pager
 ```
 
 **Companion-PC** — statisches Ethernet, Beispiel `/etc/netplan/*.yaml`:
+
 ```yaml
 network:
   version: 2
@@ -113,6 +115,7 @@ network:
 ```
 
 **Raspberry Pi** — WLAN, Beispiel `/etc/netplan/50-wifi.yaml`:
+
 ```yaml
 network:
   version: 2
@@ -137,12 +140,14 @@ sudo netplan apply
 ```
 
 Raspberry-Pi-Kamera:
+
 ```bash
 sudo apt-get install netplan.io python3-colcon-common-extensions libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
 sudo usermod -aG video $USER
 vcgencmd get_camera
 v4l2-ctl --list-devices
 ```
+
 </details>
 
 ## Externe Pakete (`serial`, `diffdrive_arduino`)

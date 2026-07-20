@@ -23,8 +23,8 @@ namespace {
 struct InterfaceEntry {
     const char *joint_name;
     const char *interface_name;
-    double NerfJoints::*command_member;       // nullptr, falls kein Command-Interface
-    double NerfJointStates::*state_member;    // nullptr, falls kein State-Interface
+    double NerfJoints::*command_member;     // nullptr, falls kein Command-Interface
+    double NerfJointStates::*state_member;  // nullptr, falls kein State-Interface
 };
 
 const InterfaceEntry kInterfaceTable[] = {
@@ -348,8 +348,8 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
     // Hardware-Interface besitzt die Konvention. Out-of-Range-Kommandos
     // (z. B. alte Servo-Rohwerte 5.23–6.28) laufen so nicht mehr endlos
     // gegen die mechanische Grenze.
-    auto tilt_step = make_tilt_command(hw_commands_.tilt_pos, hw_states_.tilt_pos,
-                                       tilt_min_, tilt_max_);
+    auto tilt_step =
+        make_tilt_command(hw_commands_.tilt_pos, hw_states_.tilt_pos, tilt_min_, tilt_max_);
     if (tilt_step) {
         hw_states_.tilt_pos = tilt_step->new_tilt_pos;
         send_and_check(tilt_step->command);
@@ -361,8 +361,7 @@ hardware_interface::return_type NerfSystem::write(const rclcpp::Time & /*time*/,
     auto shot_cmd = make_shot_command(hw_commands_.shooter_pos, pusher_active_);
     if (shot_cmd) {
         send_and_check(*shot_cmd);
-        RCLCPP_INFO(
-            rclcpp::get_logger("NerfSystem"), "Command: %s (via FSM)", shot_cmd->c_str());
+        RCLCPP_INFO(rclcpp::get_logger("NerfSystem"), "Command: %s (via FSM)", shot_cmd->c_str());
     }
 
     // Hinweis: Flywheels und Pusher-Sequence werden von der Firmware-FSM autonom gesteuert.

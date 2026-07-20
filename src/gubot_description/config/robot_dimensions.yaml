@@ -1,3 +1,4 @@
+---
 # Einzige Quelle der Wahrheit fuer die Roboter-Abmessungen (gubot_one).
 # Konsumenten:
 #   - urdf/properties.xacro (xacro.load_yaml)

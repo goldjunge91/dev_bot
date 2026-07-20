@@ -10,9 +10,6 @@ if(BUILD_TESTING)
   ament_add_pytest_test(test_ekf_config test/test_ekf_config.py TIMEOUT 30)
 endif()
 
-install(
-  DIRECTORY launch config
-  DESTINATION share/${PROJECT_NAME}
-)
+install(DIRECTORY launch config DESTINATION share/${PROJECT_NAME})
 
 ament_package()

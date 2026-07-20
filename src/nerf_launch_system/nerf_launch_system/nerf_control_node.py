@@ -79,9 +79,7 @@ class NerfControlNode(Node):
 
         # Subscribers: Empfängt Tilt-Befehle
         # Queue Size 10 = Puffert eingehende Nachrichten
-        self.create_subscription(
-            Float64, "nerf/tilt", self.tilt_callback, 10
-        )
+        self.create_subscription(Float64, "nerf/tilt", self.tilt_callback, 10)
 
         # Services: Bietet Fire-Service an
         self.create_service(Trigger, "nerf/fire", self.fire_callback)
@@ -117,9 +115,7 @@ class NerfControlNode(Node):
             cmd_arm.data = [1.0]
             self.arming_pub.publish(cmd_arm)
         else:
-            self.get_logger().info(
-                "System is DISARMED. Send ARM command or use Gamepad LB+RB."
-            )
+            self.get_logger().info("System is DISARMED. Send ARM command or use Gamepad LB+RB.")
 
         # Timer zerstören damit er nur einmal läuft (cancel() allein hält
         # das Timer-Objekt am Leben, ohne dass es je wieder feuert)
@@ -149,9 +145,7 @@ class NerfControlNode(Node):
         cmd = Float64MultiArray()
         cmd.data = [target_phys]
         self.trigger_pub.publish(cmd)
-        self.get_logger().debug(
-            f"Tilt Command: {msg.data} -> Physical: {target_phys:.2f}"
-        )
+        self.get_logger().debug(f"Tilt Command: {msg.data} -> Physical: {target_phys:.2f}")
 
     def fire_callback(self, request, response):
         """

@@ -69,6 +69,6 @@ def generate_launch_description():
                         "camera_frame_id": "camera_link_optical",  # TF Frame für Kamera
                     }
                 ],
-            )
+            ),
         ]
     )

@@ -18,17 +18,17 @@ extern "C" {
 #define ENC_RL 2
 #define ENC_RR 3
 
-/** Initialise all 4 encoder channels: GPIO pullups + IRQ registration. */
-void encoder_init_all(void);
+    /** Initialise all 4 encoder channels: GPIO pullups + IRQ registration. */
+    void encoder_init_all(void);
 
-/** Read cumulative tick count for encoder [idx]. Thread-safe (disables IRQ briefly). */
-int32_t encoder_read(int idx);
+    /** Read cumulative tick count for encoder [idx]. Thread-safe (disables IRQ briefly). */
+    int32_t encoder_read(int idx);
 
-/** Reset one encoder counter to zero. */
-void encoder_reset(int idx);
+    /** Reset one encoder counter to zero. */
+    void encoder_reset(int idx);
 
-/** Reset all 4 encoder counters to zero. */
-void encoder_reset_all(void);
+    /** Reset all 4 encoder counters to zero. */
+    void encoder_reset_all(void);
 
 #ifdef __cplusplus
 }

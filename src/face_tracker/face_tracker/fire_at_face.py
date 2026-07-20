@@ -14,11 +14,12 @@
 
 # Triggers the Nerf Launcher when a face is locked on.
 
+import time
+
 import rclpy
 from rclpy.node import Node
-from vision_msgs.msg import Detection2DArray
 from std_srvs.srv import Trigger
-import time
+from vision_msgs.msg import Detection2DArray
 
 from face_tracker.targeting import FireParams, evaluate_fire, select_target
 
@@ -29,17 +30,13 @@ class FireAtFace(Node):
 
         # --- Parameters ---
         self.declare_parameter("target_person", "")  # Empty = any face
-        self.declare_parameter(
-            "fire_threshold_x", 0.1
-        )  # Tolerance for X center (+/- 0.1)
+        self.declare_parameter("fire_threshold_x", 0.1)  # Tolerance for X center (+/- 0.1)
         self.declare_parameter(
             "min_size_thresh", 0.15
         )  # Minimum size to fire (too far = don't fire)
         self.declare_parameter("cooldown_secs", 5.0)  # Wait between shots
 
-        self.target_person = (
-            self.get_parameter("target_person").get_parameter_value().string_value
-        )
+        self.target_person = self.get_parameter("target_person").get_parameter_value().string_value
         self.threshold_x = (
             self.get_parameter("fire_threshold_x").get_parameter_value().double_value
         )
@@ -59,9 +56,7 @@ class FireAtFace(Node):
         self.min_size_thresh = (
             self.get_parameter("min_size_thresh").get_parameter_value().double_value
         )
-        self.cooldown_secs = (
-            self.get_parameter("cooldown_secs").get_parameter_value().double_value
-        )
+        self.cooldown_secs = self.get_parameter("cooldown_secs").get_parameter_value().double_value
 
         # --- Service Client ---
         self.fire_client = self.create_client(Trigger, "/nerf/fire")
@@ -108,8 +103,7 @@ class FireAtFace(Node):
         if locked_on:
             if is_cooldown_ready:
                 target_id = (
-                    target_det.results[0].hypothesis.class_id
-                    if target_det.results else 'Generic'
+                    target_det.results[0].hypothesis.class_id if target_det.results else "Generic"
                 )
                 self.get_logger().warn(f"LOCKED ON! Firing at {target_id}")
                 self.trigger_fire()

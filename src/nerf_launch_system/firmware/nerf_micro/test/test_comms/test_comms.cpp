@@ -2,9 +2,9 @@
 // Comms-Tests — Dispatch-Korrektheit, Loopback-Schutz, Pufferueberlauf.
 // Vorher gab es fuer Comms in keiner Umgebung Testabdeckung.
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <Arduino.h>  // ← test/mock_comms/Arduino.h
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 // ── Globale Instanzen ────────────────────────────────────────
 Stream Serial;
@@ -27,12 +27,12 @@ void releaseArduinoMock() {
 }
 
 // ── Quellen direkt einbinden ─────────────────────────────────
-#include "FiringFSM.cpp"
-#include "SerialOutput.cpp"
-#include "Help.cpp"
-#include "TiltController.cpp"
-#include "Launcher.cpp"
 #include "Comms.cpp"
+#include "FiringFSM.cpp"
+#include "Help.cpp"
+#include "Launcher.cpp"
+#include "SerialOutput.cpp"
+#include "TiltController.cpp"
 
 using ::testing::_;
 using ::testing::HasSubstr;
@@ -255,8 +255,14 @@ TEST_F(CommsTest, Dispatch_SingleStrayChar_IsSilentlySwallowed) {
 // ============================================================
 TEST_F(CommsTest, LoopbackProtection_BlocksEchoedPrefixes) {
     static const char* const kEchoLines[] = {
-        ">some prompt", "ERR: something", "OK: something", "STATUS: ARMED",
-        "NERF OS PRO",  "---divider---", "SHOT ZERO: 1430", "TILT ZERO: 1430",
+        ">some prompt",
+        "ERR: something",
+        "OK: something",
+        "STATUS: ARMED",
+        "NERF OS PRO",
+        "---divider---",
+        "SHOT ZERO: 1430",
+        "TILT ZERO: 1430",
         "err lowercase"  // Case-insensitivitaet
     };
     for (const char* line : kEchoLines) {

@@ -49,11 +49,12 @@ import sys
 import termios
 import tty
 from collections import deque
-import rclpy
-from rclpy.node import Node
-from geometry_msgs.msg import Twist
-from std_msgs.msg import Float64MultiArray
 from select import select
+
+import rclpy
+from geometry_msgs.msg import Twist
+from rclpy.node import Node
+from std_msgs.msg import Float64MultiArray
 
 msg = """
 Control Gubot One + Nerf Launcher!

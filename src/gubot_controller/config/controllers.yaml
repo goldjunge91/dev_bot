@@ -30,12 +30,9 @@
       tf_frame_prefix_enable: false
       sensor_name: imu_sensor
       frame_id: imu_link
-      static_covariance_orientation:
-        [1.9e-3, 0.0, 0.0, 0.0, 1.9e-3, 0.0, 0.0, 0.0, 1.9e-3]
-      static_covariance_angular_velocity:
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0e-3]
-      static_covariance_linear_acceleration:
-        [6.4e-2, 0.0, 0.0, 0.0, 2.2e-2, 0.0, 0.0, 0.0, 0.0]
+      static_covariance_orientation: [1.9e-3, 0.0, 0.0, 0.0, 1.9e-3, 0.0, 0.0, 0.0, 1.9e-3]
+      static_covariance_angular_velocity: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0e-3]
+      static_covariance_linear_acceleration: [6.4e-2, 0.0, 0.0, 0.0, 2.2e-2, 0.0, 0.0, 0.0, 0.0]
 
   mecanum_drive_controller:
     ros__parameters:

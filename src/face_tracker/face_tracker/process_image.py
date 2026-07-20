@@ -15,11 +15,12 @@
 # Based on process_image.py by Tiziano Fiorenzani / Josh Newans
 # Refactored to only contain face detection and recognition functions.
 
-import cv2
-import numpy as np
-import face_recognition
-import pickle
 import os
+import pickle
+
+import cv2
+import face_recognition
+import numpy as np
 
 
 def load_encodings(path):
@@ -36,9 +37,7 @@ def load_encodings(path):
     return data["encodings"], data["names"]
 
 
-def find_and_identify_faces(
-    image, known_encodings, known_names, tolerance=0.6, model="hog"
-):
+def find_and_identify_faces(image, known_encodings, known_names, tolerance=0.6, model="hog"):
     """Erkennt Gesichter im Bild und identifiziert sie anhand gespeicherter Encodings."""
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     face_locations = face_recognition.face_locations(rgb_image, model=model)

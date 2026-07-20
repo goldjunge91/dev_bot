@@ -18,8 +18,8 @@ Syntax-Tests fuer alle gubot_navigation-Launch-Dateien.
 Syntaxfehler und fehlende Paket-Referenzen fallen sofort auf.
 """
 
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -44,6 +44,4 @@ def test_launch_file_show_args(launch_file):
         text=True,
         timeout=60,
     )
-    assert result.returncode == 0, (
-        f"{launch_file} laedt nicht:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"{launch_file} laedt nicht:\n{result.stderr}"

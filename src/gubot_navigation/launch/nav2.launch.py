@@ -74,9 +74,7 @@ def generate_launch_description():
     )
 
     localization = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(launch_dir, "localization.launch.py")
-        ),
+        PythonLaunchDescriptionSource(os.path.join(launch_dir, "localization.launch.py")),
         launch_arguments={
             "map": map_yaml,
             "params_file": params_file,
@@ -92,9 +90,7 @@ def generate_launch_description():
     )
 
     navigation = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(launch_dir, "navigation.launch.py")
-        ),
+        PythonLaunchDescriptionSource(os.path.join(launch_dir, "navigation.launch.py")),
         launch_arguments={
             "params_file": params_file,
             "use_sim_time": use_sim_time,

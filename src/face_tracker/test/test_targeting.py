@@ -17,7 +17,6 @@ from conftest import make_detection
 
 from face_tracker.targeting import FireParams, evaluate_fire, select_target
 
-
 # --- select_target ---
 
 

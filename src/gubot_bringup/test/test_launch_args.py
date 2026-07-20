@@ -34,18 +34,16 @@ def test_launch_all_real_syntax_and_dependencies():
     Pakete (wie face_tracker) vorhanden sind.
     """
     package_dir = get_package_share_directory("gubot_bringup")
-    launch_file_path = os.path.join(
-        package_dir, "launch", "launch_all_real.launch.py"
-    )
+    launch_file_path = os.path.join(package_dir, "launch", "launch_all_real.launch.py")
 
     result = subprocess.run(
         ["ros2", "launch", launch_file_path, "--show-args"],
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0, (
-        f"Fehler im Launch-File (fehlende Pakete oder Syntaxfehler):\n{result.stderr}"
-    )
+    assert (
+        result.returncode == 0
+    ), f"Fehler im Launch-File (fehlende Pakete oder Syntaxfehler):\n{result.stderr}"
 
 
 def test_start_robot_sh_execution_dry_run():
@@ -97,12 +95,12 @@ def test_start_robot_sh_execution_dry_run():
             text=True,
         )
 
-        assert result.returncode == 0, (
-            f"Fehler beim Ausführen von start_robot.sh:\n{result.stderr}"
-        )
-        assert "malformed launch argument" not in result.stderr, (
-            "Fehler: malformed launch argument gefunden!"
-        )
+        assert (
+            result.returncode == 0
+        ), f"Fehler beim Ausführen von start_robot.sh:\n{result.stderr}"
+        assert (
+            "malformed launch argument" not in result.stderr
+        ), "Fehler: malformed launch argument gefunden!"
         assert (
             "launch_face_tracker:=false" in result.stdout
             or "launch_face_tracker:=true" in result.stdout

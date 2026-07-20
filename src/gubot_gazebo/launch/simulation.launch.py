@@ -53,9 +53,9 @@ def generate_launch_description():
         # jetzt in gazebo/models/ vendored und werden über den env-hook
         # (IGN_GAZEBO_RESOURCE_PATH, siehe CMakeLists ament_environment_hooks)
         # gefunden.
-        default_value=PathJoinSubstitution([
-            FindPackageShare(package_name), "worlds", "obstacles.world"
-        ]),
+        default_value=PathJoinSubstitution(
+            [FindPackageShare(package_name), "worlds", "obstacles.world"]
+        ),
         description="Ignition Gazebo World File (Standard: obstacles.world)",
     )
 
@@ -73,7 +73,7 @@ def generate_launch_description():
         "use_camera",
         default_value="true",
         description="Include the Gazebo camera sensor "
-                    "(false: faster sim on WSL2, camera TF frames stay).",
+        "(false: faster sim on WSL2, camera TF frames stay).",
     )
 
     declare_rviz_arg = DeclareLaunchArgument(
@@ -97,11 +97,15 @@ def generate_launch_description():
     # bei z=0 — mit z:=1.0 spawnen und fallen lassen).
     pose_args = [
         DeclareLaunchArgument(
-            name, default_value=default,
+            name,
+            default_value=default,
             description=f"Spawn-Pose {name} (an spawn_robot durchgereicht).",
         )
         for name, default in (
-            ("x", "0.0"), ("y", "0.0"), ("z", "0.05"), ("yaw", "0.0"),
+            ("x", "0.0"),
+            ("y", "0.0"),
+            ("z", "0.05"),
+            ("yaw", "0.0"),
         )
     ]
 
@@ -114,9 +118,9 @@ def generate_launch_description():
     # Gazebo (Ignition Fortress / gz_sim)
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                FindPackageShare("husarion_gz_worlds"), "launch", "gz_sim.launch.py"
-            ])
+            PathJoinSubstitution(
+                [FindPackageShare("husarion_gz_worlds"), "launch", "gz_sim.launch.py"]
+            )
         ),
         launch_arguments={
             "gz_world": world,
@@ -131,9 +135,9 @@ def generate_launch_description():
     )
 
     # Globaler Clock-Bridge (nur /clock — Sensor-Topics in gubot_bridge.yaml per Robot)
-    gz_bridge_config = PathJoinSubstitution([
-        FindPackageShare(package_name), "config", "gz_bridge.yaml"
-    ])
+    gz_bridge_config = PathJoinSubstitution(
+        [FindPackageShare(package_name), "config", "gz_bridge.yaml"]
+    )
     gz_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
@@ -144,9 +148,9 @@ def generate_launch_description():
     # Spawn Robot (inkl. controller, EKF, per-robot bridge)
     spawn_robot = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                FindPackageShare(package_name), "launch", "spawn_robot.launch.py"
-            ])
+            PathJoinSubstitution(
+                [FindPackageShare(package_name), "launch", "spawn_robot.launch.py"]
+            )
         ),
         launch_arguments={
             "use_nerf_hardware": use_nerf_hardware,
@@ -159,37 +163,46 @@ def generate_launch_description():
     )
 
     # RViz (Referenz: description/launch/rviz.launch.py — hier direkter Node)
-    rviz_config = PathJoinSubstitution([
-        FindPackageShare("gubot_description"), "rviz", "main.rviz"
-    ])
+    rviz_config = PathJoinSubstitution(
+        [FindPackageShare("gubot_description"), "rviz", "main.rviz"]
+    )
     # headless unterdrueckt RViz unabhaengig vom rviz-Arg (kein GUI in CI).
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         arguments=["-d", rviz_config],
-        condition=IfCondition(PythonExpression([
-            "'", rviz, "'.lower() == 'true' and '",
-            headless, "'.lower() != 'true'",
-        ])),
+        condition=IfCondition(
+            PythonExpression(
+                [
+                    "'",
+                    rviz,
+                    "'.lower() == 'true' and '",
+                    headless,
+                    "'.lower() != 'true'",
+                ]
+            )
+        ),
     )
 
-    return LaunchDescription([
-        world_arg,
-        use_nerf_hardware_arg,
-        use_camera_arg,
-        declare_rviz_arg,
-        declare_headless_arg,
-        *pose_args,
-        # NEU: Globale SetEnvironmentVariable, SetRemap, SetParameter (Referenz-Pattern)
-        SetEnvironmentVariable(name="RCUTILS_COLORIZED_OUTPUT", value="1"),
-        # NEU: Software-Rendering erzwingen (verhindert GL3PlusTextureGpu/OGRE-Absturz unter WSL2)
-        SetEnvironmentVariable(name="LIBGL_ALWAYS_SOFTWARE", value="1"),
-        SetRemap("/diagnostics", "diagnostics"),
-        SetRemap("/tf", "tf"),
-        SetRemap("/tf_static", "tf_static"),
-        SetParameter(name="use_sim_time", value=True),
-        gz_sim,
-        gz_bridge,
-        spawn_robot,
-        rviz_node,
-    ])
+    return LaunchDescription(
+        [
+            world_arg,
+            use_nerf_hardware_arg,
+            use_camera_arg,
+            declare_rviz_arg,
+            declare_headless_arg,
+            *pose_args,
+            # NEU: Globale SetEnvironmentVariable, SetRemap, SetParameter (Referenz-Pattern)
+            SetEnvironmentVariable(name="RCUTILS_COLORIZED_OUTPUT", value="1"),
+            # NEU: Software-Rendering erzwingen (verhindert GL3PlusTextureGpu/OGRE-Absturz unter WSL2)
+            SetEnvironmentVariable(name="LIBGL_ALWAYS_SOFTWARE", value="1"),
+            SetRemap("/diagnostics", "diagnostics"),
+            SetRemap("/tf", "tf"),
+            SetRemap("/tf_static", "tf_static"),
+            SetParameter(name="use_sim_time", value=True),
+            gz_sim,
+            gz_bridge,
+            spawn_robot,
+            rviz_node,
+        ]
+    )

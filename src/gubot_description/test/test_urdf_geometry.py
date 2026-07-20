@@ -24,13 +24,12 @@ Prueft gemäß Plan 02 (Referenz-Schema fl/fr/rl/rr_wheel_joint):
 import os
 import subprocess
 import xml.etree.ElementTree as ET
+
 import pytest
 
 # Pfad relativ zu diesem Test-Skript (urdf/ liegt im selben Paket)
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-XACRO_PATH = os.path.join(
-    _TEST_DIR, "..", "urdf", "gubot_one_main.urdf.xacro"
-)
+XACRO_PATH = os.path.join(_TEST_DIR, "..", "urdf", "gubot_one_main.urdf.xacro")
 
 
 def get_urdf_xml():

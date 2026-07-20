@@ -55,9 +55,16 @@ def generate_launch_description():
 
     record_process = ExecuteProcess(
         cmd=[
-            "ros2", "bag", "record",
-            "-o", PathJoinSubstitution([scans_dir, bag_name]),
-            "/scan", "/tf", "/tf_static", "/odometry/filtered", "/map",
+            "ros2",
+            "bag",
+            "record",
+            "-o",
+            PathJoinSubstitution([scans_dir, bag_name]),
+            "/scan",
+            "/tf",
+            "/tf_static",
+            "/odometry/filtered",
+            "/map",
         ],
         output="screen",
     )

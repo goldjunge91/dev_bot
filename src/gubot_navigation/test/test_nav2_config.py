@@ -156,12 +156,8 @@ def _node_names_from_launch(launch_file):
     tree = ast.parse((PKG / "launch" / launch_file).read_text())
     result = []
     for node in ast.walk(tree):
-        if (
-            isinstance(node, ast.Dict)
-            and any(
-                isinstance(k, ast.Constant) and k.value == "node_names"
-                for k in node.keys
-            )
+        if isinstance(node, ast.Dict) and any(
+            isinstance(k, ast.Constant) and k.value == "node_names" for k in node.keys
         ):
             for key, value in zip(node.keys, node.values):
                 if isinstance(key, ast.Constant) and key.value == "node_names":
@@ -171,17 +167,17 @@ def _node_names_from_launch(launch_file):
 
 def test_lifecycle_node_names(nav2):
     """Lifecycle-Manager verwalten genau die konfigurierten Nav2-Nodes."""
-    assert _node_names_from_launch("navigation.launch.py") == [[
-        "controller_server",
-        "smoother_server",
-        "planner_server",
-        "behavior_server",
-        "bt_navigator",
-        "waypoint_follower",
-    ]]
-    assert _node_names_from_launch("localization.launch.py") == [
-        ["map_server", "amcl"]
+    assert _node_names_from_launch("navigation.launch.py") == [
+        [
+            "controller_server",
+            "smoother_server",
+            "planner_server",
+            "behavior_server",
+            "bt_navigator",
+            "waypoint_follower",
+        ]
     ]
+    assert _node_names_from_launch("localization.launch.py") == [["map_server", "amcl"]]
     assert _node_names_from_launch("map_saver.launch.py") == [["map_saver"]]
 
 

@@ -51,25 +51,34 @@ def generate_launch_description():
 
     # Xacro-Datei und Parameter
     # Command() führt xacro zur Laufzeit aus und injiziert alle Argumente
-    xacro_file = PathJoinSubstitution([
-        FindPackageShare("gubot_description"), "urdf", "gubot_one_main.urdf.xacro"
-    ])
+    xacro_file = PathJoinSubstitution(
+        [FindPackageShare("gubot_description"), "urdf", "gubot_one_main.urdf.xacro"]
+    )
 
-    robot_description_config = Command([
-        "xacro ",
-        xacro_file,
-        " use_ros2_control:=", use_ros2_control,
-        " sim_mode:=", use_sim_time,
-        " use_nerf_hardware:=", use_nerf_hardware,
-        " use_camera:=", use_camera,
-        # controller_config wird in xacro injiziert
-        " controller_config:=", controller_config,
-        # Hardware-Overrides (Defaults stehen in ros2_control_hardware.xacro;
-        # weitere Parameter wie drive_baud_rate koennen direkt als xacro-Args
-        # ueberschrieben werden)
-        " drive_device:=", drive_device,
-        " nerf_port:=", nerf_port,
-    ])
+    robot_description_config = Command(
+        [
+            "xacro ",
+            xacro_file,
+            " use_ros2_control:=",
+            use_ros2_control,
+            " sim_mode:=",
+            use_sim_time,
+            " use_nerf_hardware:=",
+            use_nerf_hardware,
+            " use_camera:=",
+            use_camera,
+            # controller_config wird in xacro injiziert
+            " controller_config:=",
+            controller_config,
+            # Hardware-Overrides (Defaults stehen in ros2_control_hardware.xacro;
+            # weitere Parameter wie drive_baud_rate koennen direkt als xacro-Args
+            # ueberschrieben werden)
+            " drive_device:=",
+            drive_device,
+            " nerf_port:=",
+            nerf_port,
+        ]
+    )
 
     params = {
         "robot_description": ParameterValue(robot_description_config, value_type=str),
@@ -82,49 +91,51 @@ def generate_launch_description():
         parameters=[params],
     )
 
-    return LaunchDescription([
-        # Launch Arguments (Referenz-Reihenfolge: Args zuerst, dann Actions)
-        DeclareLaunchArgument(
-            "use_sim_time",
-            default_value="false",
-            description="Use sim time if true",
-        ),
-        DeclareLaunchArgument(
-            "use_ros2_control",
-            default_value="true",
-            description="Use ros2_control if true",
-        ),
-        DeclareLaunchArgument(
-            "use_nerf_hardware",
-            default_value="true",
-            description="Enable Nerf hardware if true",
-        ),
-        DeclareLaunchArgument(
-            "use_camera",
-            default_value="true",
-            description="Include the Gazebo camera sensor in the URDF "
-                        "(false: no render sensor, camera TF frames stay).",
-        ),
-        # NEU: controller_config Argument — Pfad zu controllers.yaml (Referenz-Pattern)
-        DeclareLaunchArgument(
-            "controller_config",
-            default_value=PathJoinSubstitution([
-                FindPackageShare("gubot_controller"), "config", "controllers.yaml"
-            ]),
-            description="Absolute path to controllers.yaml, injected into URDF xacro.",
-        ),
-        DeclareLaunchArgument(
-            "drive_device",
-            default_value="/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00",
-            description="Serial device of the mecanum_pico drive hardware.",
-        ),
-        DeclareLaunchArgument(
-            "nerf_port",
-            default_value="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00",
-            description="Serial device of the Nerf launcher hardware.",
-        ),
-        # HINWEIS: SetParameter(use_sim_time) und SetRemap werden NICHT hier gesetzt.
-        # Sie werden global in simulation.launch.py gesetzt und propagieren
-        # durch spawn_robot -> controller.
-        node_robot_state_publisher,
-    ])
+    return LaunchDescription(
+        [
+            # Launch Arguments (Referenz-Reihenfolge: Args zuerst, dann Actions)
+            DeclareLaunchArgument(
+                "use_sim_time",
+                default_value="false",
+                description="Use sim time if true",
+            ),
+            DeclareLaunchArgument(
+                "use_ros2_control",
+                default_value="true",
+                description="Use ros2_control if true",
+            ),
+            DeclareLaunchArgument(
+                "use_nerf_hardware",
+                default_value="true",
+                description="Enable Nerf hardware if true",
+            ),
+            DeclareLaunchArgument(
+                "use_camera",
+                default_value="true",
+                description="Include the Gazebo camera sensor in the URDF "
+                "(false: no render sensor, camera TF frames stay).",
+            ),
+            # NEU: controller_config Argument — Pfad zu controllers.yaml (Referenz-Pattern)
+            DeclareLaunchArgument(
+                "controller_config",
+                default_value=PathJoinSubstitution(
+                    [FindPackageShare("gubot_controller"), "config", "controllers.yaml"]
+                ),
+                description="Absolute path to controllers.yaml, injected into URDF xacro.",
+            ),
+            DeclareLaunchArgument(
+                "drive_device",
+                default_value="/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00",
+                description="Serial device of the mecanum_pico drive hardware.",
+            ),
+            DeclareLaunchArgument(
+                "nerf_port",
+                default_value="/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00",
+                description="Serial device of the Nerf launcher hardware.",
+            ),
+            # HINWEIS: SetParameter(use_sim_time) und SetRemap werden NICHT hier gesetzt.
+            # Sie werden global in simulation.launch.py gesetzt und propagieren
+            # durch spawn_robot -> controller.
+            node_robot_state_publisher,
+        ]
+    )

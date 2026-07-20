@@ -34,24 +34,44 @@ _PKG_DIR = os.path.join(_TEST_DIR, "..")
 _SRC_DIR = os.path.join(_PKG_DIR, "..")
 XACRO_PATH = os.path.join(_PKG_DIR, "urdf", "gubot_one_main.urdf.xacro")
 DIMENSIONS_YAML = os.path.join(_PKG_DIR, "config", "robot_dimensions.yaml")
-CONTROLLERS_YAML = os.path.join(
-    _SRC_DIR, "gubot_controller", "config", "controllers.yaml"
-)
+CONTROLLERS_YAML = os.path.join(_SRC_DIR, "gubot_controller", "config", "controllers.yaml")
 
 BASE_JOINTS = {
-    "base_to_body_joint", "imu_joint", "laser_joint",
-    "camera_joint", "camera_optical_joint", "face_joint",
-    "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint", "rr_wheel_joint",
+    "base_to_body_joint",
+    "imu_joint",
+    "laser_joint",
+    "camera_joint",
+    "camera_optical_joint",
+    "face_joint",
+    "fl_wheel_joint",
+    "fr_wheel_joint",
+    "rl_wheel_joint",
+    "rr_wheel_joint",
 }
 BASE_LINKS = {
-    "base_link", "body_link", "imu_link", "laser_frame",
-    "camera_link", "camera_link_optical", "face_link",
-    "fl_wheel_link", "fr_wheel_link", "rl_wheel_link", "rr_wheel_link",
+    "base_link",
+    "body_link",
+    "imu_link",
+    "laser_frame",
+    "camera_link",
+    "camera_link_optical",
+    "face_link",
+    "fl_wheel_link",
+    "fr_wheel_link",
+    "rl_wheel_link",
+    "rr_wheel_link",
 }
 IMU_INTERFACES = [
-    "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
-    "angular_velocity.x", "angular_velocity.y", "angular_velocity.z",
-    "orientation.x", "orientation.y", "orientation.z", "orientation.w",
+    "linear_acceleration.x",
+    "linear_acceleration.y",
+    "linear_acceleration.z",
+    "angular_velocity.x",
+    "angular_velocity.y",
+    "angular_velocity.z",
+    "orientation.x",
+    "orientation.y",
+    "orientation.z",
+    "orientation.w",
 ]
 
 
@@ -59,7 +79,8 @@ def render(*extra_args):
     """Rendert das Haupt-XACRO mit den gegebenen Argumenten."""
     result = subprocess.run(
         ["xacro", XACRO_PATH, *extra_args],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         pytest.fail(f"XACRO rendering failed ({extra_args}): {result.stderr}")
@@ -96,9 +117,7 @@ def test_variant_renders_and_has_stable_names(args):
 )
 def test_ros2_control_block(sim_mode, expected_name):
     """ros2_control-Name und die 10 IMU-Interfaces pro Variante."""
-    root = ET.fromstring(
-        render(f"sim_mode:={sim_mode}", "use_nerf_hardware:=false")
-    )
+    root = ET.fromstring(render(f"sim_mode:={sim_mode}", "use_nerf_hardware:=false"))
     blocks = {rc.get("name"): rc for rc in root.findall("ros2_control")}
     assert expected_name in blocks, f"ros2_control {expected_name} fehlt"
     sensor = blocks[expected_name].find("sensor[@name='imu_sensor']")
@@ -107,9 +126,7 @@ def test_ros2_control_block(sim_mode, expected_name):
     assert declared == IMU_INTERFACES
     # Alle 4 Rad-Joints deklariert
     joint_names = {j.get("name") for j in blocks[expected_name].findall("joint")}
-    assert {
-        "fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint", "rr_wheel_joint"
-    } <= joint_names
+    assert {"fl_wheel_joint", "fr_wheel_joint", "rl_wheel_joint", "rr_wheel_joint"} <= joint_names
 
 
 def test_sim_wheel_friction_fdir1():
@@ -133,9 +150,7 @@ def test_sim_wheel_friction_fdir1():
     # Hardware-Variante enthaelt keine Gazebo-Reibungsbloecke
     hw = render("sim_mode:=false", "use_nerf_hardware:=false")
     assert "<fdir1" not in hw, "fdir1 darf nur in der Sim-Variante vorkommen"
-    assert "imu/data_raw" not in hw, (
-        "Gazebo-IMU-Sensor darf nur in der Sim-Variante vorkommen"
-    )
+    assert "imu/data_raw" not in hw, "Gazebo-IMU-Sensor darf nur in der Sim-Variante vorkommen"
 
 
 @pytest.mark.parametrize("sim_mode", ["true", "false"])
@@ -147,9 +162,7 @@ def test_check_urdf(sim_mode):
     with tempfile.NamedTemporaryFile("w", suffix=".urdf") as f:
         f.write(urdf)
         f.flush()
-        result = subprocess.run(
-            ["check_urdf", f.name], capture_output=True, text=True
-        )
+        result = subprocess.run(["check_urdf", f.name], capture_output=True, text=True)
     assert result.returncode == 0, f"check_urdf failed: {result.stderr}"
 
 

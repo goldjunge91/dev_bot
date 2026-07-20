@@ -15,14 +15,14 @@
 # Basierend auf detect_ball.py von Josh Newans
 
 import rclpy
+from cv_bridge import CvBridge, CvBridgeError
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
 from vision_msgs.msg import (
-    Detection2DArray,
-    Detection2D,
-    ObjectHypothesisWithPose,
     BoundingBox2D,
+    Detection2D,
+    Detection2DArray,
+    ObjectHypothesisWithPose,
 )
 
 import face_tracker.process_image as proc
@@ -56,12 +56,8 @@ class DetectFace(Node):
         self.declare_parameter("tolerance", 0.6)
         self.declare_parameter("model", "hog")  # 'hog' oder 'cnn'
 
-        encodings_path = (
-            self.get_parameter("encodings_path").get_parameter_value().string_value
-        )
-        self.tolerance = (
-            self.get_parameter("tolerance").get_parameter_value().double_value
-        )
+        encodings_path = self.get_parameter("encodings_path").get_parameter_value().string_value
+        self.tolerance = self.get_parameter("tolerance").get_parameter_value().double_value
         self.model = self.get_parameter("model").get_parameter_value().string_value
 
         # --- Encodings laden ---
@@ -109,9 +105,7 @@ class DetectFace(Node):
                 det.header = data.header
 
                 # Bounding Box (Mittelpunkt normalisiert auf [0,1])
-                cx, cy, size_x, size_y = face_location_to_bbox(
-                    face_location, rows, cols
-                )
+                cx, cy, size_x, size_y = face_location_to_bbox(face_location, rows, cols)
                 bbox = BoundingBox2D()
                 bbox.center.position.x = cx
                 bbox.center.position.y = cy

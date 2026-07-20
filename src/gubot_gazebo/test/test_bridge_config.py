@@ -104,18 +104,14 @@ def test_bridged_sensor_topics_exist_in_urdf(robot_bridge):
         topic = entry["topic_name"]
         if topic in implicit:
             continue
-        assert topic in urdf_topics, (
-            f"Bridge-Topic {topic} hat kein URDF-<topic>-Tag"
-        )
+        assert topic in urdf_topics, f"Bridge-Topic {topic} hat kein URDF-<topic>-Tag"
 
 
 def test_ekf_inputs_match_ros2_control_remaps():
     """EKF-Eingaenge entsprechen den ros2_control-Remappings im URDF."""
     with open(EKF_YAML) as f:
         ekf = yaml.safe_load(f)["/**"]["ekf_node"]["ros__parameters"]
-    gz_control = (
-        DESCRIPTION_URDF / "ros2_control_gazebo_ign_fortress.xacro"
-    ).read_text()
+    gz_control = (DESCRIPTION_URDF / "ros2_control_gazebo_ign_fortress.xacro").read_text()
     assert f"mecanum_drive_controller/odom:={ekf['odom0']}" in gz_control
     assert f"imu_broadcaster/imu:={ekf['imu0']}" in gz_control
 
@@ -128,9 +124,7 @@ def test_worlds_parse_as_xml(world):
     assert root.find("world") is not None
 
 
-@pytest.mark.parametrize(
-    "launch_file", ["simulation.launch.py", "spawn_robot.launch.py"]
-)
+@pytest.mark.parametrize("launch_file", ["simulation.launch.py", "spawn_robot.launch.py"])
 def test_launch_files_show_args(launch_file):
     """Launch-Files laden fehlerfrei (--show-args)."""
     result = subprocess.run(
@@ -139,6 +133,4 @@ def test_launch_files_show_args(launch_file):
         text=True,
         timeout=60,
     )
-    assert result.returncode == 0, (
-        f"{launch_file} laedt nicht:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"{launch_file} laedt nicht:\n{result.stderr}"

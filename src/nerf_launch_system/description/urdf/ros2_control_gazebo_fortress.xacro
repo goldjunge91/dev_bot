@@ -11,7 +11,7 @@
             <hardware>
                 <plugin>ign_ros2_control/IgnitionSystem</plugin>
             </hardware>
-            
+
             <joint name="trigger_joint">
                 <command_interface name="position"/>
                 <state_interface name="velocity"/>
@@ -32,7 +32,7 @@
         </ros2_control>
 
     </xacro:macro>
-    <xacro:macro name="nerf_ros2_control_joints_only">        
+    <xacro:macro name="nerf_ros2_control_joints_only">
         <joint name="trigger_joint">
             <command_interface name="position"/>
             <state_interface name="velocity"/>

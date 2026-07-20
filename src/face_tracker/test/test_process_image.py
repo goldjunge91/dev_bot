@@ -73,27 +73,17 @@ def test_find_faces_no_locations(monkeypatch):
 
 def test_find_faces_unknown_without_known_encodings(monkeypatch):
     """Ohne bekannte Encodings heisst jedes Gesicht 'unknown'."""
-    monkeypatch.setattr(
-        proc.face_recognition, "face_locations", lambda *a, **k: [(5, 30, 25, 10)]
-    )
-    monkeypatch.setattr(
-        proc.face_recognition, "face_encodings", lambda *a, **k: [np.zeros(128)]
-    )
+    monkeypatch.setattr(proc.face_recognition, "face_locations", lambda *a, **k: [(5, 30, 25, 10)])
+    monkeypatch.setattr(proc.face_recognition, "face_encodings", lambda *a, **k: [np.zeros(128)])
     _, names, _ = proc.find_and_identify_faces(_blank_image(), [], [])
     assert names == ["unknown"]
 
 
 def test_find_faces_best_match_via_argmin(monkeypatch):
     """Bei mehreren Matches gewinnt die kleinste face_distance."""
-    monkeypatch.setattr(
-        proc.face_recognition, "face_locations", lambda *a, **k: [(5, 30, 25, 10)]
-    )
-    monkeypatch.setattr(
-        proc.face_recognition, "face_encodings", lambda *a, **k: [np.zeros(128)]
-    )
-    monkeypatch.setattr(
-        proc.face_recognition, "compare_faces", lambda *a, **k: [True, True]
-    )
+    monkeypatch.setattr(proc.face_recognition, "face_locations", lambda *a, **k: [(5, 30, 25, 10)])
+    monkeypatch.setattr(proc.face_recognition, "face_encodings", lambda *a, **k: [np.zeros(128)])
+    monkeypatch.setattr(proc.face_recognition, "compare_faces", lambda *a, **k: [True, True])
     monkeypatch.setattr(
         proc.face_recognition,
         "face_distance",
@@ -107,21 +97,11 @@ def test_find_faces_best_match_via_argmin(monkeypatch):
 
 def test_find_faces_no_match_stays_unknown(monkeypatch):
     """compare_faces ohne True -> 'unknown' trotz bekannter Encodings."""
-    monkeypatch.setattr(
-        proc.face_recognition, "face_locations", lambda *a, **k: [(5, 30, 25, 10)]
-    )
-    monkeypatch.setattr(
-        proc.face_recognition, "face_encodings", lambda *a, **k: [np.zeros(128)]
-    )
-    monkeypatch.setattr(
-        proc.face_recognition, "compare_faces", lambda *a, **k: [False]
-    )
-    monkeypatch.setattr(
-        proc.face_recognition, "face_distance", lambda *a, **k: np.array([0.9])
-    )
-    _, names, _ = proc.find_and_identify_faces(
-        _blank_image(), [np.zeros(128)], ["alice"]
-    )
+    monkeypatch.setattr(proc.face_recognition, "face_locations", lambda *a, **k: [(5, 30, 25, 10)])
+    monkeypatch.setattr(proc.face_recognition, "face_encodings", lambda *a, **k: [np.zeros(128)])
+    monkeypatch.setattr(proc.face_recognition, "compare_faces", lambda *a, **k: [False])
+    monkeypatch.setattr(proc.face_recognition, "face_distance", lambda *a, **k: np.array([0.9]))
+    _, names, _ = proc.find_and_identify_faces(_blank_image(), [np.zeros(128)], ["alice"])
     assert names == ["unknown"]
 
 
@@ -131,9 +111,7 @@ def test_find_faces_no_match_stays_unknown(monkeypatch):
 def test_draw_face_boxes_reuses_color_per_name():
     """Gleicher Name -> gleiche Farbe; Bild wird gezeichnet (nicht schwarz)."""
     image = _blank_image()
-    out = proc.draw_face_boxes(
-        image, [(5, 30, 25, 10), (5, 70, 25, 50)], ["alice", "alice"]
-    )
+    out = proc.draw_face_boxes(image, [(5, 30, 25, 10), (5, 70, 25, 50)], ["alice", "alice"])
     assert out.sum() > 0
 
 

@@ -12,9 +12,9 @@ NamespaceIndentation: None
 SortIncludes: true
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: '^"'
+  - Regex: ^"
     Priority: 1
-  - Regex: '^<'
+  - Regex: ^<
     Priority: 2
 AlignAfterOpenBracket: Align
 AlignOperands: Align

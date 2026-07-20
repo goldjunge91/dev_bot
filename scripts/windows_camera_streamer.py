@@ -1,9 +1,8 @@
-import cv2
 import socket
-import struct
-import pickle
-import time
 import sys
+import time
+
+import cv2
 
 # Konfiguration
 # ACHTUNG: Hier steht deine WSL-IP-Adresse (automatisch eingefügt)
@@ -19,9 +18,7 @@ def main():
         try:
             camera_idx = int(sys.argv[1])
         except ValueError:
-            print(
-                f"Ungültiger Kamera-Index: {sys.argv[1]}. Verwende {DEFAULT_CAMERA_INDEX}."
-            )
+            print(f"Ungültiger Kamera-Index: {sys.argv[1]}. Verwende {DEFAULT_CAMERA_INDEX}.")
 
     # UDP Socket erstellen
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -68,7 +65,7 @@ def main():
             # Daten senden
             try:
                 client_socket.sendto(buffer.tobytes(), (WSL_IP, PORT))
-            except Exception as e:
+            except Exception:
                 pass
 
             time.sleep(0.03)  # Ca. 30 FPS begrenzen

@@ -35,11 +35,13 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     package_name = "gubot_localization"
 
-    ekf_config = PathJoinSubstitution([
-        FindPackageShare(package_name),
-        "config",
-        "ekf.yaml",
-    ])
+    ekf_config = PathJoinSubstitution(
+        [
+            FindPackageShare(package_name),
+            "config",
+            "ekf.yaml",
+        ]
+    )
 
     # NEU: use_sim_time kommt vom globalen SetParameter in simulation.launch.py
     robot_localization_node = Node(
@@ -51,6 +53,8 @@ def generate_launch_description():
         remappings=[("/diagnostics", "diagnostics")],
     )
 
-    return LaunchDescription([
-        robot_localization_node,
-    ])
+    return LaunchDescription(
+        [
+            robot_localization_node,
+        ]
+    )

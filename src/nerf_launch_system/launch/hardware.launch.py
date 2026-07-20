@@ -9,6 +9,7 @@
 # 5. LaunchDescription - Rückgabe aller Komponenten
 
 import os
+
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler
@@ -22,8 +23,7 @@ def generate_launch_description():
     pkg_nerf = get_package_share_directory("nerf_launch_system")
 
     # Verarbeite URDF mit Hardware-Flag (use_hardware=true)
-    xacro_file = os.path.join(pkg_nerf, "description",
-                              "urdf", "nerf_launcher.urdf.xacro")
+    xacro_file = os.path.join(pkg_nerf, "description", "urdf", "nerf_launcher.urdf.xacro")
 
     arg_port = DeclareLaunchArgument(
         "port",
@@ -37,11 +37,15 @@ def generate_launch_description():
     # lässt xacro als Subprozess mit den fertig substituierten Argumenten
     # laufen; ParameterValue(value_type=str) verhindert, dass robot_state_publisher
     # das Ergebnis als YAML statt als String interpretiert.
-    robot_description_content = Command([
-        "xacro ", xacro_file,
-        " use_hardware:=true",
-        " port:=", LaunchConfiguration("port"),
-    ])
+    robot_description_content = Command(
+        [
+            "xacro ",
+            xacro_file,
+            " use_hardware:=true",
+            " port:=",
+            LaunchConfiguration("port"),
+        ]
+    )
     robot_description = {
         "robot_description": ParameterValue(robot_description_content, value_type=str)
     }
@@ -61,9 +65,7 @@ def generate_launch_description():
         executable="ros2_control_node",
         parameters=[
             robot_description,
-            os.path.join(
-                pkg_nerf, "config", "controllers.yaml"
-            ),  # Controller-Konfiguration
+            os.path.join(pkg_nerf, "config", "controllers.yaml"),  # Controller-Konfiguration
             {"use_sim_time": False},  # Echte Zeit verwenden
         ],
         output="screen",

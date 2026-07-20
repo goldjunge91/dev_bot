@@ -38,14 +38,14 @@ Verwendung:
   ros2 launch gubot_bringup joystick.launch.py launch_joy_node:=false  # joy_node laeuft woanders
 """
 
-from launch import LaunchDescription
-from launch_ros.actions import Node
-from launch.substitutions import LaunchConfiguration
-from launch.actions import DeclareLaunchArgument
-import launch.conditions as if_condition
-
 import os
+
+import launch.conditions as if_condition
 from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 
 
 def generate_launch_description():

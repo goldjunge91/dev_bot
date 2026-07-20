@@ -3,54 +3,56 @@
 
 // --- Lidar Paket Struktur ---
 // Ein Paket hat 22 Bytes:
-// <0xFA> <ANGLE_INDEX> <SPEED_LSB> <SPEED_MSB> <4x DATA (jeweils 4 Bytes)> <CHECKSUM_LSB> <CHECKSUM_MSB>
-// Jedes Datenpaket enthält 4 Messungen. Eine Messung besteht aus:
-// <DIST_LSB> <DIST_MSB> <QUAL_LSB> <QUAL_MSB>
+// <0xFA> <ANGLE_INDEX> <SPEED_LSB> <SPEED_MSB> <4x DATA (jeweils 4 Bytes)> <CHECKSUM_LSB>
+// <CHECKSUM_MSB> Jedes Datenpaket enthält 4 Messungen. Eine Messung besteht aus: <DIST_LSB>
+// <DIST_MSB> <QUAL_LSB> <QUAL_MSB>
 
 #define PACKET_SIZE 22
-#define DATA_SIZE 7 // Format für Python: [Winkel, RPM, Distanz 1, Distanz 2, Distanz 3, Distanz 4, ChecksumStatus]
+#define DATA_SIZE \
+    7  // Format für Python: [Winkel, RPM, Distanz 1, Distanz 2, Distanz 3, Distanz 4,
+       // ChecksumStatus]
 
 // --- PIN BELEGUNG (Vom Nutzer definiert) ---
-#define RX_PIN 10         // Lidar TX -> Arduino Pin 10 (SoftwareSerial RX)
-#define MOTOR_IN1_PIN 5   // DRV8833 IN1 (PWM Pin zur Geschwindigkeitsregelung)
-#define MOTOR_IN2_PIN 4   // DRV8833 IN2 (Fest auf LOW)
-#define DRV_EEP_PIN 7     // DRV8833 EEP / Sleep Pin (Muss HIGH sein zum Aktivieren)
+#define RX_PIN 10        // Lidar TX -> Arduino Pin 10 (SoftwareSerial RX)
+#define MOTOR_IN1_PIN 5  // DRV8833 IN1 (PWM Pin zur Geschwindigkeitsregelung)
+#define MOTOR_IN2_PIN 4  // DRV8833 IN2 (Fest auf LOW)
+#define DRV_EEP_PIN 7    // DRV8833 EEP / Sleep Pin (Muss HIGH sein zum Aktivieren)
 
 // --- PARAMETER ---
 #define BAUDRATE_SENSOR 115200
 #define BAUDRATE_PC 115200
 #define MIN_POWER 0
 #define MAX_POWER 255
-#define TARGET_RPM 300    // Ziel-Drehzahl: 300 RPM (5 Hz)
+#define TARGET_RPM 300  // Ziel-Drehzahl: 300 RPM (5 Hz)
 
 // --- GLOBALE VARIABLEN ---
-SoftwareSerial lidarSensor(RX_PIN, 11); // RX an 10, TX an 11 (nicht belegt)
+SoftwareSerial lidarSensor(RX_PIN, 11);  // RX an 10, TX an 11 (nicht belegt)
 uint8_t packet[PACKET_SIZE];
 unsigned int packetIndex = 0;
 bool waitPacket = true;
-int outData[DATA_SIZE]; // Winkel, RPM, D1, D2, D3, D4, Checksum_Valid
+int outData[DATA_SIZE];  // Winkel, RPM, D1, D2, D3, D4, Checksum_Valid
 
 // --- PID REGELUNG VARIABLEN ---
 double proportionalTerm = 0;
-double derivativeTerm   = 0; 
-double integralTerm     = 0;
-double previousSpeed    = 0;
-int currentSpeed        = 0; // Gemessene RPM
+double derivativeTerm = 0;
+double integralTerm = 0;
+double previousSpeed = 0;
+int currentSpeed = 0;  // Gemessene RPM
 
 // PID Koeffizienten (können bei Bedarf im Betrieb angepasst werden)
 double kp = 2.5;
-double ki = 0.4; 
+double ki = 0.4;
 double kd = 0.2;
 
 void setup() {
     // Timer 1 Setup (Trigger für PID-Regelkreis ca. alle 0.262 Sekunden bei Overflow)
-    noInterrupts();     
+    noInterrupts();
     TCCR1A = 0;
     TCCR1B = 0;
-    TCCR1B |= (1 << CS11) | (1 << CS10); // Prescaler 64  
-    TIMSK1 |= (1 << TOIE1);              // Overflow Interrupt aktivieren
+    TCCR1B |= (1 << CS11) | (1 << CS10);  // Prescaler 64
+    TIMSK1 |= (1 << TOIE1);               // Overflow Interrupt aktivieren
     interrupts();
-    
+
     // Serielle Schnittstellen starten
     lidarSensor.begin(BAUDRATE_SENSOR);
     Serial.begin(BAUDRATE_PC);
@@ -63,13 +65,13 @@ void setup() {
 
     // DRV8833 aufwecken
     digitalWrite(DRV_EEP_PIN, HIGH);
-    digitalWrite(MOTOR_IN2_PIN, LOW); // Vorwärtslauf aktivieren
+    digitalWrite(MOTOR_IN2_PIN, LOW);  // Vorwärtslauf aktivieren
 
     // Sanfter Anlauf (Kickstart) des Lidar-Motors
     analogWrite(MOTOR_IN1_PIN, MAX_POWER);
     delay(1000);
-    analogWrite(MOTOR_IN1_PIN, 130); // Initialer PWM-Schätzwert
-    
+    analogWrite(MOTOR_IN1_PIN, 130);  // Initialer PWM-Schätzwert
+
     // Paket-Buffer initialisieren
     memset(packet, 0, PACKET_SIZE);
 }
@@ -80,16 +82,16 @@ void loop() {
         uint8_t receivedByte = lidarSensor.read();
 
         if (waitPacket) {
-            if (receivedByte == 0xFA) { // Start-Byte gefunden
+            if (receivedByte == 0xFA) {  // Start-Byte gefunden
                 packetIndex = 0;
                 waitPacket = false;
                 packet[packetIndex++] = receivedByte;
             }
         } else {
             packet[packetIndex++] = receivedByte;
-            
+
             if (packetIndex >= PACKET_SIZE) {
-                waitPacket = true; // Nächstes Paket erwarten
+                waitPacket = true;  // Nächstes Paket erwarten
                 decodePacket(packet);
             }
         }
@@ -110,13 +112,13 @@ void decodePacket(uint8_t pkt[]) {
     // 2. Winkel berechnen
     // Index (pkt[1]) reicht von 0xA0 (160) bis 0xF9 (249)
     int angleIndex = pkt[1] - 0xA0;
-    int startAngle = angleIndex * 4; // Startwinkel dieses Pakets
-    
+    int startAngle = angleIndex * 4;  // Startwinkel dieses Pakets
+
     if (startAngle < 0 || startAngle >= 360) return;
 
     // 3. Geschwindigkeit (RPM) extrahieren
     uint16_t speedRaw = pkt[2] | (pkt[3] << 8);
-    int calculatedRPM = speedRaw / 64; // RPM-Konvertierung
+    int calculatedRPM = speedRaw / 64;  // RPM-Konvertierung
 
     // Glättungsfilter für RPM-Ausreißer
     if (abs(calculatedRPM - currentSpeed) > 100) {
@@ -135,18 +137,18 @@ void decodePacket(uint8_t pkt[]) {
         uint8_t distH = pkt[offset + 1];
 
         // Statusflag: Ungültige Messung, falls das MSB von distH gesetzt ist
-        bool invalid = (distH & 0x80); 
-        
+        bool invalid = (distH & 0x80);
+
         uint16_t distance = distL | ((distH & 0x3F) << 8);
 
         if (invalid || distance == 0) {
-            outData[2 + i] = 0; // Ungültige Messungen mit 0 markieren
+            outData[2 + i] = 0;  // Ungültige Messungen mit 0 markieren
         } else {
-            outData[2 + i] = distance; // Distanz in mm
+            outData[2 + i] = distance;  // Distanz in mm
         }
     }
 
-    outData[6] = isChecksumOk ? 1 : 0; // Checksummenstatus mitsenden
+    outData[6] = isChecksumOk ? 1 : 0;  // Checksummenstatus mitsenden
 
     // Datenpaket über USB an den PC senden (durch Tabs getrennt)
     sendSerialData(outData, DATA_SIZE);
@@ -169,7 +171,8 @@ void motorSpeedPID(int targetSpeed, int currentSpeed, double deltaT) {
     derivativeTerm = (currentSpeed - previousSpeed) / deltaT;
     integralTerm += proportionalTerm * deltaT;
 
-    int controlEffort = (kp * proportionalTerm + kd * derivativeTerm + ki * integralTerm) + currentSpeed;
+    int controlEffort =
+        (kp * proportionalTerm + kd * derivativeTerm + ki * integralTerm) + currentSpeed;
 
     // Anti-Windup (Begrenzung des Integrators bei Sättigung)
     if (controlEffort > MAX_POWER) {
@@ -181,7 +184,7 @@ void motorSpeedPID(int targetSpeed, int currentSpeed, double deltaT) {
     }
 
     previousSpeed = currentSpeed;
-    
+
     // PWM Signal an DRV8833 senden
     analogWrite(MOTOR_IN1_PIN, controlEffort);
 }

@@ -183,7 +183,10 @@ void FiringFSM::evalState() {
                 _onFlywheelPower(_targetPower);
                 {
                     char buf[64];
-                    snprintf(buf, sizeof(buf), "OK: Flywheels spinning at %d%%. Send STOP to end.", _targetPower);
+                    snprintf(buf,
+                             sizeof(buf),
+                             "OK: Flywheels spinning at %d%%. Send STOP to end.",
+                             _targetPower);
                     _onDebug(buf);
                 }
                 break;

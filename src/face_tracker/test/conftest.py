@@ -43,9 +43,7 @@ def make_detection(class_id, cx=0.5, cy=0.5, size=0.2, with_results=True):
     """Baut ein duck-typed Detection2D-Double fuer die pure Logik."""
     results = []
     if with_results:
-        results = [
-            SimpleNamespace(hypothesis=SimpleNamespace(class_id=class_id))
-        ]
+        results = [SimpleNamespace(hypothesis=SimpleNamespace(class_id=class_id))]
     return SimpleNamespace(
         results=results,
         bbox=SimpleNamespace(

@@ -50,8 +50,8 @@ import os
 import sys
 
 from launch import LaunchDescription
-from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
+from launch_ros.actions import Node
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from preflight import check_camera, preflight_action  # noqa: E402
@@ -96,9 +96,11 @@ def generate_launch_description():
         ],
     )
 
-    return LaunchDescription([
-        check_hardware_arg,
-        preflight_action(check_camera),
-        camera_namespace_arg,
-        usb_cam_node,
-    ])
+    return LaunchDescription(
+        [
+            check_hardware_arg,
+            preflight_action(check_camera),
+            camera_namespace_arg,
+            usb_cam_node,
+        ]
+    )

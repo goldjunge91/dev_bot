@@ -17,12 +17,13 @@
 # Ersetzt die urspruengliche FollowBall-Node (subscribed /detected_ball
 # Point) durch FollowFace, die /face_detections (Detection2DArray) subscribed.
 
+import time
+
 import rclpy
-from rclpy.node import Node
 from geometry_msgs.msg import Twist
+from rclpy.node import Node
 from std_msgs.msg import Float64
 from vision_msgs.msg import Detection2DArray
-import time
 
 from face_tracker.follow_logic import (
     FollowParams,
@@ -45,9 +46,7 @@ class FollowFace(Node):
             rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value,
         )
         self.publisher_ = self.create_publisher(Twist, "/cmd_vel", 10)
-        self.tilt_publisher_ = self.create_publisher(
-            Float64, "/nerf/tilt", 10
-        )
+        self.tilt_publisher_ = self.create_publisher(Float64, "/nerf/tilt", 10)
 
         # --- Parameter ---
         self.declare_parameter("rcv_timeout_secs", 1.0)
@@ -65,30 +64,20 @@ class FollowFace(Node):
             self.get_parameter("rcv_timeout_secs").get_parameter_value().double_value
         )
         self.angular_chase_multiplier = (
-            self.get_parameter("angular_chase_multiplier")
-            .get_parameter_value()
-            .double_value
+            self.get_parameter("angular_chase_multiplier").get_parameter_value().double_value
         )
         self.forward_chase_speed = (
             self.get_parameter("forward_chase_speed").get_parameter_value().double_value
         )
         self.search_angular_speed = (
-            self.get_parameter("search_angular_speed")
-            .get_parameter_value()
-            .double_value
+            self.get_parameter("search_angular_speed").get_parameter_value().double_value
         )
         self.max_size_thresh = (
             self.get_parameter("max_size_thresh").get_parameter_value().double_value
         )
-        self.filter_value = (
-            self.get_parameter("filter_value").get_parameter_value().double_value
-        )
-        self.target_person = (
-            self.get_parameter("target_person").get_parameter_value().string_value
-        )
-        self.allow_search = (
-            self.get_parameter("allow_search").get_parameter_value().bool_value
-        )
+        self.filter_value = self.get_parameter("filter_value").get_parameter_value().double_value
+        self.target_person = self.get_parameter("target_person").get_parameter_value().string_value
+        self.allow_search = self.get_parameter("allow_search").get_parameter_value().bool_value
         self.declare_parameter("camera_offset_x", 0.0)
         self.declare_parameter("camera_offset_y", 0.0)
         self.declare_parameter("tilt_chase_multiplier", 0.1)
@@ -100,9 +89,7 @@ class FollowFace(Node):
             self.get_parameter("camera_offset_y").get_parameter_value().double_value
         )
         self.tilt_chase_multiplier = (
-            self.get_parameter("tilt_chase_multiplier")
-            .get_parameter_value()
-            .double_value
+            self.get_parameter("tilt_chase_multiplier").get_parameter_value().double_value
         )
 
         # --- Zustand ---
@@ -111,14 +98,12 @@ class FollowFace(Node):
         self.target_val = 0.0  # normalisierte X-Position [-1, 1]
         self.target_y = 0.5  # normalisierte Y-Position [0, 1]
         self.target_dist = 0.0  # normalisierte Gesichtsgröße [0, 1]
-        self.current_tilt = (
-            0.5  # Normalisierte Hardware-Tilt-Position [0.0, 1.0] (0.5 = Mitte)
-        )
+        self.current_tilt = 0.5  # Normalisierte Hardware-Tilt-Position [0.0, 1.0] (0.5 = Mitte)
         self.lastrcvtime = time.time() - 10000
 
         self.get_logger().info(
             f'FollowFace gestartet. Ziel-Person: "{self.target_person or "beliebig"}", '
-            f'allow_search: {self.allow_search}'
+            f"allow_search: {self.allow_search}"
         )
 
     def timer_callback(self):
@@ -149,13 +134,9 @@ class FollowFace(Node):
             tilt_msg.data = self.current_tilt
             self.tilt_publisher_.publish(tilt_msg)
         else:
-            self.get_logger().debug(
-                f"Kein Gesicht – halte... (allow_search={self.allow_search})"
-            )
+            self.get_logger().debug(f"Kein Gesicht – halte... (allow_search={self.allow_search})")
             if self.allow_search:
-                self.get_logger().debug(
-                    f"Suche (Rotation)... (speed={self.search_angular_speed})"
-                )
+                self.get_logger().debug(f"Suche (Rotation)... (speed={self.search_angular_speed})")
                 msg.angular.z = self.search_angular_speed
             else:
                 msg.angular.z = 0.0

@@ -25,24 +25,26 @@ from preflight import LIDAR_PORT, check_lidar, preflight_action  # noqa: E402
 
 def generate_launch_description():
 
-    return LaunchDescription([
-
-        DeclareLaunchArgument(
-            'check_hardware',
-            default_value='true',
-            description='Vor dem Start prüfen, ob das Lidar am Port hängt.',
-        ),
-        preflight_action(check_lidar),
-
-        Node(
-            package='rplidar_ros',
-            executable='rplidar_composition',
-            output='screen',
-            parameters=[{
-                'serial_port': LIDAR_PORT,  # zentral in preflight.py
-                'frame_id': 'laser_frame',
-                'angle_compensate': True,
-                'scan_mode': 'Standard'
-            }]
-        )
-    ])
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                "check_hardware",
+                default_value="true",
+                description="Vor dem Start prüfen, ob das Lidar am Port hängt.",
+            ),
+            preflight_action(check_lidar),
+            Node(
+                package="rplidar_ros",
+                executable="rplidar_composition",
+                output="screen",
+                parameters=[
+                    {
+                        "serial_port": LIDAR_PORT,  # zentral in preflight.py
+                        "frame_id": "laser_frame",
+                        "angle_compensate": True,
+                        "scan_mode": "Standard",
+                    }
+                ],
+            ),
+        ]
+    )

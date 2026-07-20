@@ -19,12 +19,15 @@ ros2 launch nerf_launch_system simulate.launch.py
 ---
 
 ## ros2_control Status prüfen
+
 ### Hardware‑Interfaces
+
 ```bash
 ros2 control list_hardware_interfaces
 ```
 
 ### Controller‑Status
+
 ```bash
 ros2 control list_controllers
 ```
@@ -33,22 +36,26 @@ ros2 control list_controllers
 
 ## Controller gezielt prüfen
 
-Beispiel: Trigger‑Position setzen  
+Beispiel: Trigger‑Position setzen
+
 ```bash
 ros2 topic pub /trigger_controller/commands std_msgs/msg/Float64MultiArray "{data: [6.0]}"
 ```
 
-Flywheel‑Geschwindigkeit setzen  
+Flywheel‑Geschwindigkeit setzen
+
 ```bash
 ros2 topic pub /flywheel_controller/commands std_msgs/msg/Float64MultiArray "{data: [50.0, 50.0]}"
 ```
 
-Pusher (Schuss)  
+Pusher (Schuss)
+
 ```bash
 ros2 topic pub /pusher_controller/commands std_msgs/msg/Float64MultiArray "{data: [2.0]}"
 ```
 
-Arming aktivieren  
+Arming aktivieren
+
 ```bash
 ros2 topic pub /arming_controller/commands std_msgs/msg/Float64MultiArray "{data: [1.0]}"
 ```
@@ -56,6 +63,7 @@ ros2 topic pub /arming_controller/commands std_msgs/msg/Float64MultiArray "{data
 ---
 
 ## Typische Checks zur Fehlersuche
+
 ```bash
 ros2 control list_controller_types
 ```

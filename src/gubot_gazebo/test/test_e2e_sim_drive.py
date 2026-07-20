@@ -73,9 +73,7 @@ def generate_test_description():
             "use_nerf_hardware": "false",
         }.items(),
     )
-    return launch.LaunchDescription(
-        [sim_launch, launch_testing.actions.ReadyToTest()]
-    )
+    return launch.LaunchDescription([sim_launch, launch_testing.actions.ReadyToTest()])
 
 
 class TestSimLateralDrive(unittest.TestCase):
@@ -86,9 +84,7 @@ class TestSimLateralDrive(unittest.TestCase):
         rclpy.init()
         cls.node = rclpy.create_node("e2e_drive_probe")
         cls.odom_msgs = []
-        cls.node.create_subscription(
-            Odometry, "/odometry/filtered", cls.odom_msgs.append, 10
-        )
+        cls.node.create_subscription(Odometry, "/odometry/filtered", cls.odom_msgs.append, 10)
         cls.cmd_pub = cls.node.create_publisher(Twist, "/cmd_vel_joy", 10)
 
     @classmethod

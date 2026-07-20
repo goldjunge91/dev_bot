@@ -25,14 +25,13 @@ Referenz: https://control.ros.org/humble/doc/ros2_controllers/
 """
 
 import os
+
 import yaml
 
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 # config/ liegt im selben Paket (gubot_controller)
 # NEU: Referenz-Struktur, YAML liegt unter controller/config/controllers.yaml
-_CONTROLLERS_YAML = os.path.join(
-    _TEST_DIR, "..", "config", "controllers.yaml"
-)
+_CONTROLLERS_YAML = os.path.join(_TEST_DIR, "..", "config", "controllers.yaml")
 
 # ROS2 Humble: Pflichtparameter ist front_left_wheel_name
 # (NICHT _command_joint_name — das ist Rolling/Jazzy)
@@ -72,9 +71,7 @@ def test_yaml_is_valid():
     assert isinstance(cfg, dict), "YAML root muss ein dict sein"
     # Pruefe ob mecanum_drive_controller irgendwo in der verschachtelten Struktur vorkommt
     yaml_str = open(_CONTROLLERS_YAML).read()
-    assert _CONTROLLER_KEY in yaml_str, (
-        f"{_CONTROLLER_KEY} fehlt in der YAML-Datei"
-    )
+    assert _CONTROLLER_KEY in yaml_str, f"{_CONTROLLER_KEY} fehlt in der YAML-Datei"
 
 
 def test_wheel_names_present():
@@ -113,18 +110,16 @@ def test_kinematics_in_nested_block():
     """
     params = _load_mecanum_params()
     # Direkte Parameter auf ros__parameters-Ebene
-    assert "wheel_separation_x" in params, (
-        "wheel_separation_x fehlt in mecanum_drive_controller.ros__parameters"
-    )
-    assert "wheel_separation_y" in params, (
-        "wheel_separation_y fehlt in mecanum_drive_controller.ros__parameters"
-    )
-    assert "wheel_radius" in params, (
-        "wheel_radius fehlt in mecanum_drive_controller.ros__parameters"
-    )
-    assert params["wheel_radius"] > 0, (
-        f"wheel_radius muss > 0 sein, ist: {params['wheel_radius']}"
-    )
+    assert (
+        "wheel_separation_x" in params
+    ), "wheel_separation_x fehlt in mecanum_drive_controller.ros__parameters"
+    assert (
+        "wheel_separation_y" in params
+    ), "wheel_separation_y fehlt in mecanum_drive_controller.ros__parameters"
+    assert (
+        "wheel_radius" in params
+    ), "wheel_radius fehlt in mecanum_drive_controller.ros__parameters"
+    assert params["wheel_radius"] > 0, f"wheel_radius muss > 0 sein, ist: {params['wheel_radius']}"
 
 
 def test_no_flat_kinematics_duplicates():
@@ -149,6 +144,6 @@ def test_wheels_radius_matches_urdf():
     """
     params = _load_mecanum_params()
     radius = params.get("wheel_radius", 0)
-    assert abs(radius - 0.05) < 0.001, (
-        f"wheel_radius={radius} stimmt nicht mit URDF-Wert 0.05 ueberein"
-    )
+    assert (
+        abs(radius - 0.05) < 0.001
+    ), f"wheel_radius={radius} stimmt nicht mit URDF-Wert 0.05 ueberein"

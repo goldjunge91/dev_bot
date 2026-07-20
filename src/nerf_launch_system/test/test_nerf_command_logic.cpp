@@ -10,9 +10,9 @@
  * in isolation (feeding new_tilt_pos back in as current_pos, the way
  * NerfSystem::write() does) to prove the sequence actually converges.
  */
-#include <gtest/gtest.h>
-
 #include "nerf_launch_system/nerf_command_logic.hpp"
+
+#include <gtest/gtest.h>
 
 using nerf_launch_system::make_shot_command;
 using nerf_launch_system::make_tilt_command;

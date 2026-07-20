@@ -14,10 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 import rclpy
 from rclpy.node import Node
-from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithPose
-import math
+from vision_msgs.msg import Detection2D, Detection2DArray, ObjectHypothesisWithPose
 
 
 class FakeFacePublisher(Node):
@@ -30,9 +31,7 @@ class FakeFacePublisher(Node):
         )
         self.timer = self.create_timer(0.1, self.timer_callback)
         self.start_time = self.get_clock().now()
-        self.get_logger().info(
-            "Fake Face Publisher gestartet. Sende Test-Koordinaten..."
-        )
+        self.get_logger().info("Fake Face Publisher gestartet. Sende Test-Koordinaten...")
         self.get_logger().info(
             "Hinweis: Alle 10 Sekunden wird das Gesicht fuer 2 Sekunden zentriert (LOCK ON)."
         )

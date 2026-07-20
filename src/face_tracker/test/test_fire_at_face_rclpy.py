@@ -107,9 +107,7 @@ class FireRig:
 def rig(rclpy_ctx):
     """Frischer Aufbau pro Test; wartet auf Service-Discovery."""
     r = FireRig()
-    assert r.spin_until(
-        lambda: r.node.fire_client.service_is_ready(), timeout=5.0
-    )
+    assert r.spin_until(lambda: r.node.fire_client.service_is_ready(), timeout=5.0)
     yield r
     r.shutdown()
 

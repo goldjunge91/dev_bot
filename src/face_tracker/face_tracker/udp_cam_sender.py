@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import socket
+
+import cv2
 import rclpy
 from rclpy.node import Node
-import cv2
-import socket
 
 """
 Zweck dieses Nodes (Offloading):
@@ -54,9 +55,7 @@ class UdpCamSender(Node):
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 
         if not self.cap.isOpened():
-            self.get_logger().error(
-                f"Kamera {self.camera_index} konnte nicht geöffnet werden!"
-            )
+            self.get_logger().error(f"Kamera {self.camera_index} konnte nicht geöffnet werden!")
             return
 
         self.get_logger().info(

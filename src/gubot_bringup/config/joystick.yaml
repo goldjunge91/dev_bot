@@ -1,3 +1,4 @@
+---
 joy_node:
   ros__parameters:
     # dev: /dev/input/js0

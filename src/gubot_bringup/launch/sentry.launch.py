@@ -97,9 +97,7 @@ def generate_launch_description():
     )
 
     nav2 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(nav_share, "launch", "nav2.launch.py")
-        ),
+        PythonLaunchDescriptionSource(os.path.join(nav_share, "launch", "nav2.launch.py")),
         launch_arguments={
             "slam": slam,
             "map": map_yaml,

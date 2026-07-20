@@ -9,19 +9,19 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>gubot_description</exec_depend>
   <exec_depend>controller_manager</exec_depend>
+  <exec_depend>gubot_description</exec_depend>
   <exec_depend>hardware_interface</exec_depend>
-  <exec_depend>twist_mux</exec_depend>
-  <exec_depend>mecanum_drive_controller</exec_depend>
   <exec_depend>imu_sensor_broadcaster</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>
-  <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>mecanum_drive_controller</exec_depend>
   <exec_depend>nerf_launch_system</exec_depend>
+  <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>twist_mux</exec_depend>
 
+  <test_depend>ament_cmake_pytest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
-  <test_depend>ament_cmake_pytest</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -4,11 +4,11 @@
 
 #include "Comms.h"
 
+#include "../Utils/Help.h"
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "../Utils/Help.h"
 
 // #include "../Debug/ESCCalibration.h"
 
@@ -30,7 +30,7 @@ bool startsWithCI(const char* s, const char* prefix) {
 }  // namespace
 
 // -------------------------------------------------------------------------
-// Communcation Handler
+// Communication Handler
 // -------------------------------------------------------------------------
 
 /**
@@ -167,11 +167,9 @@ void Comms::execute(char* line) {
 
     else if (strcmp(cmd, "STATUS") == 0) {
         _stream.println(_launcher.getFSM().isArmed() ? F("STATUS: ARMED") : F("STATUS: DISARMED"));
-    }
-    else if (strcmp(cmd, "HELP") == 0) {
+    } else if (strcmp(cmd, "HELP") == 0) {
         Help::printHelp();
-    }
-    else {
+    } else {
         // CAL_MAX / CAL_MIN / CAL_TEST faellt hier bewusst durch (obsolete Kurzbefehle entfernt).
         if (strlen(cmd) > 1) {
             _stream.print(F("ERR: Unknown "));

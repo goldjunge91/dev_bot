@@ -1,8 +1,4 @@
 
-
-
-
-
 | **Motor**                                                              |                                      |
 | ---------------------------------------------------------------------- | ------------------------------------ |
 | L-Typ GM3865-520 12V DC Motor mit Encoder                              |                                      |
@@ -21,7 +17,9 @@
 | Encoder-Versorgungsspannung:                                           | 3,3 V                                |
 | Schnittstellentyp:                                                     | PH2.0-6P                             |
 | FUnktion:                                                              | MCU kann Signalimpulse direkt lesen. |
+
 ## Beschreibung des Encoder-Ausgangs
+
 Die Phasendifferenz zwischen den beiden Signalen beträgt
 100°. Die Drehrichtung des Motors lässt sich anhand der
 Reihenfolge der beiden Signale bestimmen. Die aktuelle
@@ -42,6 +40,7 @@ AB-Zweiphasen-Ausgangsimpulssignal beträgt 100° und
 ermöglicht so die Erkennung der Motordrehrichtung.
 
 ## Motor Wiring
+
 ![Motor Wiring](src/gubot_one/Motor_wiring.png)
 
 | **IMU**                                                               |                                      |
@@ -59,26 +58,26 @@ ermöglicht so die Erkennung der Motordrehrichtung.
 | Funktionen:                                                           | DMP, Temperatursensor, Interrupt-Pin |
 
 ## Beschreibung des IMU-Moduls
-Das ICM-20948 ist ein hocheffizientes 9-Achsen-Bewegungssensormodul, das einen 3-Achsen-Beschleunigungssensor, ein 3-Achsen-Gyroskop und ein 3-Achsen-Magnetometer kombiniert. Dank der integrierten Digitalen Bewegungsverarbeitung (DMP) liefert es präzise Orientierungsdaten wie Quaternionen und Euler-Winkel. 
+
+Das ICM-20948 ist ein hocheffizientes 9-Achsen-Bewegungssensormodul, das einen 3-Achsen-Beschleunigungssensor, ein 3-Achsen-Gyroskop und ein 3-Achsen-Magnetometer kombiniert. Dank der integrierten Digitalen Bewegungsverarbeitung (DMP) liefert es präzise Orientierungsdaten wie Quaternionen und Euler-Winkel.
 
 ### Pin-Belegung
-*   **VCC/GND**: Spannungsversorgung (1,8V-3,6V) und Masse.
-*   **SCL/SDA**: I2C-Schnittstelle (Clock/Data).
-*   **NCS**: SPI Chip Select (auf HIGH für I2C-Modus).
-*   **AD0**: Adressauswahl für I2C (GND=0x68, VCC=0x69).
-*   **INT**: Interrupt-Ausgang für Datenbereitschaft oder Bewegungserkennung.
-*   **FSY**: Frame-Synchronisation für externe Triggerung.
-*   **ACL/ADA**: Hilfs-I2C-Bus für zusätzliche Sensoren.
+
+* **VCC/GND**: Spannungsversorgung (1,8V-3,6V) und Masse.
+* **SCL/SDA**: I2C-Schnittstelle (Clock/Data).
+* **NCS**: SPI Chip Select (auf HIGH für I2C-Modus).
+* **AD0**: Adressauswahl für I2C (GND=0x68, VCC=0x69).
+* **INT**: Interrupt-Ausgang für Datenbereitschaft oder Bewegungserkennung.
+* **FSY**: Frame-Synchronisation für externe Triggerung.
+* **ACL/ADA**: Hilfs-I2C-Bus für zusätzliche Sensoren.
 
 > [!IMPORTANT]
 > Das Modul ist für 3,3V-Systeme ausgelegt. Bei Verwendung mit 5V-Systemen ist ein Pegelwandler erforderlich.
 
-
 raspberry pi installation
 sudo apt install screen tio
 
-
-source /opt/ros/humble/setup.bash && source /home/ros/dev_bot/install/setup.bash 
+source /opt/ros/humble/setup.bash && source /home/ros/dev_bot/install/setup.bash
 && ros2 launch gubot_bringup launch_all_real.launch.py launch_lidar:=false launch_camera:=false
 
 ros2 run joy joy_node --ros-args -r __node:=joy_node --param device_id:=0

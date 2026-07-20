@@ -1,9 +1,8 @@
-import cv2
 import socket
-import struct
-import pickle
-import time
 import sys
+import time
+
+import cv2
 
 # Konfiguration
 # ACHTUNG: Hier steht deine WSL-IP-Adresse (automatisch eingefügt)
@@ -11,6 +10,7 @@ WSL_IP = "172.25.12.53"
 PORT = 9999
 # Standard-Kamera-Index
 DEFAULT_CAMERA_INDEX = 5
+
 
 def main():
     camera_idx = DEFAULT_CAMERA_INDEX
@@ -24,10 +24,12 @@ def main():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1000000)
 
-    print(f"Öffne Kamera {camera_idx} mit DirectShow (Drücke 'q' im Vorschaufenster zum Beenden)...")
+    print(
+        f"Öffne Kamera {camera_idx} mit DirectShow (Drücke 'q' im Vorschaufenster zum Beenden)..."
+    )
     # WICHTIG: cv2.CAP_DSHOW erzwingen, da MSMF oft failt (-2147483638)
     cap = cv2.VideoCapture(camera_idx, cv2.CAP_DSHOW)
-    
+
     # Auflösung setzen (320x240 reicht für Performance)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
@@ -51,22 +53,22 @@ def main():
                 continue
 
             # Lokale Vorschau anzeigen
-            cv2.imshow('Windows Kamera Stream (q zum Beenden)', frame)
-            
+            cv2.imshow("Windows Kamera Stream (q zum Beenden)", frame)
+
             # Beenden mit 'q'
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
             # Frame als JPEG komprimieren (Qualität 80)
-            _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
-            
+            _, buffer = cv2.imencode(".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+
             # Daten senden
             try:
                 client_socket.sendto(buffer.tobytes(), (WSL_IP, PORT))
-            except Exception as e:
-                pass 
+            except Exception:
+                pass
 
-            time.sleep(0.03) # Ca. 30 FPS begrenzen
+            time.sleep(0.03)  # Ca. 30 FPS begrenzen
 
     except KeyboardInterrupt:
         print("\nStream beendet.")
@@ -74,6 +76,7 @@ def main():
         cap.release()
         client_socket.close()
         cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()

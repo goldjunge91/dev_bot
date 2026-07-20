@@ -46,9 +46,7 @@ def turn_duration_secs(angular_speed: float) -> float:
     return (math.pi / 2.0) / angular_speed
 
 
-def advance_phase(
-    phase: PatrolPhase, elapsed: float, params: PatrolParams
-) -> tuple:
+def advance_phase(phase: PatrolPhase, elapsed: float, params: PatrolParams) -> tuple:
     """
     FSM-Schritt: gibt (neue Phase, phase_reset) zurueck.
 
@@ -58,9 +56,7 @@ def advance_phase(
     (leg_index = (leg_index + 1) % num_legs).
     """
     phase_duration = (
-        turn_duration_secs(params.angular_speed)
-        if phase.turning
-        else params.leg_duration_secs
+        turn_duration_secs(params.angular_speed) if phase.turning else params.leg_duration_secs
     )
     if elapsed < phase_duration:
         return phase, False

@@ -19,13 +19,14 @@
 #   ros2 run face_tracker register_face --ros-args -p person_name:=marco
 #   ros2 run face_tracker register_face --ros-args -p person_name:=schatz -p num_samples:=40
 
-import rclpy
-from rclpy.node import Node
+import os
+import pickle
+import time
+
 import cv2
 import face_recognition
-import pickle
-import os
-import time
+import rclpy
+from rclpy.node import Node
 
 
 class RegisterFace(Node):
@@ -39,21 +40,14 @@ class RegisterFace(Node):
         self.declare_parameter("camera_index", 0)
         self.declare_parameter("capture_delay_ms", 200)
 
-        self.person_name = (
-            self.get_parameter("person_name").get_parameter_value().string_value
-        )
-        self.num_samples = (
-            self.get_parameter("num_samples").get_parameter_value().integer_value
-        )
+        self.person_name = self.get_parameter("person_name").get_parameter_value().string_value
+        self.num_samples = self.get_parameter("num_samples").get_parameter_value().integer_value
         self.encodings_path = os.path.expanduser(
             self.get_parameter("encodings_path").get_parameter_value().string_value
         )
-        self.camera_index = (
-            self.get_parameter("camera_index").get_parameter_value().integer_value
-        )
+        self.camera_index = self.get_parameter("camera_index").get_parameter_value().integer_value
         self.capture_delay = (
-            self.get_parameter("capture_delay_ms").get_parameter_value().integer_value
-            / 1000.0
+            self.get_parameter("capture_delay_ms").get_parameter_value().integer_value / 1000.0
         )
 
         if not self.person_name:
@@ -75,9 +69,7 @@ class RegisterFace(Node):
         """Öffnet Kamera, nimmt Bilder auf und speichert Encodings."""
         cap = cv2.VideoCapture(self.camera_index)
         if not cap.isOpened():
-            self.get_logger().error(
-                f"Kamera {self.camera_index} konnte nicht geöffnet werden!"
-            )
+            self.get_logger().error(f"Kamera {self.camera_index} konnte nicht geöffnet werden!")
             return
 
         self.get_logger().info(
@@ -175,7 +167,7 @@ class RegisterFace(Node):
             pickle.dump({"encodings": all_encodings, "names": all_names}, f)
 
         self.get_logger().info(
-            f'Erfolgreich gespeichert: {len(collected_encodings)} Encodings '
+            f"Erfolgreich gespeichert: {len(collected_encodings)} Encodings "
             f'für "{self.person_name}"\n'
             f"Alle registrierten Personen: {list(set(all_names))}"
         )

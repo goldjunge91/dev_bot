@@ -1,6 +1,6 @@
 # mecanum_pico Firmware (v2)
 
-Firmware for the Raspberry Pi Pico (RP2040) — 4-wheel mecanum drive.  
+Firmware for the Raspberry Pi Pico (RP2040) — 4-wheel mecanum drive.
 Motor driver: **TB6612FNG** · IMU: **ICM-20948** (SPI) · Interface: **USB-CDC serial**
 
 ---
@@ -39,7 +39,7 @@ All commands are CR (`\r`) or LF (`\n`) terminated. Response always ends with `\
 
 ### Auto-Stop
 
-If no `m` or `o` command is received for **2000 ms**, all motors stop and PID resets silently.  
+If no `m` or `o` command is received for **2000 ms**, all motors stop and PID resets silently.
 Configurable via `AUTO_STOP_MS` in `board_config.h`.
 
 ---
@@ -53,12 +53,12 @@ Configurable via `AUTO_STOP_MS` in `board_config.h`.
 | Rear-Left   | 2     | GP12    | GP13    | GP14    | GP15  | GP16* |
 | Rear-Right  | 3     | GP17*   | GP18*   | GP19*   | GP20  | GP21  |
 
-> **\* Pin conflict warning:** GP16–GP19 overlap with the default IMU SPI0 pins.  
-> If using both RL/RR motors and the ICM-20948 simultaneously, remap either  
-> the motor pins or use SPI1 (e.g. GP22/CS, GP26/SCK, GP27/MOSI, GP28/MISO).  
+> **\* Pin conflict warning:** GP16–GP19 overlap with the default IMU SPI0 pins.
+> If using both RL/RR motors and the ICM-20948 simultaneously, remap either
+> the motor pins or use SPI1 (e.g. GP22/CS, GP26/SCK, GP27/MOSI, GP28/MISO).
 > Edit `board_config.h` — both tables are clearly commented.
 
-**TB6612 STBY pin:** Wire to 3.3 V, or define `TB6612_STBY_PIN` in `board_config.h`  
+**TB6612 STBY pin:** Wire to 3.3 V, or define `TB6612_STBY_PIN` in `board_config.h`
 to let the firmware drive it HIGH on startup.
 
 ---
@@ -74,7 +74,7 @@ to let the firmware drive it HIGH on startup.
 | VCC    | 3.3 V     | VDD           |
 | GND    | GND       | GND           |
 
-To change pins: edit `IMU_CS_PIN`, `IMU_SCK_PIN`, `IMU_MOSI_PIN`, `IMU_MISO_PIN`,  
+To change pins: edit `IMU_CS_PIN`, `IMU_SCK_PIN`, `IMU_MOSI_PIN`, `IMU_MISO_PIN`,
 and `IMU_SPI_PORT` in `board_config.h`.
 
 ---
@@ -102,8 +102,8 @@ Runtime update without reflashing:
 u 20 12 0 50\r
 ```
 
-Start with `Ki=0`. Increase `Kp` until oscillation, then back off.  
-Add `Kd` only if overshoot is a problem. `Ko` scales final output — increase  
+Start with `Ki=0`. Increase `Kp` until oscillation, then back off.
+Add `Kd` only if overshoot is a problem. `Ko` scales final output — increase
 to reduce sensitivity if PWM saturates at low speeds.
 
 ---

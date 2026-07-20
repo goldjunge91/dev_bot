@@ -51,34 +51,51 @@ def generate_launch_description():
     use_camera = LaunchConfiguration("use_camera", default="true")
 
     declare_x_arg = DeclareLaunchArgument(
-        "x", default_value="0.0",
+        "x",
+        default_value="0.0",
         description="Initial robot position in the global 'x' axis.",
     )
     declare_y_arg = DeclareLaunchArgument(
-        "y", default_value="0.0",
+        "y",
+        default_value="0.0",
         description="Initial robot position in the global 'y' axis.",
     )
     declare_z_arg = DeclareLaunchArgument(
-        "z", default_value="0.05",
+        "z",
+        default_value="0.05",
         description="Initial robot position in the global 'z' axis.",
     )
     declare_roll_arg = DeclareLaunchArgument(
-        "roll", default_value="0.0",
+        "roll",
+        default_value="0.0",
         description="Initial robot 'roll' orientation.",
     )
     declare_pitch_arg = DeclareLaunchArgument(
-        "pitch", default_value="0.0",
+        "pitch",
+        default_value="0.0",
         description="Initial robot 'pitch' orientation.",
     )
     declare_yaw_arg = DeclareLaunchArgument(
-        "yaw", default_value="0.0",
+        "yaw",
+        default_value="0.0",
         description="Initial robot 'yaw' orientation.",
     )
 
     welcome_msg = LogInfo(
         msg=[
             "Spawning gubot_one\n\tInitial pose: (",
-            x, ", ", y, ", ", z, ", ", roll, ", ", pitch, ", ", yaw, ")",
+            x,
+            ", ",
+            y,
+            ", ",
+            z,
+            ", ",
+            roll,
+            ", ",
+            pitch,
+            ", ",
+            yaw,
+            ")",
         ]
     )
 
@@ -87,23 +104,32 @@ def generate_launch_description():
         package="ros_gz_sim",
         executable="create",
         arguments=[
-            "-name", "gubot_one",
-            "-allow_renaming", "true",  # NEU: verhindert Konflikte bei Mehrfach-Spawn
-            "-topic", "robot_description",
-            "-x", x,
-            "-y", y,
-            "-z", z,
-            "-R", roll,
-            "-P", pitch,
-            "-Y", yaw,
+            "-name",
+            "gubot_one",
+            "-allow_renaming",
+            "true",  # NEU: verhindert Konflikte bei Mehrfach-Spawn
+            "-topic",
+            "robot_description",
+            "-x",
+            x,
+            "-y",
+            y,
+            "-z",
+            z,
+            "-R",
+            roll,
+            "-P",
+            pitch,
+            "-Y",
+            yaw,
         ],
         output="screen",
     )
 
     # 2. Per-Robot Sensor Bridge (Referenz: rosbot_bridge.yaml per Robot in spawn_robot)
-    gz_robot_bridge_config = PathJoinSubstitution([
-        FindPackageShare(package_name), "config", "gubot_bridge.yaml"
-    ])
+    gz_robot_bridge_config = PathJoinSubstitution(
+        [FindPackageShare(package_name), "config", "gubot_bridge.yaml"]
+    )
     gz_robot_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
@@ -114,9 +140,9 @@ def generate_launch_description():
     # 3. Controller Launch (RSP + Spawners + Twist Mux)
     controller_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                FindPackageShare("gubot_controller"), "launch", "controller.launch.py"
-            ])
+            PathJoinSubstitution(
+                [FindPackageShare("gubot_controller"), "launch", "controller.launch.py"]
+            )
         ),
         launch_arguments={
             "use_sim_time": use_sim_time,
@@ -128,33 +154,35 @@ def generate_launch_description():
     # 4. EKF Localization
     ekf_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                FindPackageShare("gubot_localization"), "launch", "ekf.launch.py"
-            ])
+            PathJoinSubstitution(
+                [FindPackageShare("gubot_localization"), "launch", "ekf.launch.py"]
+            )
         ),
     )
 
-    return LaunchDescription([
-        DeclareLaunchArgument("use_sim_time", default_value="true"),
-        DeclareLaunchArgument("use_nerf_hardware", default_value="false"),
-        DeclareLaunchArgument(
-            "use_camera",
-            default_value="true",
-            description="Include the Gazebo camera sensor in the URDF.",
-        ),
-        declare_x_arg,
-        declare_y_arg,
-        declare_z_arg,
-        declare_roll_arg,
-        declare_pitch_arg,
-        declare_yaw_arg,
-        # HINWEIS: SetParameter und SetRemap werden NICHT hier gesetzt.
-        # Sie wurden bereits global in simulation.launch.py angewendet
-        # und propagieren automatisch. Doppelte Setzung fuehrt zu doppelten
-        # --ros-args auf rviz2 und anderen Nodes in simulation.launch.py.
-        welcome_msg,
-        gz_spawn_entity,
-        gz_robot_bridge,
-        controller_launch,
-        ekf_launch,
-    ])
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument("use_sim_time", default_value="true"),
+            DeclareLaunchArgument("use_nerf_hardware", default_value="false"),
+            DeclareLaunchArgument(
+                "use_camera",
+                default_value="true",
+                description="Include the Gazebo camera sensor in the URDF.",
+            ),
+            declare_x_arg,
+            declare_y_arg,
+            declare_z_arg,
+            declare_roll_arg,
+            declare_pitch_arg,
+            declare_yaw_arg,
+            # HINWEIS: SetParameter und SetRemap werden NICHT hier gesetzt.
+            # Sie wurden bereits global in simulation.launch.py angewendet
+            # und propagieren automatisch. Doppelte Setzung fuehrt zu doppelten
+            # --ros-args auf rviz2 und anderen Nodes in simulation.launch.py.
+            welcome_msg,
+            gz_spawn_entity,
+            gz_robot_bridge,
+            controller_launch,
+            ekf_launch,
+        ]
+    )

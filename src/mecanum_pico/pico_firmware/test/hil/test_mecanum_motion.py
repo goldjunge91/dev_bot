@@ -11,12 +11,13 @@
 #   - Rotation:        ±5%  error over 1 full revolution
 #   - Strafe:          ±10% error vs commanded lateral displacement
 
+import time
+
 import pytest
 import rclpy
-import time
-from rclpy.node import Node
-from geometry_msgs.msg import TwistStamped, Twist, Vector3
+from geometry_msgs.msg import TwistStamped
 from nav_msgs.msg import Odometry
+from rclpy.node import Node
 
 
 # ---------------------------------------------------------------------------
@@ -24,20 +25,15 @@ from nav_msgs.msg import Odometry
 # ---------------------------------------------------------------------------
 class MecanumHILNode(Node):
     def __init__(self):
-        super().__init__('mecanum_hil_test')
+        super().__init__("mecanum_hil_test")
         self.cmd_pub = self.create_subscription(
-            TwistStamped,
-            '/mecanum_drive_controller/cmd_vel',
-            lambda msg: None, 10
+            TwistStamped, "/mecanum_drive_controller/cmd_vel", lambda msg: None, 10
         )
         self._cmd_pub = self.create_publisher(
-            TwistStamped,
-            '/mecanum_drive_controller/cmd_vel',
-            10
+            TwistStamped, "/mecanum_drive_controller/cmd_vel", 10
         )
         self.last_odom = None
-        self.create_subscription(Odometry, '/mecanum_drive_controller/odom',
-                                  self._odom_cb, 10)
+        self.create_subscription(Odometry, "/mecanum_drive_controller/odom", self._odom_cb, 10)
 
     def _odom_cb(self, msg: Odometry):
         self.last_odom = msg
@@ -45,8 +41,8 @@ class MecanumHILNode(Node):
     def send_velocity(self, vx=0.0, vy=0.0, wz=0.0):
         msg = TwistStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.twist.linear.x  = vx
-        msg.twist.linear.y  = vy
+        msg.twist.linear.x = vx
+        msg.twist.linear.y = vy
         msg.twist.angular.z = wz
         self._cmd_pub.publish(msg)
 
@@ -54,7 +50,7 @@ class MecanumHILNode(Node):
         self.send_velocity(0.0, 0.0, 0.0)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def ros_node():
     rclpy.init()
     node = MecanumHILNode()
@@ -83,7 +79,9 @@ def test_straight_drive(ros_node):
     assert odom is not None, "No odometry received"
     x = odom.pose.pose.position.x
     assert abs(x) > 0.17, f"Robot did not drive forward far enough: x={x:.3f} m"
-    assert abs(odom.pose.pose.position.y) < 0.05, f"Lateral drift too large: y={odom.pose.pose.position.y:.3f}"
+    assert (
+        abs(odom.pose.pose.position.y) < 0.05
+    ), f"Lateral drift too large: y={odom.pose.pose.position.y:.3f}"
 
 
 # ---------------------------------------------------------------------------
@@ -106,8 +104,9 @@ def test_strafe_left(ros_node):
     assert odom is not None, "No odometry received"
     y = odom.pose.pose.position.y
     assert abs(y) > 0.15, f"Robot did not strafe: y={y:.3f} m"
-    assert abs(odom.pose.pose.position.x) < 0.05, \
-        f"Robot drifted forward during strafe: x={odom.pose.pose.position.x:.3f}"
+    assert (
+        abs(odom.pose.pose.position.x) < 0.05
+    ), f"Robot drifted forward during strafe: x={odom.pose.pose.position.x:.3f}"
 
 
 # ---------------------------------------------------------------------------
@@ -122,6 +121,7 @@ def test_pure_rotation(ros_node):
     pytest.skip("HIL test: requires physical robot. Remove skip when robot is connected.")
 
     import math
+
     ros_node.send_velocity(wz=1.0)
     time.sleep(2.0 * math.pi)
     ros_node.stop()
@@ -132,5 +132,6 @@ def test_pure_rotation(ros_node):
     x = odom.pose.pose.position.x
     y = odom.pose.pose.position.y
     translation = math.sqrt(x**2 + y**2)
-    assert translation < 0.10, \
-        f"Too much translation during rotation: {translation:.3f} m (adjust lx+ly in controllers.yaml)"
+    assert (
+        translation < 0.10
+    ), f"Too much translation during rotation: {translation:.3f} m (adjust lx+ly in controllers.yaml)"

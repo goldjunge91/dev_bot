@@ -1,8 +1,8 @@
 // Servo.h Mock für native_launcher Tests
 // GMock-basiert: EXPECT_CALL verifiziert attach/detach/writeMicroseconds
 #pragma once
-#include <gmock/gmock.h>
 #include <cstdint>
+#include <gmock/gmock.h>
 
 class Servo {
 public:

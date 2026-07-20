@@ -6,16 +6,20 @@
  * spinning, no real serial port) — the same "call the public task method
  * directly" pattern mecanum_pico's HardwareDiagnostics tests use.
  */
-#include <gtest/gtest.h>
-
 #include "diagnostic_updater/diagnostic_updater.hpp"
 #include "nerf_launch_system/nerf_diagnostics.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include <gtest/gtest.h>
+
 class NerfDiagnosticsTest : public ::testing::Test {
 protected:
-    static void SetUpTestSuite() { rclcpp::init(0, nullptr); }
-    static void TearDownTestSuite() { rclcpp::shutdown(); }
+    static void SetUpTestSuite() {
+        rclcpp::init(0, nullptr);
+    }
+    static void TearDownTestSuite() {
+        rclcpp::shutdown();
+    }
 };
 
 TEST_F(NerfDiagnosticsTest, ReportsOkWhenConnectedAndNoFailures) {

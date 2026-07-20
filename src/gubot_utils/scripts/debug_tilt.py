@@ -58,23 +58,25 @@ print(f"  {OK} Simulation aktiv")
 
 # ── 1. Nodes ─────────────────────────────────────────────────
 section("1. Relevante Nodes")
-for expected in ["controller_manager", "robot_state_publisher",
-                 "twist_mux", "ros_gz_bridge"]:
+for expected in ["controller_manager", "robot_state_publisher", "twist_mux", "ros_gz_bridge"]:
     sym = OK if expected in node_names else FAIL
     print(f"  {sym} /{expected}")
 
 # ── 2. Topics ────────────────────────────────────────────────
 section("2. Topics")
 topic_names = [t for t, _ in node.get_topic_names_and_types()]
-for topic in ["/tilt_controller/commands", "/joint_states",
-              "/diff_cont/cmd_vel_unstamped", "/clock"]:
+for topic in [
+    "/tilt_controller/commands",
+    "/joint_states",
+    "/diff_cont/cmd_vel_unstamped",
+    "/clock",
+]:
     sym = OK if topic in topic_names else FAIL
     print(f"  {sym} {topic}")
 
 # ── 3. Controller-Status via Service ─────────────────────────
 section("3. Controller Manager – Status")
-cli = node.create_client(
-    ListControllers, "/controller_manager/list_controllers")
+cli = node.create_client(ListControllers, "/controller_manager/list_controllers")
 if not cli.wait_for_service(timeout_sec=3.0):
     print(f"  {FAIL} Service /controller_manager/list_controllers nicht erreichbar")
 else:
@@ -83,15 +85,19 @@ else:
         sym = OK if c.state == "active" else WARN
         print(f"  {sym} {c.name:<35} state={c.state}  type={c.type}")
     names_states = {c.name: c.state for c in resp.controller}
-    for name in ["tilt_controller", "diff_cont", "joint_broad",
-                 "shooter_controller", "arming_controller"]:
+    for name in [
+        "tilt_controller",
+        "diff_cont",
+        "joint_broad",
+        "shooter_controller",
+        "arming_controller",
+    ]:
         if name not in names_states:
             print(f"  {FAIL} {name} FEHLT komplett")
 
 # ── 4. Hardware Interfaces via Service ───────────────────────
 section("4. Hardware Interfaces (trigger_joint/position?)")
-hw_cli = node.create_client(ListHardwareInterfaces,
-                            "/controller_manager/list_hardware_interfaces")
+hw_cli = node.create_client(ListHardwareInterfaces, "/controller_manager/list_hardware_interfaces")
 if not hw_cli.wait_for_service(timeout_sec=3.0):
     print(f"  {FAIL} Service nicht erreichbar")
 else:
@@ -132,9 +138,11 @@ else:
     start_pos = received["trigger_joint"]
     start_pos = received["trigger_joint"]
     in_limits = -0.52 <= start_pos <= 0.52
-    print(f"  {OK if in_limits else FAIL} "
-          f"trigger_joint = {start_pos:.4f} rad  "
-          f"({'in Limits [-0.52, 0.52]' if in_limits else 'AUSSERHALB Limits!'})")
+    print(
+        f"  {OK if in_limits else FAIL} "
+        f"trigger_joint = {start_pos:.4f} rad  "
+        f"({'in Limits [-0.52, 0.52]' if in_limits else 'AUSSERHALB Limits!'})"
+    )
 
     print(f"\n  {INFO} Sende 0.2 rad auf /tilt_controller/commands ...")
     msg_out = Float64MultiArray()
@@ -153,15 +161,19 @@ else:
     print(f"  Start : {start_pos:.4f} rad")
     print(f"  Jetzt : {end_pos:.4f} rad")
     print(f"  Delta : {delta:.4f} rad")
-    print(f"  {OK if moved else FAIL} "
-          f"{'Joint bewegt sich!' if moved else 'Joint bewegt sich NICHT'}")
+    print(
+        f"  {OK if moved else FAIL} "
+        f"{'Joint bewegt sich!' if moved else 'Joint bewegt sich NICHT'}"
+    )
 
 # ── 6. Zusammenfassung ────────────────────────────────────────
 section("6. Zusammenfassung")
 if "trigger_joint/position" not in all_ifaces:
     print(f"  {FAIL} Hardware-Interface fehlt → ign_ros2_control nicht geladen")
-    print("       Pruefe: ros2_control_gazebo_fortress.xacro nutzt "
-          "ign_ros2_control/IgnitionSystem?")
+    print(
+        "       Pruefe: ros2_control_gazebo_fortress.xacro nutzt "
+        "ign_ros2_control/IgnitionSystem?"
+    )
 elif names_states.get("tilt_controller") != "active":
     state = names_states.get("tilt_controller", "FEHLT")
     print(f"  {FAIL} tilt_controller nicht active (state={state})")
@@ -171,11 +183,9 @@ else:
     print(f"  {OK} tilt_controller active")
     try:
         sym = OK if moved else FAIL
-        print(
-            f"  {sym} {'Tilt funktioniert!' if moved else 'Joint reagiert nicht auf Befehl'}")
+        print(f"  {sym} {'Tilt funktioniert!' if moved else 'Joint reagiert nicht auf Befehl'}")
         if not moved:
-            print(
-                "       Pruefe: URDF-Limits vs gesendeter Wert (0.2 in [-0.52,0.52]?)")
+            print("       Pruefe: URDF-Limits vs gesendeter Wert (0.2 in [-0.52,0.52]?)")
             print("       Pruefe: PID p-Gain > 0 in my_controllers.yaml?")
     except NameError:
         print(f"  {WARN} JointState nicht lesbar")

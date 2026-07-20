@@ -56,6 +56,7 @@ into the detection pipeline (`udp_cam_sender` runs on the robot).
 
 1. Register a face: `ros2 run face_tracker register_face --ros-args -p person_name:=<name>`
 2. Launch: `ros2 launch face_tracker face_tracker.launch.py`
+
 ## Tests
 
 ```bash

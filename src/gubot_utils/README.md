@@ -82,6 +82,7 @@ ros2 run gubot_utils imu_hw_test.py --min-rate 80        # strengere Rate
 # Während simulation.launch.py / launch_all_real.launch.py läuft:
 ros2 run gubot_utils debug_tilt.py 2>&1 | tee debug_tilt.log
 ```
+
 Prüft `controller_manager`-Status, geladene Hardware-Interfaces und
 `JointState`/Tilt-Feedback — nützlich, wenn der Nerf-Tilt-Controller nicht
 reagiert.

@@ -9,22 +9,13 @@ if(BUILD_TESTING)
 
   find_package(ament_cmake_pytest REQUIRED)
   ament_add_pytest_test(test_tilt_controller_spawner
-    test/test_tilt_controller_spawner.py
-    TIMEOUT 30
-  )
-  ament_add_pytest_test(test_controller_yaml
-    test/test_controller_yaml.py
-    TIMEOUT 30
-  )
-  ament_add_pytest_test(test_controller_launch
-    test/test_controller_launch.py
-    TIMEOUT 30
-  )
+                        test/test_tilt_controller_spawner.py TIMEOUT 30)
+  ament_add_pytest_test(test_controller_yaml test/test_controller_yaml.py
+                        TIMEOUT 30)
+  ament_add_pytest_test(test_controller_launch test/test_controller_launch.py
+                        TIMEOUT 30)
 endif()
 
-install(
-  DIRECTORY launch config
-  DESTINATION share/${PROJECT_NAME}
-)
+install(DIRECTORY launch config DESTINATION share/${PROJECT_NAME})
 
 ament_package()

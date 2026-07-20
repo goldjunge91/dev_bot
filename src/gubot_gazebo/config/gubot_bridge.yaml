@@ -32,4 +32,3 @@
     ros_type_name: geometry_msgs/msg/Twist
     gz_type_name: gz.msgs.Twist
     direction: GZ_TO_ROS
-

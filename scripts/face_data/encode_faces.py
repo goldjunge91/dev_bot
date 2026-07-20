@@ -1,7 +1,8 @@
-import face_recognition
-import pickle
 import os
+import pickle
+
 import cv2
+import face_recognition
 
 # Einstellungen
 INPUT_DIR = "faces_raw"

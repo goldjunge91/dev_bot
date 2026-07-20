@@ -9,11 +9,11 @@ namespace nerf_launch_system {
 NerfDiagnostics::NerfDiagnostics(const std::string &hardware_name,
                                  const std::string &device,
                                  int baud_rate,
-                                 double expected_rate_hz)
-    : hardware_name_(hardware_name),
-      device_(device),
-      baud_rate_(baud_rate),
-      expected_rate_hz_(expected_rate_hz) {
+                                 double expected_rate_hz) :
+    hardware_name_(hardware_name),
+    device_(device),
+    baud_rate_(baud_rate),
+    expected_rate_hz_(expected_rate_hz) {
     // Fixed node name: this hardware component is a singleton per robot, and
     // hardware component names (info_.name) are not guaranteed to be valid
     // ROS node names (they may contain characters ROS node names forbid).
@@ -25,7 +25,9 @@ NerfDiagnostics::NerfDiagnostics(const std::string &hardware_name,
     updater_->add("Control Loop Rate", this, &NerfDiagnostics::loop_rate_task);
 }
 
-NerfDiagnostics::~NerfDiagnostics() { stop(); }
+NerfDiagnostics::~NerfDiagnostics() {
+    stop();
+}
 
 void NerfDiagnostics::start() {
     if (running_.exchange(true)) {
@@ -52,7 +54,9 @@ void NerfDiagnostics::set_connected(bool connected) {
     connected_.store(connected, std::memory_order_relaxed);
 }
 
-void NerfDiagnostics::set_armed(bool armed) { armed_.store(armed, std::memory_order_relaxed); }
+void NerfDiagnostics::set_armed(bool armed) {
+    armed_.store(armed, std::memory_order_relaxed);
+}
 
 void NerfDiagnostics::note_write_failure() {
     write_failures_.fetch_add(1, std::memory_order_relaxed);

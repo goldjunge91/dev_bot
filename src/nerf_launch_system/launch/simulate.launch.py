@@ -12,9 +12,14 @@
 # Muster aus gubot_gazebo.
 
 import os
+
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    RegisterEventHandler,
+)
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
@@ -80,9 +85,12 @@ def generate_launch_description():
         package="ros_gz_sim",
         executable="create",
         arguments=[
-            "-topic", "robot_description",
-            "-name", "nerf_launcher",
-            "-allow_renaming", "true",
+            "-topic",
+            "robot_description",
+            "-name",
+            "nerf_launcher",
+            "-allow_renaming",
+            "true",
         ],
         output="screen",
     )
@@ -117,7 +125,8 @@ def generate_launch_description():
             "trigger_controller",  # Nerf Tilt/Trigger Controller
             "pusher_controller",  # Dart-Pusher Controller
             "arming_controller",  # System Arming/Disarming
-            "--controller-manager-timeout", "60",
+            "--controller-manager-timeout",
+            "60",
         ],
         output="screen",
     )

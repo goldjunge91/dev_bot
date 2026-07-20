@@ -103,7 +103,8 @@ ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose \
 ## `navigation.launch.py` (Nav2-Serverkette separat)
 
 Controller, Planner, Smoother, Behaviors, BT Navigator, Waypoint Follower
-+ Lifecycle Manager. Braucht `map->odom` von AMCL **oder** slam_toolbox.
+
+- Lifecycle Manager. Braucht `map->odom` von AMCL **oder** slam_toolbox.
 
 | Argument | Standard | Bedeutung |
 |---|---|---|

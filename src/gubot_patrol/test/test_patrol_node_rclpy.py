@@ -23,9 +23,9 @@ import time
 
 import pytest
 import rclpy
+from geometry_msgs.msg import Twist
 from rclpy.duration import Duration
 from rclpy.executors import SingleThreadedExecutor
-from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool
 from std_srvs.srv import SetBool
 
@@ -49,12 +49,8 @@ class PatrolRig:
         self.probe = rclpy.create_node("patrol_probe")
         self.twists = []
         self.actives = []
-        self.probe.create_subscription(
-            Twist, "cmd_vel_nav", self.twists.append, 10
-        )
-        self.probe.create_subscription(
-            Bool, "/patrol_node/active", self.actives.append, 10
-        )
+        self.probe.create_subscription(Twist, "cmd_vel_nav", self.twists.append, 10)
+        self.probe.create_subscription(Bool, "/patrol_node/active", self.actives.append, 10)
         self.executor = SingleThreadedExecutor()
         self.executor.add_node(self.node)
         self.executor.add_node(self.probe)
@@ -70,9 +66,7 @@ class PatrolRig:
 
     def backdate_phase(self, seconds):
         """Setzt den Phasenstart in die Vergangenheit."""
-        self.node._phase_start = self.node.get_clock().now() - Duration(
-            seconds=seconds
-        )
+        self.node._phase_start = self.node.get_clock().now() - Duration(seconds=seconds)
 
     def shutdown(self):
         self.executor.remove_node(self.node)
@@ -86,9 +80,7 @@ def rig(rclpy_ctx):
     """Frischer Aufbau pro Test."""
     r = PatrolRig()
     # Discovery zwischen Node und Probe abwarten
-    r.spin_until(
-        lambda: r.probe.count_publishers("cmd_vel_nav") > 0, timeout=5.0
-    )
+    r.spin_until(lambda: r.probe.count_publishers("cmd_vel_nav") > 0, timeout=5.0)
     yield r
     r.shutdown()
 
@@ -132,9 +124,7 @@ def test_turn_completion_advances_leg(rig):
 
 def test_set_enabled_false_publishes_stop_and_gates_timer(rig):
     """Deaktivieren: Stop-Twist, danach keine Fahrkommandos mehr."""
-    response = rig.node._on_set_enabled(
-        SetBool.Request(data=False), SetBool.Response()
-    )
+    response = rig.node._on_set_enabled(SetBool.Request(data=False), SetBool.Response())
     assert response.success is True
     assert response.message == "patrol disabled"
     assert rig.spin_until(lambda: rig.twists)
@@ -156,6 +146,4 @@ def test_set_enabled_true_reenables(rig):
     rig.node._on_timer()
     # Der Stop-Twist des Disable kann noch in Zustellung sein — explizit
     # auf das Vorwaerts-Kommando warten.
-    assert rig.spin_until(
-        lambda: any(t.linear.x > 0.0 for t in rig.twists)
-    )
+    assert rig.spin_until(lambda: any(t.linear.x > 0.0 for t in rig.twists))

@@ -5,33 +5,35 @@
 # Run: colcon test --packages-select mecanum_pico
 #      colcon test-result --verbose
 
+import os
 import unittest
+
 import launch
-import launch_ros
 import launch_testing
 import launch_testing.actions
 import launch_testing.markers
 import pytest
 import rclpy
+from ament_index_python.packages import get_package_share_directory
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from ament_index_python.packages import get_package_share_directory
-import os
 
 
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
-    pkg_share = get_package_share_directory('mecanum_pico')
-    launch_file = os.path.join(pkg_share, 'launch', 'mecanum_pico.launch.py')
+    pkg_share = get_package_share_directory("mecanum_pico")
+    launch_file = os.path.join(pkg_share, "launch", "mecanum_pico.launch.py")
 
-    return launch.LaunchDescription([
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(launch_file),
-            launch_arguments={'use_mock_hardware': 'true', 'use_rviz': 'false'}.items(),
-        ),
-        launch_testing.actions.ReadyToTest(),
-    ])
+    return launch.LaunchDescription(
+        [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(launch_file),
+                launch_arguments={"use_mock_hardware": "true", "use_rviz": "false"}.items(),
+            ),
+            launch_testing.actions.ReadyToTest(),
+        ]
+    )
 
 
 class TestMecanumPicoLaunch(unittest.TestCase):
@@ -39,7 +41,7 @@ class TestMecanumPicoLaunch(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         rclpy.init()
-        cls.node = rclpy.create_node('test_mecanum_launch')
+        cls.node = rclpy.create_node("test_mecanum_launch")
 
     @classmethod
     def tearDownClass(cls):

@@ -1,5 +1,5 @@
 import struct
-import sys
+
 import numpy as np
 
 
@@ -7,7 +7,7 @@ def parse_stl(filename):
     vertices = []
     try:
         with open(filename, "rb") as f:
-            header = f.read(80)
+            f.read(80)  # STL binary header, unused
             count_bytes = f.read(4)
             if len(count_bytes) < 4:
                 return None
@@ -29,9 +29,7 @@ def parse_stl(filename):
     return np.array(vertices).reshape(-1, 3)
 
 
-files = [
-    "/home/ros/projects/my_new_robot/src/nerf_standalone/description/meshes/Dart_Pusher.stl"
-]
+files = ["/home/ros/projects/my_new_robot/src/nerf_standalone/description/meshes/Dart_Pusher.stl"]
 
 for fn in files:
     verts = parse_stl(fn)

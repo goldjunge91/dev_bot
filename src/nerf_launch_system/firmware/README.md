@@ -1,4 +1,4 @@
-   # Nerf Launcher Firmware (Arduino Pro Micro)
+# Nerf Launcher Firmware (Arduino Pro Micro)
 
 Arduino firmware for controlling a Nerf dart launcher. This firmware runs on an Arduino Pro Micro (or compatible) and interfaces via USB Serial or UART.
 
@@ -20,6 +20,7 @@ Arduino firmware for controlling a Nerf dart launcher. This firmware runs on an 
 The firmware accepts plain-text commands terminated by a newline (`\n` or `\r`).
 
 ### System Safety
+
 | Command  | Description                                                 |
 | :------- | :---------------------------------------------------------- |
 | `ARM`    | Arms the ESCs. System will beep. **Wait 2s** before firing. |
@@ -28,6 +29,7 @@ The firmware accepts plain-text commands terminated by a newline (`\n` or `\r`).
 | `STATUS` | Returns `STATUS: ARMED` or `STATUS: DISARMED`.              |
 
 ### Firing Control
+
 | Command          | Description                                                            |
 | :--------------- | :--------------------------------------------------------------------- |
 | `SHOT <pwr>`     | Initiates full firing sequence. `pwr` (0-100) sets flywheel speed.     |
@@ -37,6 +39,7 @@ The firmware accepts plain-text commands terminated by a newline (`\n` or `\r`).
 | `NB`             | "Nudge Back" - Manually jogs pusher backward.                          |
 
 ### Tilt Control
+
 *Tilt uses a continuous rotation servo driving a lead screw or gear.*
 
 | Command   | Description                            |
@@ -47,6 +50,7 @@ The firmware accepts plain-text commands terminated by a newline (`\n` or `\r`).
 | `TD`      | "Tilt Down" - Small nudge down.        |
 
 ### Configuration & Calibration
+
 | Command         | Description                                                     |
 | :-------------- | :-------------------------------------------------------------- |
 | `CAL`           | enters **ESC Calibration Mode**. (See below)                    |
@@ -87,6 +91,7 @@ ros2 launch nerf_dart_launcher nerf_launcher.launch.py serial_port:=/dev/ttyACM0
 ```
 
 Topics:
+
 - `/nerf_launcher/cmd/arm` (Bool) - ARM/DISARM
 - `/nerf_launcher/cmd/fire` (Bool) - Fire sequence
 - `/nerf_launcher/cmd/tilt` (Float32) - Tilt angle

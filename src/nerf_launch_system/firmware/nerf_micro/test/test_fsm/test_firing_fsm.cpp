@@ -228,8 +228,8 @@ TEST_F(FiringFSMTest, Calibration_ArmedToCalibratingToIdle) {
     // Disarm im CALIBRATING-Modus -> Sonderfall: geht direkt zu IDLE
     fsm->triggerDisarming();
     EXPECT_EQ(fsm->getCurrentState(), FiringState::IDLE);
-    EXPECT_FALSE(fsm->isArmed());        // Sonderfall darf isArmed nicht haengen lassen
-    EXPECT_GE(detachESCsCalls, 1);       // und muss die ESCs hardwareseitig trennen
+    EXPECT_FALSE(fsm->isArmed());   // Sonderfall darf isArmed nicht haengen lassen
+    EXPECT_GE(detachESCsCalls, 1);  // und muss die ESCs hardwareseitig trennen
 }
 
 // ============================================================================

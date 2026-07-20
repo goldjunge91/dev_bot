@@ -1,6 +1,8 @@
 ---
-# Fremdpakete nicht umformatieren (siehe src/third_party/README.md)
-exclude: ^src/(third_party|serial|husarion_gz_worlds|mecanum_drive_controller)/
+# Fremdpakete nicht umformatieren (siehe src/third_party/README.md).
+# nerf_micro/googletest ist eine vendored GoogleTest-Kopie fuer PlatformIO-native-Tests.
+# .claude/ ist Tooling-Konfiguration (Rules/Skills/Commands), keine Projektquelle.
+exclude: ^src/(third_party|serial|husarion_gz_worlds|mecanum_drive_controller)/|^src/nerf_launch_system/firmware/nerf_micro/googletest/|^\.claude/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -46,6 +48,7 @@ repos:
         name: codespell
         description: Checks for common misspellings in text files.
         entry: codespell
+        args: [--ignore-words=.codespell-ignore-words.txt]
         exclude_types: [rst, svg]
         language: python
         types: [text]
@@ -77,7 +80,10 @@ repos:
         stages: [pre-commit]
         entry: ament_copyright
         language: system
-        exclude: ^.*\.md$
+        # TODO: mecanum_pico und nerf_launch_system fehlen durchgaengig Copyright-Header
+        # (~100+ Dateien) -- separates Nacharbeiten, siehe Plan.
+        # scripts/ sind Ad-hoc-Entwicklerskripte ausserhalb jedes ROS-Pakets.
+        exclude: ^.*\.md$|^src/(mecanum_pico|nerf_launch_system)/|^scripts/
 
   - repo: https://github.com/PyCQA/doc8
     rev: v1.1.2

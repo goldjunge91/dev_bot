@@ -1,6 +1,6 @@
-import serial
 import time
-import sys
+
+import serial
 
 
 def test_pico():

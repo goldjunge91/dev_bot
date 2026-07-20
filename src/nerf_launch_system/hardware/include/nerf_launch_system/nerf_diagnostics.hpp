@@ -44,9 +44,9 @@ public:
      *                       this hardware component has no rate of its own).
      */
     NerfDiagnostics(const std::string &hardware_name,
-                     const std::string &device,
-                     int baud_rate,
-                     double expected_rate_hz);
+                    const std::string &device,
+                    int baud_rate,
+                    double expected_rate_hz);
 
     ~NerfDiagnostics();
 

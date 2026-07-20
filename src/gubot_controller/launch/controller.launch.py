@@ -44,8 +44,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration("use_sim_time", default="false")
     use_ros2_control = LaunchConfiguration("use_ros2_control", default="true")
-    use_nerf_hardware = LaunchConfiguration(
-        "use_nerf_hardware", default="true")
+    use_nerf_hardware = LaunchConfiguration("use_nerf_hardware", default="true")
     use_camera = LaunchConfiguration("use_camera", default="true")
     auto_arm = LaunchConfiguration("auto_arm", default="false")
 
@@ -53,10 +52,9 @@ def generate_launch_description():
     # controller_config wird mit Standardpfad geladen (überschreibbar)
     load_urdf = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                FindPackageShare(
-                    "gubot_description"), "launch", "load_urdf.launch.py"
-            ])
+            PathJoinSubstitution(
+                [FindPackageShare("gubot_description"), "launch", "load_urdf.launch.py"]
+            )
         ),
         launch_arguments={
             "use_sim_time": use_sim_time,
@@ -67,10 +65,9 @@ def generate_launch_description():
     )
 
     # 2. Twist Mux
-    twist_mux_config = PathJoinSubstitution([
-        FindPackageShare(
-            package_name), "config", "twist_mux.yaml"
-    ])
+    twist_mux_config = PathJoinSubstitution(
+        [FindPackageShare(package_name), "config", "twist_mux.yaml"]
+    )
     twist_mux = Node(
         package="twist_mux",
         executable="twist_mux",
@@ -88,10 +85,9 @@ def generate_launch_description():
     # die Remappings spiegeln exakt die <ros>-Remappings des Sim-Plugins,
     # damit Sim und Real denselben Topic-Vertrag haben (Referenz-Pattern
     # rosbot_controller/launch/controller.launch.py).
-    controller_config = PathJoinSubstitution([
-        FindPackageShare(
-            package_name), "config", "controllers.yaml"
-    ])
+    controller_config = PathJoinSubstitution(
+        [FindPackageShare(package_name), "config", "controllers.yaml"]
+    )
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
@@ -104,8 +100,7 @@ def generate_launch_description():
                 "_mecanum_drive_controller/transition_event",
             ),
             ("imu_broadcaster/imu", "imu/data"),
-            ("imu_broadcaster/transition_event",
-             "_imu_broadcaster/transition_event"),
+            ("imu_broadcaster/transition_event", "_imu_broadcaster/transition_event"),
             (
                 "joint_state_broadcaster/transition_event",
                 "_joint_state_broadcaster/transition_event",
@@ -124,25 +119,23 @@ def generate_launch_description():
             "mecanum_drive_controller",
             "imu_broadcaster",
             "joint_state_broadcaster",
-            "-c", "controller_manager",
-            "--controller-manager-timeout", "60",
+            "-c",
+            "controller_manager",
+            "--controller-manager-timeout",
+            "60",
         ],
     )
 
     # TimerAction: controller_manager muss bereit sein (wie Referenz: 2.0s)
-    delayed_controllers_spawner = TimerAction(
-        period=2.0, actions=[controllers_spawner])
+    delayed_controllers_spawner = TimerAction(period=2.0, actions=[controllers_spawner])
 
     # Stderr-Monitor: Shutdown bei fatalen Fehlern (Referenz-Pattern)
     def check_if_log_is_fatal(event):
         red_color = "\033[91m"
         reset_color = "\033[0m"
         msg = event.text.decode().lower()
-        if (
-            "fatal" in msg or "failed" in msg
-        ) and "attempt" not in msg:
-            print(
-                f"{red_color}Fatal error: {event.text}. Emitting shutdown...{reset_color}")
+        if ("fatal" in msg or "failed" in msg) and "attempt" not in msg:
+            print(f"{red_color}Fatal error: {event.text}. Emitting shutdown...{reset_color}")
             return EmitEvent(event=Shutdown(reason="Spawner failed"))
 
     controllers_monitor = RegisterEventHandler(
@@ -162,8 +155,10 @@ def generate_launch_description():
             "tilt_controller",
             "shooter_controller",
             "arming_controller",
-            "-c", "controller_manager",
-            "--controller-manager-timeout", "60",
+            "-c",
+            "controller_manager",
+            "--controller-manager-timeout",
+            "60",
         ],
         output="screen",
         condition=IfCondition(use_nerf_hardware),
@@ -203,26 +198,28 @@ def generate_launch_description():
         )
     )
 
-    return LaunchDescription([
-        DeclareLaunchArgument("use_sim_time", default_value="false"),
-        DeclareLaunchArgument("use_ros2_control", default_value="true"),
-        DeclareLaunchArgument("use_nerf_hardware", default_value="true"),
-        DeclareLaunchArgument(
-            "use_camera",
-            default_value="true",
-            description="Include the Gazebo camera sensor in the URDF.",
-        ),
-        DeclareLaunchArgument(
-            "auto_arm",
-            default_value="false",
-            description="Auto-arm the Nerf launcher on startup",
-        ),
-        load_urdf,
-        twist_mux,
-        controller_manager,
-        delayed_controllers_spawner,
-        controllers_monitor,
-        delayed_nerf_spawner,
-        nerf_monitor,
-        delayed_nerf_control,
-    ])
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument("use_sim_time", default_value="false"),
+            DeclareLaunchArgument("use_ros2_control", default_value="true"),
+            DeclareLaunchArgument("use_nerf_hardware", default_value="true"),
+            DeclareLaunchArgument(
+                "use_camera",
+                default_value="true",
+                description="Include the Gazebo camera sensor in the URDF.",
+            ),
+            DeclareLaunchArgument(
+                "auto_arm",
+                default_value="false",
+                description="Auto-arm the Nerf launcher on startup",
+            ),
+            load_urdf,
+            twist_mux,
+            controller_manager,
+            delayed_controllers_spawner,
+            controllers_monitor,
+            delayed_nerf_spawner,
+            nerf_monitor,
+            delayed_nerf_control,
+        ]
+    )

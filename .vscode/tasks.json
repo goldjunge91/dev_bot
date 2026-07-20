@@ -198,14 +198,16 @@
             "label": "new ament_cmake package",
             "detail": "Create a new ROS cpp package from a template.",
             "type": "shell",
-            "command": "ros2 pkg create --destination-directory src --build-type ament_cmake ${input:package}",
+            "command":
+                "ros2 pkg create --destination-directory src --build-type ament_cmake ${input:package}",
             "problemMatcher": []
         },
         {
             "label": "new ament_python package",
             "detail": "Create a new ROS python package from a template.",
             "type": "shell",
-            "command": "ros2 pkg create --destination-directory src --build-type ament_python ${input:package}",
+            "command":
+                "ros2 pkg create --destination-directory src --build-type ament_python ${input:package}",
             "problemMatcher": []
         },
         {
@@ -226,7 +228,8 @@
             "label": "install dependencies",
             "detail": "Install all dependencies specified in the workspaces package.xml files.",
             "type": "shell",
-            "command": "sudo apt-get update && rosdep update && rosdep install --from-paths src --ignore-src -y",
+            "command":
+                "sudo apt-get update && rosdep update && rosdep install --from-paths src --ignore-src -y",
             "problemMatcher": []
         },
         {
@@ -240,7 +243,8 @@
             "label": "Kill Gazebo and RViz processes",
             "detail": "Terminate all Gazebo and RViz processes (TERM, fallback to KILL)",
             "type": "shell",
-            "command": "bash -lc \"pids=$(pgrep -f 'gzserver|gzclient|gazebo|rviz2|rviz' || true); if [ -n \\\"$pids\\\" ]; then echo 'Killing:' $pids; kill -TERM $pids || kill -9 $pids; else echo 'No gazebo or rviz processes found'; fi\"",
+            "command":
+                "bash -lc \"pids=$(pgrep -f 'gzserver|gzclient|gazebo|rviz2|rviz' || true); if [ -n \\\"$pids\\\" ]; then echo 'Killing:' $pids; kill -TERM $pids || kill -9 $pids; else echo 'No gazebo or rviz processes found'; fi\"",
             "presentation": {
                 "panel": "dedicated",
                 "reveal": "always",
@@ -260,14 +264,16 @@
             "label": "add submodules from .repos with logging file",
             "detail": "Create a git submodule for all repositories in your .repos file",
             "type": "shell",
-            "command": "python3 .devcontainer/repos_to_submodules.py --log-file .devcontainer/repos_to_submodules.log",
+            "command":
+                "python3 .devcontainer/repos_to_submodules.py --log-file .devcontainer/repos_to_submodules.log",
             "problemMatcher": []
         },
         {
             "label": "add submodules from .repos with logging file[windows]",
             "detail": "Create a git submodule for all repositories in your .repos file",
             "type": "shell",
-            "command": "python .devcontainer/repos_to_submodules.py --log-file .devcontainer/repos_to_submodules.log",
+            "command":
+                "python .devcontainer/repos_to_submodules.py --log-file .devcontainer/repos_to_submodules.log",
             "problemMatcher": []
         }
     ],

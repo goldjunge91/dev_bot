@@ -56,12 +56,11 @@ import os
 import sys
 
 from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
-from launch.conditions import IfCondition
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from preflight import check_nerf, check_pico, preflight_action  # noqa: E402
@@ -281,9 +280,7 @@ def generate_launch_description():
     )
 
     # Verzögere den Start der Gesichtserkennung, damit die Hardware sicher bereit ist
-    delayed_face_tracker_launch = TimerAction(
-        period=12.0, actions=[face_tracker_launch]
-    )
+    delayed_face_tracker_launch = TimerAction(period=12.0, actions=[face_tracker_launch])
 
     return LaunchDescription(
         [

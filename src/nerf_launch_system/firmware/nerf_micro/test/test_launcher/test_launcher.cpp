@@ -2,9 +2,9 @@
 // Launcher-Tests — selbstständiger ArduinoMock (kein adrianaxente/arduino-mock)
 // Testet Hardware-Interaktion via GMock: delay(), pinMode(), digitalWrite()
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <Arduino.h>  // ← test/mock_launcher/Arduino.h
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 // ── Globale Instanzen ────────────────────────────────────────
 SerialStub Serial;
@@ -28,9 +28,9 @@ void releaseArduinoMock() {
 
 // ── Quellen direkt einbinden ─────────────────────────────────
 #include "FiringFSM.cpp"
+#include "Launcher.cpp"
 #include "SerialOutput.cpp"
 #include "TiltController.cpp"
-#include "Launcher.cpp"
 
 using ::testing::_;
 using ::testing::AtLeast;
@@ -51,7 +51,9 @@ protected:
     void TearDown() override {
         releaseArduinoMock();
     }
-    void advanceMs(uint32_t ms) { mock->addMillisRaw(ms); }
+    void advanceMs(uint32_t ms) {
+        mock->addMillisRaw(ms);
+    }
 };
 
 // ============================================================
@@ -253,7 +255,9 @@ protected:
     void TearDown() override {
         releaseArduinoMock();
     }
-    void advanceMs(uint32_t ms) { mock->addMillisRaw(ms); }
+    void advanceMs(uint32_t ms) {
+        mock->addMillisRaw(ms);
+    }
 };
 
 // ============================================================

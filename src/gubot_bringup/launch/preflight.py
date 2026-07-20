@@ -38,10 +38,7 @@ from launch.substitutions import LaunchConfiguration
 
 PICO_PORT = "/dev/serial/by-id/usb-Raspberry_Pi_Pico_50443405786ACA1C-if00"
 NERF_PORT = "/dev/serial/by-id/usb-Arduino_LLC_Arduino_Leonardo-if00"
-LIDAR_PORT = (
-    "/dev/serial/by-path/"
-    "platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.3:1.0-port0"
-)
+LIDAR_PORT = "/dev/serial/by-path/" "platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.3:1.0-port0"
 CAMERA_DEV = "/dev/video0"
 
 
@@ -56,9 +53,7 @@ def _require_device(label, path, search_patterns, hint):
     if os.path.exists(path):
         return
     found = _found_devices(search_patterns)
-    found_str = (
-        "\n    ".join(found) if found else "(none — is it plugged in / powered?)"
-    )
+    found_str = "\n    ".join(found) if found else "(none — is it plugged in / powered?)"
     raise RuntimeError(
         f"\n{'=' * 70}\n"
         f"PRE-FLIGHT CHECK FAILED: {label} not found on expected port.\n"

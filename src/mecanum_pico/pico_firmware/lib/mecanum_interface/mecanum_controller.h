@@ -6,22 +6,22 @@
 #ifndef MECANUM_CONTROLLER_H
 #define MECANUM_CONTROLLER_H
 
+#include "board_config.h"
 #include "encoder_driver.h"
 #include "motor_driver.h"
-#include "board_config.h"
+
 #include <stdint.h>
 
 // ---------------------------------------------------------------------------
 // PID state for one motor (matches original SetPointInfo)
 // ---------------------------------------------------------------------------
-typedef struct
-{
-  double target;        ///< Target ticks per PID frame
-  int32_t encoder;      ///< Current encoder reading
-  int32_t prev_enc;     ///< Encoder reading last frame
-  int prev_input;       ///< Last input (enc delta) — derivative-kick fix
-  int iterm;            ///< Integrated term — tuning-change fix
-  long output;          ///< Last PWM output
+typedef struct {
+    double target;     ///< Target ticks per PID frame
+    int32_t encoder;   ///< Current encoder reading
+    int32_t prev_enc;  ///< Encoder reading last frame
+    int prev_input;    ///< Last input (enc delta) — derivative-kick fix
+    int iterm;         ///< Integrated term — tuning-change fix
+    long output;       ///< Last PWM output
 } SetPointInfo;
 
 // Global PID state for 4 motors
@@ -41,11 +41,11 @@ extern unsigned char moving;
 extern "C" {
 #endif
 
-/** Zero all PID state. Call when transitioning from stop → move or on reset. */
-void pid_reset(void);
+    /** Zero all PID state. Call when transitioning from stop → move or on reset. */
+    void pid_reset(void);
 
-/** Run one PID frame for all 4 motors (call at PID_RATE_HZ). */
-void pid_update(void);
+    /** Run one PID frame for all 4 motors (call at PID_RATE_HZ). */
+    void pid_update(void);
 
 #ifdef __cplusplus
 }

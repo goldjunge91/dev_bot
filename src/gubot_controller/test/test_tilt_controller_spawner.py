@@ -30,6 +30,7 @@ in der Simulation nicht bewegt hat:
 import os
 import re
 import subprocess
+
 import yaml
 
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -37,15 +38,11 @@ _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 _LAUNCHER_URDF = os.path.join(
     _BASE_DIR, "nerf_launch_system", "description", "urdf", "nerf_launcher.urdf.xacro"
 )
-_CONTROLLERS_YAML = os.path.join(
-    _BASE_DIR, "gubot_controller", "config", "controllers.yaml"
-)
+_CONTROLLERS_YAML = os.path.join(_BASE_DIR, "gubot_controller", "config", "controllers.yaml")
 _RSP_XACRO = os.path.join(
     _BASE_DIR, "gubot_description", "urdf", "ros2_control_gazebo_ign_fortress.xacro"
 )
-_NERF_TELEOP = os.path.join(
-    _BASE_DIR, "gubot_utils", "scripts", "teleop__nerf_joystick.py"
-)
+_NERF_TELEOP = os.path.join(_BASE_DIR, "gubot_utils", "scripts", "teleop__nerf_joystick.py")
 
 # Ignition Gazebo 6 (Fortress/Humble) braucht ign_ros2_control.
 # gz_ros2_control ist fuer Gazebo Garden/Harmonic (Gazebo 7+).
@@ -59,13 +56,10 @@ def _trigger_joint_limits():
     """Gibt (lower, upper) des aktiven trigger_joint-Limits aus dem URDF zurueck."""
     src = open(_LAUNCHER_URDF).read()
     # Kommentare entfernen damit auskommentierte Werte nicht matchen
-    src_no_comments = re.sub(r'<!--.*?-->', '', src, flags=re.DOTALL)
-    block = re.search(
-        r'<joint name="trigger_joint".*?</joint>', src_no_comments, re.DOTALL
-    )
+    src_no_comments = re.sub(r"<!--.*?-->", "", src, flags=re.DOTALL)
+    block = re.search(r'<joint name="trigger_joint".*?</joint>', src_no_comments, re.DOTALL)
     assert block, "trigger_joint nicht in nerf_launcher.urdf.xacro gefunden"
-    m = re.search(
-        r'<limit[^>]*lower="([^"]+)"[^>]*upper="([^"]+)"', block.group())
+    m = re.search(r'<limit[^>]*lower="([^"]+)"[^>]*upper="([^"]+)"', block.group())
     assert m, "Kein aktiver <limit>-Tag in trigger_joint"
     return float(m.group(1)), float(m.group(2))
 
@@ -83,14 +77,10 @@ def test_urdf_limits_match_teleop_range():
     assert lower is not None, "trigger_joint lower limit fehlt"
     assert upper is not None, "trigger_joint upper limit fehlt"
     # Pruefe dass es sinnvolle Grenzen gibt
-    assert lower < upper, (
-        f"trigger_joint limits ungueltig: lower={lower} >= upper={upper}"
-    )
+    assert lower < upper, f"trigger_joint limits ungueltig: lower={lower} >= upper={upper}"
     # Teleop-Skript muss vorhanden und lesbar sein
     teleop_src = open(_NERF_TELEOP).read()
-    assert 'tilt' in teleop_src.lower(), (
-        "Teleop-Skript enthaelt keinen Tilt-Code"
-    )
+    assert "tilt" in teleop_src.lower(), "Teleop-Skript enthaelt keinen Tilt-Code"
 
 
 def test_tilt_controller_configured():
@@ -112,9 +102,9 @@ def test_tilt_controller_configured():
     ), "tilt_controller fehlt/falscher Typ im controller_manager-Block"
 
     tilt = ns.get("tilt_controller", {}).get("ros__parameters", {})
-    assert "trigger_joint" in tilt.get("joints", []), (
-        "trigger_joint fehlt in tilt_controller.joints"
-    )
+    assert "trigger_joint" in tilt.get(
+        "joints", []
+    ), "trigger_joint fehlt in tilt_controller.joints"
 
 
 def test_initial_value_within_joint_limits():
@@ -127,12 +117,11 @@ def test_initial_value_within_joint_limits():
     lower, upper = _trigger_joint_limits()
     src = open(_RSP_XACRO).read()
     # Kommentare entfernen
-    src_no_comments = re.sub(r'<!--.*?-->', '', src, flags=re.DOTALL)
+    src_no_comments = re.sub(r"<!--.*?-->", "", src, flags=re.DOTALL)
     # In der aufgeteilten Datei gibt es keinen sim_mode-Block mehr.
     # Stattdessen suchen wir direkt in der gesamten Datei.
     sim_block_match = re.search(
-        r'xacro:if value="\$\(arg sim_mode\)".*?xacro:if',
-        src_no_comments, re.DOTALL
+        r'xacro:if value="\$\(arg sim_mode\)".*?xacro:if', src_no_comments, re.DOTALL
     )
     # Fallback: Die gesamte Datei verwenden wenn kein sim_mode-Block
     if sim_block_match:
@@ -140,10 +129,7 @@ def test_initial_value_within_joint_limits():
     else:
         search_text = src_no_comments
 
-    m = re.search(
-        r'trigger_joint.*?initial_value.*?>([\d.\-]+)<',
-        search_text, re.DOTALL
-    )
+    m = re.search(r"trigger_joint.*?initial_value.*?>([\d.\-]+)<", search_text, re.DOTALL)
     assert m, "initial_value fuer trigger_joint im sim_mode-Block nicht gefunden"
 
     initial = float(m.group(1))
@@ -162,10 +148,8 @@ def test_trigger_joint_axis_points_up():
     "UP = +tilt_max" fuhr ihn genau falsch herum. Fix: axis = 0 0 -1.
     """
     src = open(_LAUNCHER_URDF).read()
-    src_no_comments = re.sub(r'<!--.*?-->', '', src, flags=re.DOTALL)
-    block = re.search(
-        r'<joint name="trigger_joint".*?</joint>', src_no_comments, re.DOTALL
-    )
+    src_no_comments = re.sub(r"<!--.*?-->", "", src, flags=re.DOTALL)
+    block = re.search(r'<joint name="trigger_joint".*?</joint>', src_no_comments, re.DOTALL)
     assert block, "trigger_joint nicht in nerf_launcher.urdf.xacro gefunden"
 
     m = re.search(r'<axis xyz="([^"]+)"', block.group())
@@ -196,31 +180,24 @@ def test_nodes_use_joint_space_tilt_range():
 
     for path in (_NERF_TELEOP, _NERF_KEYBOARD, _NERF_CONTROL):
         active_lines = [
-            line for line in open(path).read().splitlines()
-            if not line.strip().startswith("#")
+            line for line in open(path).read().splitlines() if not line.strip().startswith("#")
         ]
         active_src = "\n".join(active_lines)
 
         # Direkte Zuweisung (tilt_min = -0.52) oder ROS-Parameter-Default
         # (declare_parameter("tilt_min", -0.52)) — beide Varianten zulassen
-        m_min = re.search(
-            r'tilt_min\s*=\s*(-?[\d.]+)', active_src
-        ) or re.search(
+        m_min = re.search(r"tilt_min\s*=\s*(-?[\d.]+)", active_src) or re.search(
             r'declare_parameter\(\s*"tilt_min",\s*(-?[\d.]+)', active_src
         )
-        m_max = re.search(
-            r'tilt_max\s*=\s*(-?[\d.]+)', active_src
-        ) or re.search(
+        m_max = re.search(r"tilt_max\s*=\s*(-?[\d.]+)", active_src) or re.search(
             r'declare_parameter\(\s*"tilt_max",\s*(-?[\d.]+)', active_src
         )
         assert m_min and m_max, f"tilt_min/tilt_max fehlen in {path}"
         assert float(m_min.group(1)) == lower, (
-            f"{os.path.basename(path)}: tilt_min={m_min.group(1)} != "
-            f"URDF lower limit {lower}"
+            f"{os.path.basename(path)}: tilt_min={m_min.group(1)} != " f"URDF lower limit {lower}"
         )
         assert float(m_max.group(1)) == upper, (
-            f"{os.path.basename(path)}: tilt_max={m_max.group(1)} != "
-            f"URDF upper limit {upper}"
+            f"{os.path.basename(path)}: tilt_max={m_max.group(1)} != " f"URDF upper limit {upper}"
         )
 
         # Keine aktiven Servo-Rohwerte mehr
@@ -241,40 +218,29 @@ def test_hardware_interface_has_tilt_range_params():
     # Der NerfSystem-Block ist in das Makro nerf_ros2_control_hardware
     # (nerf_launch_system) ausgelagert; ros2_control_hardware.xacro ruft
     # es mit den Range-Argumenten auf.
-    hw_xacro = os.path.join(
-        _BASE_DIR, "gubot_description", "urdf", "ros2_control_hardware.xacro"
-    )
-    caller_src = re.sub(
-        r'<!--.*?-->', '', open(hw_xacro).read(), flags=re.DOTALL
-    )
-    caller = re.search(
-        r'<xacro:nerf_ros2_control_hardware[^>]*>', caller_src
-    )
+    hw_xacro = os.path.join(_BASE_DIR, "gubot_description", "urdf", "ros2_control_hardware.xacro")
+    caller_src = re.sub(r"<!--.*?-->", "", open(hw_xacro).read(), flags=re.DOTALL)
+    caller = re.search(r"<xacro:nerf_ros2_control_hardware[^>]*>", caller_src)
     assert caller, (
-        "Makro-Aufruf nerf_ros2_control_hardware fehlt in "
-        "ros2_control_hardware.xacro"
+        "Makro-Aufruf nerf_ros2_control_hardware fehlt in " "ros2_control_hardware.xacro"
     )
     for param in ("tilt_min", "tilt_max"):
-        assert f'{param}=' in caller.group(), (
-            f"Makro-Argument {param} fehlt im nerf_ros2_control_hardware-Aufruf"
-        )
+        assert (
+            f"{param}=" in caller.group()
+        ), f"Makro-Argument {param} fehlt im nerf_ros2_control_hardware-Aufruf"
 
     macro_xacro = os.path.join(
-        _BASE_DIR, "nerf_launch_system", "description", "urdf",
-        "ros2_control_hardware_nerf.xacro"
+        _BASE_DIR, "nerf_launch_system", "description", "urdf", "ros2_control_hardware_nerf.xacro"
     )
-    macro_src = re.sub(
-        r'<!--.*?-->', '', open(macro_xacro).read(), flags=re.DOTALL
-    )
+    macro_src = re.sub(r"<!--.*?-->", "", open(macro_xacro).read(), flags=re.DOTALL)
     nerf_block = re.search(
-        r'<ros2_control name="NerfSystem".*?</ros2_control>',
-        macro_src, re.DOTALL
+        r'<ros2_control name="NerfSystem".*?</ros2_control>', macro_src, re.DOTALL
     )
     assert nerf_block, "NerfSystem-Block fehlt in ros2_control_hardware_nerf.xacro"
     for param in ("tilt_min", "tilt_max"):
-        assert f'<param name="{param}">' in nerf_block.group(), (
-            f"Hardware-Param {param} fehlt im NerfSystem-Block"
-        )
+        assert (
+            f'<param name="{param}">' in nerf_block.group()
+        ), f"Hardware-Param {param} fehlt im NerfSystem-Block"
 
 
 def test_hardware_imu_declares_all_ten_interfaces():
@@ -290,26 +256,29 @@ def test_hardware_imu_declares_all_ten_interfaces():
     # Der IMU-Block kommt aus dem Makro ros2_control_imu_sensor
     # (ros2_control_common.xacro) — daher wird hier das gerenderte URDF
     # geprueft statt des Roh-Texts.
-    hw_xacro = os.path.join(
-        _BASE_DIR, "gubot_description", "urdf", "ros2_control_hardware.xacro"
-    )
+    hw_xacro = os.path.join(_BASE_DIR, "gubot_description", "urdf", "ros2_control_hardware.xacro")
     result = subprocess.run(
         ["xacro", hw_xacro, "use_nerf_hardware:=false"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0, (
-        f"xacro-Rendering von ros2_control_hardware.xacro fehlgeschlagen: "
-        f"{result.stderr}"
+        f"xacro-Rendering von ros2_control_hardware.xacro fehlgeschlagen: " f"{result.stderr}"
     )
-    sensor_block = re.search(
-        r'<sensor name="imu_sensor">.*?</sensor>', result.stdout, re.DOTALL
-    )
+    sensor_block = re.search(r'<sensor name="imu_sensor">.*?</sensor>', result.stdout, re.DOTALL)
     assert sensor_block, "imu_sensor-Block fehlt in ros2_control_hardware.xacro"
 
     expected = [
-        "linear_acceleration.x", "linear_acceleration.y", "linear_acceleration.z",
-        "angular_velocity.x", "angular_velocity.y", "angular_velocity.z",
-        "orientation.x", "orientation.y", "orientation.z", "orientation.w",
+        "linear_acceleration.x",
+        "linear_acceleration.y",
+        "linear_acceleration.z",
+        "angular_velocity.x",
+        "angular_velocity.y",
+        "angular_velocity.z",
+        "orientation.x",
+        "orientation.y",
+        "orientation.z",
+        "orientation.w",
     ]
     declared = re.findall(r'<state_interface name="([^"]+)"', sensor_block.group())
     assert declared == expected, (
@@ -326,14 +295,11 @@ def test_correct_ignition_plugin_in_ros2_control_xacro():
     Ignition Gazebo 6: ign_ros2_control.
     Gazebo Garden/Harmonic (7+): gz_ros2_control.
     """
-    src_no_comments = re.sub(
-        r'<!--.*?-->', '', open(_RSP_XACRO).read(), flags=re.DOTALL
-    )
+    src_no_comments = re.sub(r"<!--.*?-->", "", open(_RSP_XACRO).read(), flags=re.DOTALL)
     assert _CORRECT_SIM_PLUGIN in src_no_comments, (
         f"{_CORRECT_SIM_PLUGIN} fehlt in ros2_control.xacro – "
         f"Ignition 6 braucht ign_ros2_control, nicht gz_ros2_control"
     )
     assert _WRONG_SIM_PLUGIN not in src_no_comments, (
-        f"{_WRONG_SIM_PLUGIN} ist aktiv – das ist fuer Gazebo Garden+, "
-        f"nicht fuer Ignition 6"
+        f"{_WRONG_SIM_PLUGIN} ist aktiv – das ist fuer Gazebo Garden+, " f"nicht fuer Ignition 6"
     )

@@ -1,7 +1,8 @@
-version: "0.2"
+---
+version: '0.2'
 ignorePaths: []
 dictionaryDefinitions: []
-dictionaries: [("german", "de-de"), ("english", "en-us"), ("cpp", "cpp"), ("ros", "ros")]
+dictionaries: [german, english, cpp, ros]
 words: []
 ignoreWords: []
 import: []

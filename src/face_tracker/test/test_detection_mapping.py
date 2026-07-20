@@ -21,10 +21,10 @@ from face_tracker.detection_mapping import face_location_to_bbox, score_for_name
 def test_face_location_to_bbox_concrete_values():
     """(top=10, right=60, bottom=50, left=20) bei 100x200 Pixeln."""
     cx, cy, sx, sy = face_location_to_bbox((10, 60, 50, 20), rows=100, cols=200)
-    assert cx == pytest.approx(0.2)   # (20+60)/2 / 200
-    assert cy == pytest.approx(0.3)   # (10+50)/2 / 100
-    assert sx == pytest.approx(0.2)   # (60-20) / 200
-    assert sy == pytest.approx(0.4)   # (50-10) / 100
+    assert cx == pytest.approx(0.2)  # (20+60)/2 / 200
+    assert cy == pytest.approx(0.3)  # (10+50)/2 / 100
+    assert sx == pytest.approx(0.2)  # (60-20) / 200
+    assert sy == pytest.approx(0.4)  # (50-10) / 100
 
 
 def test_face_location_to_bbox_full_frame():

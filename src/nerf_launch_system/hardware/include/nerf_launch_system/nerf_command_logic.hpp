@@ -19,8 +19,8 @@ namespace nerf_launch_system {
  * @brief Ergebnis eines Tilt-Integrationsschritts
  */
 struct TiltStep {
-    std::string command;   ///< Seriell zu sendendes Kommando, z.B. "UP 100"
-    double new_tilt_pos;    ///< Neuer hw_states_.tilt_pos Wert nach diesem Schritt
+    std::string command;  ///< Seriell zu sendendes Kommando, z.B. "UP 100"
+    double new_tilt_pos;  ///< Neuer hw_states_.tilt_pos Wert nach diesem Schritt
 };
 
 /**

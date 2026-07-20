@@ -47,6 +47,7 @@ ros2 launch nerf_launch_system hardware.launch.py port:=/dev/ttyACM0
 
 Topic (subscribed): `/nerf/tilt` (`std_msgs/Float64`) — normalized
 tilt position:
+
 - `0.0` = down (`tilt_min`, default `-0.52` rad)
 - `0.5` = horizontal (`0.0` rad)
 - `1.0` = up (`tilt_max`, default `+0.52` rad)

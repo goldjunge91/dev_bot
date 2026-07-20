@@ -10,32 +10,32 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
-  <depend>rclpy</depend>
-  <depend>rclcpp</depend>
-  <depend>rclcpp_lifecycle</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>diagnostic_updater</depend>
   <depend>hardware_interface</depend>
-  <depend>pluginlib</depend>
-  <depend>xacro</depend>
   <depend>launch</depend>
   <depend>launch_ros</depend>
+  <depend>libserial-dev</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>rclpy</depend>
   <depend>robot_state_publisher</depend>
   <depend>ros2_control</depend>
   <depend>ros2_controllers</depend>
-  <depend>libserial-dev</depend>
-  <depend>diagnostic_msgs</depend>
-  <depend>diagnostic_updater</depend>
+  <depend>xacro</depend>
 
-  <exec_depend>ros_gz_sim</exec_depend>
-  <exec_depend>ros_gz_bridge</exec_depend>
-  <exec_depend>ign_ros2_control</exec_depend>
   <exec_depend>husarion_gz_worlds</exec_depend>
+  <exec_depend>ign_ros2_control</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
   <exec_depend>rviz2</exec_depend>
 
+  <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
-  <test_depend>ament_cmake_gtest</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -22,16 +22,14 @@ Ansatz: Kombination aus Textanalyse (zuverlaessig) und LaunchDescription
 Introspection.
 """
 
-import os
 import importlib.util
+import os
 
 from launch import LaunchDescription  # noqa: F401
 from launch.actions import DeclareLaunchArgument
 
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-_LAUNCH_FILE = os.path.join(
-    _TEST_DIR, "..", "launch", "controller.launch.py"
-)
+_LAUNCH_FILE = os.path.join(_TEST_DIR, "..", "launch", "controller.launch.py")
 
 
 def _load_launch_source():
@@ -42,9 +40,7 @@ def _load_launch_source():
 
 def _load_launch_description():
     """Laedt die LaunchDescription aus controller.launch.py."""
-    spec = importlib.util.spec_from_file_location(
-        "controller_launch", _LAUNCH_FILE
-    )
+    spec = importlib.util.spec_from_file_location("controller_launch", _LAUNCH_FILE)
     launch_mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(launch_mod)
     return launch_mod.generate_launch_description()
@@ -54,8 +50,7 @@ def _active_source():
     """Quelltext ohne Kommentarzeilen."""
     source = _load_launch_source()
     active_lines = [
-        line.strip() for line in source.splitlines()
-        if not line.strip().startswith("#")
+        line.strip() for line in source.splitlines() if not line.strip().startswith("#")
     ]
     return "\n".join(active_lines)
 
@@ -76,18 +71,15 @@ def test_controller_configuration():
     """Prueft ob mecanum_drive_controller Spawner konfiguriert ist."""
     active_source = _active_source()
 
-    assert "mecanum_drive_controller" in active_source, (
-        "Spawner fuer mecanum_drive_controller fehlt in aktiven Zeilen"
-    )
+    assert (
+        "mecanum_drive_controller" in active_source
+    ), "Spawner fuer mecanum_drive_controller fehlt in aktiven Zeilen"
 
     # diff_cont darf nicht in aktiven argument-Zeilen vorkommen
     diff_cont_active = any(
-        "diff_cont" in line and "arguments" in line
-        for line in active_source.splitlines()
+        "diff_cont" in line and "arguments" in line for line in active_source.splitlines()
     )
-    assert not diff_cont_active, (
-        "Spawner fuer diff_cont ist noch in aktiver Konfiguration"
-    )
+    assert not diff_cont_active, "Spawner fuer diff_cont ist noch in aktiver Konfiguration"
 
 
 def test_controller_manager_node():
@@ -99,9 +91,9 @@ def test_controller_manager_node():
     """
     active_source = _active_source()
 
-    assert "ros2_control_node" in active_source, (
-        "controller_manager (ros2_control_node) fehlt in aktiven Zeilen"
-    )
+    assert (
+        "ros2_control_node" in active_source
+    ), "controller_manager (ros2_control_node) fehlt in aktiven Zeilen"
     assert "UnlessCondition(use_sim_time)" in active_source, (
         "ros2_control_node muss auf echte Hardware beschraenkt sein "
         "(UnlessCondition(use_sim_time))"
@@ -113,25 +105,23 @@ def test_nerf_chain():
     active_source = _active_source()
 
     for controller in ("tilt_controller", "shooter_controller", "arming_controller"):
-        assert f'"{controller}"' in active_source, (
-            f"Spawner fuer {controller} fehlt in aktiven Zeilen"
-        )
-    assert "nerf_control_node" in active_source, (
-        "nerf_control_node fehlt in aktiven Zeilen"
-    )
+        assert (
+            f'"{controller}"' in active_source
+        ), f"Spawner fuer {controller} fehlt in aktiven Zeilen"
+    assert "nerf_control_node" in active_source, "nerf_control_node fehlt in aktiven Zeilen"
 
 
 def test_twist_mux_remap():
     """Prueft das Remapping von twist_mux auf den gemeinsamen /cmd_vel Vertrag."""
     active_source = _active_source()
 
-    assert '("/cmd_vel_out", "/cmd_vel")' in active_source, (
-        "twist_mux remap auf /cmd_vel fehlt in aktiven Zeilen"
-    )
+    assert (
+        '("/cmd_vel_out", "/cmd_vel")' in active_source
+    ), "twist_mux remap auf /cmd_vel fehlt in aktiven Zeilen"
 
-    assert "/diff_cont/cmd_vel_unstamped" not in active_source, (
-        "Altes diff_cont remap ist noch aktiv — muss auskommentiert sein"
-    )
+    assert (
+        "/diff_cont/cmd_vel_unstamped" not in active_source
+    ), "Altes diff_cont remap ist noch aktiv — muss auskommentiert sein"
 
 
 def test_controller_manager_remappings():
@@ -151,6 +141,6 @@ def test_controller_manager_remappings():
         '("~/robot_description", "robot_description")',
     ]
     for remap in expected:
-        assert remap in active_source, (
-            f"ros2_control_node Remapping {remap} fehlt in aktiven Zeilen"
-        )
+        assert (
+            remap in active_source
+        ), f"ros2_control_node Remapping {remap} fehlt in aktiven Zeilen"

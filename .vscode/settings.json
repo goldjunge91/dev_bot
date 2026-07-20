@@ -1,9 +1,12 @@
 {
     "cmake.ignoreCMakeListsMissing": true,
     "cmake.testEnvironment": {
-        "LD_LIBRARY_PATH": "/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib",
-        "AMENT_PREFIX_PATH": "${workspaceFolder}/install/serial:${workspaceFolder}/install/gubot_one:${workspaceFolder}/install/nerf_launch_system:${workspaceFolder}/install/face_tracker:${workspaceFolder}/install/diffdrive_arduino:/opt/ros/humble",
-        "PYTHONPATH": "${workspaceFolder}/install/nerf_launch_system/local/lib/python3.10/dist-packages:${workspaceFolder}/build/face_tracker:${workspaceFolder}/install/face_tracker/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages"
+        "LD_LIBRARY_PATH":
+            "/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib",
+        "AMENT_PREFIX_PATH":
+            "${workspaceFolder}/install/serial:${workspaceFolder}/install/gubot_one:${workspaceFolder}/install/nerf_launch_system:${workspaceFolder}/install/face_tracker:${workspaceFolder}/install/diffdrive_arduino:/opt/ros/humble",
+        "PYTHONPATH":
+            "${workspaceFolder}/install/nerf_launch_system/local/lib/python3.10/dist-packages:${workspaceFolder}/build/face_tracker:${workspaceFolder}/install/face_tracker/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages"
     },
     "python.autoComplete.extraPaths": [
         "/opt/ros/humble/lib/python3.10/site-packages",

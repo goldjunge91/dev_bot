@@ -38,11 +38,12 @@ Axis Mapping:
 - Axis 6/7: D-Pad Axes (Emergency Disarm)
 """
 
+import time
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Float64MultiArray
-import time
 
 
 class NerfJoy(Node):
@@ -122,11 +123,7 @@ class NerfJoy(Node):
 
         def pressed(idx):
             """Erkennt Button-Press (Flanke 0→1)."""
-            return (
-                idx < len(msg.buttons)
-                and msg.buttons[idx] == 1
-                and self.last_buttons[idx] == 0
-            )
+            return idx < len(msg.buttons) and msg.buttons[idx] == 1 and self.last_buttons[idx] == 0
 
         # --- 1. Arming / Disarming ---
         # Anforderung: D-Pad disarmt sofort (Notfall-Stopp)

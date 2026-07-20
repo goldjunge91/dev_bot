@@ -6,8 +6,8 @@
 #define LAUNCHER_H
 
 #include "../../include/Config.h"
-#include "../Utils/SerialOutput.h"
 #include "../FSM/FiringFSM.h"
+#include "../Utils/SerialOutput.h"
 
 #include <Arduino.h>  // Basis-Header der Arduino-Bibliothek
 #include <Servo.h>    // Arduino-Bibliothek zur Ansteuerung von Servomotoren
